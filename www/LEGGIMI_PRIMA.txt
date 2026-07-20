@@ -1,0 +1,10 @@
+COME APRIRE MAIR GO! 4.0
+
+1. Estrai tutto lo ZIP in una cartella.
+2. Per una prova immediata, apri index.html.
+3. Per installazione PWA e offline completo, servi la cartella con un piccolo server locale HTTPS/localhost.
+   Esempio su PC con Python: python -m http.server 8080
+   Poi apri: http://localhost:8080
+4. Se avevi già installato una vecchia MAIR GO!, disinstallala oppure cancella i dati del sito/cache e installa questa build.
+
+La scritta “VERSIONE 4.0 COMPLETA” appare nella Home: serve a verificare subito che stai usando la nuova versione.

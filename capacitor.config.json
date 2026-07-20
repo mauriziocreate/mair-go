@@ -1,0 +1,8 @@
+{
+  "appId": "info.dandreart.mairgo",
+  "appName": "MAIR GO!",
+  "webDir": "www",
+  "android": {
+    "allowMixedContent": true
+  }
+}

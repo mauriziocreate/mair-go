@@ -1,0 +1,16 @@
+MAIR GO! 5.3 — PROMEMORIA BACKUP AUTOMATICO
+
+Novità:
+- Nella Home compare un avviso backup sempre visibile:
+  · verde se il backup è recente (entro 3 giorni);
+  · giallo di allerta se non fai un backup da 3 giorni o più, o se non l'hai mai fatto;
+  · con pulsante grande "Fai il backup ora" a portata di tocco.
+- Dopo l'esportazione l'avviso torna verde e appare il messaggio "Backup salvato nei Download".
+- Testo del backup nelle Impostazioni chiarito: il file .mair va nella cartella Download del telefono e NON viene cancellato svuotando la cache del browser.
+- Nessuna funzione o modulo preesistente rimosso o modificato.
+- Include il modulo Certificati della 5.2.
+- Cache PWA aggiornata alla versione 5.3.
+
+Nota: l'avviso scatta ogni 3 giorni. Conserva sempre l'ultimo file .mair
+e, per sicurezza extra in caso di perdita del telefono, copialo ogni tanto
+anche su email o Google Drive.
