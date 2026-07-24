@@ -9,7 +9,7 @@ function diagOpen(){
   box.setAttribute('style','position:fixed;top:0;left:0;right:0;bottom:0;z-index:999999;background:#111;color:#0f0;font:12px/1.5 monospace;padding:10px;overflow:auto');
   const testo=window.__LOG__.length?window.__LOG__.join('\n\n'):'(nessun errore registrato)';
   const info='DIAGNOSTICA MAIR GO!\n'
-    +'Versione app.js: 7.0\n'
+    +'Versione app.js: 7.1\n'
     +'docViewerOpen esiste: '+(typeof docViewerOpen)+'\n'
     +'textEditorOpen esiste: '+(typeof textEditorOpen)+'\n'
     +'certDocHtml esiste: '+(typeof certDocHtml)+'\n'
@@ -279,7 +279,7 @@ function infoView(){return `${section('Informazioni')}<section class="legal-card
 function contactView(){return `${section('Contatti e segnalazioni')}<section class="form-card"><h2>Scrivi a Maurizio D'Andrea</h2><p>Segnala un bug, invia un suggerimento, proponi una funzione o offri un contributo. Premendo “Prepara email” si aprirà l'app di posta del dispositivo: MAIR GO! non invia nulla automaticamente.</p><div class="formgrid">${field('Nome','contactName','','text','full')}${field('La tua email','contactEmail','','email','full')}<div class="field full"><label>Categoria</label><select id="contactCategory"><option>Segnalazione bug</option><option>Suggerimento</option><option>Richiesta funzione</option><option>Contributo</option><option>Collaborazione</option><option>Altro</option></select></div>${field('Oggetto','contactSubject','','text','full')}${area('Messaggio','contactMessage','','full')}</div><div class="row"><button class="btn primary" data-action="prepareEmail">✉️ Prepara email</button><button class="btn" data-action="copyContactEmail">Copia indirizzo</button></div><p class="meta">Destinatario: dandreart.info@gmail.com</p></section>`}
 function guideView(){return `${section('Guida offline')}<div class="guide-grid"><details open><summary>🚀 Primi passi</summary><p>Inserisci le opere da “Opere”, personalizza tecniche e dimensioni nelle Impostazioni, quindi carica documenti nella Biblioteca. Tutto viene salvato localmente.</p></details><details><summary>🎨 Archivio opere</summary><p>Ogni opera può contenere titolo, anno, codice, tecnica, supporto, dimensioni, cornice, stato, prezzo, descrizione e note. Le liste sono modificabili.</p></details><details><summary>📚 Biblioteca Pro</summary><p>Carica PDF, DOCX, TXT e immagini. Usa ricerca, categorie, tag, preferiti e collegamenti alle opere. Gli appunti di studio sono salvati insieme al documento.</p></details><details><summary>📄 PDF Studio</summary><p>Seleziona le opere, scegli campi e tema, prepara cataloghi, dossier o stampe d'archivio e usa “Stampa / Salva PDF”.</p></details><details><summary>💾 Backup</summary><p>Apri Impostazioni e crea frequentemente un backup .mair. È il modo affidabile per trasferire o recuperare i dati.</p></details><details><summary>📲 Installazione</summary><p>Quando il browser supporta l'installazione appare il pulsante “Installa”. Dopo l'installazione il pulsante scompare. Su iPhone usa Condividi → Aggiungi alla schermata Home.</p></details><details><summary>🛠 Risoluzione problemi</summary><p>Se appare una versione vecchia, chiudi l'app, aggiorna la pagina e riaprila. Non cancellare i dati del sito senza prima esportare un backup.</p></details></div>`}
 function timelineView(){const events=[...db.artworks.map(a=>({d:a.updated||a.created,t:`Opera: ${a.title||'Senza titolo'}`,i:'🎨'})),...db.library.map(x=>({d:x.date,t:`Biblioteca: ${x.title||x.name}`,i:'📚'})),...db.pdfProjects.map(x=>({d:x.created,t:`PDF: ${x.title}`,i:'📄'})),...db.exhibitions.map(x=>({d:x.updated||x.created,t:`Mostra: ${x.title}`,i:'🏛️'})),...db.clients.map(x=>({d:x.updated||x.created,t:`Cliente: ${x.name}`,i:'👥'})),...db.sales.map(x=>({d:x.updated||x.created,t:`Vendita: ${euro(x.total)}`,i:'💶'})),...db.agenda.map(x=>({d:x.updated||x.created,t:`Agenda: ${x.title}`,i:'📅'}))].filter(x=>x.d).sort((a,b)=>new Date(b.d)-new Date(a.d));return `${section('Timeline')}<div class="timeline">${events.map(e=>`<div class="timeline-item"><span>${e.i}</span><div><strong>${esc(e.t)}</strong><small>${new Date(e.d).toLocaleString('it-IT')}</small></div></div>`).join('')||empty('◷','La timeline si popolerà mentre usi l’app.')}</div>`}
-function settingsView(){const L=db.settings.lists;return `${section('Impostazioni')}<div class="settings-tabs"><a href="#appearance">Aspetto</a><a href="#security">Sicurezza</a><a href="#profile">Profilo</a><a href="#lists">Liste</a><a href="#backup">Backup</a></div><div class="formgrid"><div class="card" id="appearance"><div class="cardbody"><h3>🎨 Aspetto</h3><div class="field"><label>Tema dell'app</label><select id="themeSetting">${themeOptions.map(([v,l])=>`<option value="${v}" ${db.settings.theme===v?'selected':''}>${l}</option>`).join('')}</select></div><div class="field"><label>Dimensione caratteri</label><select id="fontSetting"><option value="small" ${db.settings.fontSize==='small'?'selected':''}>Piccola</option><option value="medium" ${db.settings.fontSize==='medium'?'selected':''}>Media</option><option value="large" ${db.settings.fontSize==='large'?'selected':''}>Grande</option></select></div><label class="switchrow"><input id="animationsSetting" type="checkbox" ${db.settings.animations!==false?'checked':''}> Animazioni</label><label class="switchrow"><input id="splashSetting" type="checkbox" ${db.settings.splash!==false?'checked':''}> Mostra splash all'avvio</label><button class="btn primary" data-action="saveAppearance">Salva aspetto</button></div></div><div class="card" id="security"><div class="cardbody"><h3>🔒 Sicurezza</h3><label class="switchrow"><input id="pinEnabled" type="checkbox" ${db.settings.pinEnabled?'checked':''}> Richiedi PIN all'avvio</label><div class="field"><label>Nuovo PIN (4–6 cifre)</label><input id="newPin" type="password" inputmode="numeric" maxlength="6" placeholder="Lascia vuoto per non cambiarlo"></div><div class="field"><label>Conferma PIN</label><input id="confirmPin" type="password" inputmode="numeric" maxlength="6"></div><button class="btn primary" data-action="savePin">Salva sicurezza</button><p class="meta">Il PIN è una protezione locale di accesso, non una cifratura dei file.</p></div></div><div class="card" id="profile"><div class="cardbody"><h3>👤 Profilo artista</h3>${field('Nome artista / atelier','artist',db.settings.artist)}${area('Biografia','bio',db.settings.bio,'')}${field('Email','email',db.settings.email,'email')}${field('Telefono','phone',db.settings.phone)}<button class="btn primary" data-action="saveProfile">Salva profilo</button></div></div><div class="card"><div class="cardbody"><h3>🛠 Diagnostica</h3><p class="meta">Se qualcosa non funziona, apri il registro errori e invia il testo allo sviluppatore.</p><button class="btn" data-action="openDiag">Apri diagnostica</button></div></div><div class="card" id="backup"><div class="cardbody"><h3>⬇️ Backup</h3>${backupBanner()}<p>Il backup <strong>.mair</strong> viene salvato nella cartella <strong>Download</strong> del telefono. È un file vero: <strong>non</strong> viene cancellato se svuoti la cache o i dati del browser. Conserva sempre l'ultimo file, e ogni tanto copialo anche altrove (email a te stesso, Google Drive) per proteggerti in caso di perdita del telefono.</p><div class="row"><button class="btn primary" data-action="exportBackup">💾 Esporta ora</button><button class="btn" data-action="importBackup">Importa</button></div><p class="meta">Ultimo backup: ${db.settings.lastBackup?new Date(db.settings.lastBackup).toLocaleString('it-IT'):'mai'}</p></div></div></div><h2 id="lists" style="margin-top:28px">Liste personalizzabili</h2><div class="grid">${Object.entries({techniques:'Tecniche',supports:'Supporti',dimensions:'Dimensioni',frames:'Cornici',statuses:'Stati',categories:'Categorie Biblioteca'}).map(([k,t])=>`<article class="card"><div class="cardbody"><h3>${t}</h3><div class="list-manager">${L[k].map((v,i)=>`<div class="list-row"><input value="${esc(v)}" data-list-key="${k}" data-list-i="${i}"><button class="btn danger" data-action="removeListItem" data-id="${k}:${i}">×</button></div>`).join('')}<button class="btn" data-action="addListItem" data-id="${k}">＋ Aggiungi voce</button><button class="btn primary" data-action="saveLists">Salva modifiche</button></div></div></article>`).join('')}</div>`}
+function settingsView(){const L=db.settings.lists;return `${section('Impostazioni')}<div class="settings-tabs"><a href="#appearance">Aspetto</a><a href="#security">Sicurezza</a><a href="#profile">Profilo</a><a href="#lists">Liste</a><a href="#backup">Backup</a></div><div class="formgrid"><div class="card" id="appearance"><div class="cardbody"><h3>🎨 Aspetto</h3><div class="field"><label>Tema dell'app</label><select id="themeSetting">${themeOptions.map(([v,l])=>`<option value="${v}" ${db.settings.theme===v?'selected':''}>${l}</option>`).join('')}</select></div><div class="field"><label>Dimensione caratteri</label><select id="fontSetting"><option value="small" ${db.settings.fontSize==='small'?'selected':''}>Piccola</option><option value="medium" ${db.settings.fontSize==='medium'?'selected':''}>Media</option><option value="large" ${db.settings.fontSize==='large'?'selected':''}>Grande</option></select></div><label class="switchrow"><input id="animationsSetting" type="checkbox" ${db.settings.animations!==false?'checked':''}> Animazioni</label><label class="switchrow"><input id="splashSetting" type="checkbox" ${db.settings.splash!==false?'checked':''}> Mostra splash all'avvio</label><button class="btn primary" data-action="saveAppearance">Salva aspetto</button></div></div><div class="card" id="security"><div class="cardbody"><h3>🔒 Sicurezza</h3><label class="switchrow"><input id="pinEnabled" type="checkbox" ${db.settings.pinEnabled?'checked':''}> Richiedi PIN all'avvio</label><div class="field"><label>Nuovo PIN (4–6 cifre)</label><input id="newPin" type="password" inputmode="numeric" maxlength="6" placeholder="Lascia vuoto per non cambiarlo"></div><div class="field"><label>Conferma PIN</label><input id="confirmPin" type="password" inputmode="numeric" maxlength="6"></div><button class="btn primary" data-action="savePin">Salva sicurezza</button><p class="meta">Il PIN è una protezione locale di accesso, non una cifratura dei file.</p></div></div><div class="card" id="profile"><div class="cardbody"><h3>👤 Profilo artista</h3>${field('Nome artista / atelier','artist',db.settings.artist)}${area('Biografia','bio',db.settings.bio,'')}${field('Email','email',db.settings.email,'email')}${field('Telefono','phone',db.settings.phone)}<button class="btn primary" data-action="saveProfile">Salva profilo</button></div></div><div class="card"><div class="cardbody"><h3>📄 Impaginazione PDF</h3><p class="meta">Formato, margini, caratteri, colori, immagini e sezioni dei documenti generati.</p><button class="btn" data-action="pdfSettings">Configura impaginazione</button></div></div><div class="card"><div class="cardbody"><h3>🛠 Diagnostica</h3><p class="meta">Se qualcosa non funziona, apri il registro errori e invia il testo allo sviluppatore.</p><button class="btn" data-action="openDiag">Apri diagnostica</button></div></div><div class="card" id="backup"><div class="cardbody"><h3>⬇️ Backup</h3>${backupBanner()}<p>Il backup <strong>.mair</strong> viene salvato nella cartella <strong>Download</strong> del telefono. È un file vero: <strong>non</strong> viene cancellato se svuoti la cache o i dati del browser. Conserva sempre l'ultimo file, e ogni tanto copialo anche altrove (email a te stesso, Google Drive) per proteggerti in caso di perdita del telefono.</p><div class="row"><button class="btn primary" data-action="exportBackup">💾 Esporta ora</button><button class="btn" data-action="importBackup">Importa</button></div><p class="meta">Ultimo backup: ${db.settings.lastBackup?new Date(db.settings.lastBackup).toLocaleString('it-IT'):'mai'}</p></div></div></div><h2 id="lists" style="margin-top:28px">Liste personalizzabili</h2><div class="grid">${Object.entries({techniques:'Tecniche',supports:'Supporti',dimensions:'Dimensioni',frames:'Cornici',statuses:'Stati',categories:'Categorie Biblioteca'}).map(([k,t])=>`<article class="card"><div class="cardbody"><h3>${t}</h3><div class="list-manager">${L[k].map((v,i)=>`<div class="list-row"><input value="${esc(v)}" data-list-key="${k}" data-list-i="${i}"><button class="btn danger" data-action="removeListItem" data-id="${k}:${i}">×</button></div>`).join('')}<button class="btn" data-action="addListItem" data-id="${k}">＋ Aggiungi voce</button><button class="btn primary" data-action="saveLists">Salva modifiche</button></div></div></article>`).join('')}</div>`}
 function openModal(title,html,onSave,saveLabel='Salva'){ $('#modalTitle').textContent=title;$('#modalBody').innerHTML=html;$('#modalSave').textContent=saveLabel;modal.showModal();document.querySelectorAll('[data-add-list]').forEach(b=>b.onclick=()=>{const key={technique:'techniques',support:'supports',dimensions:'dimensions',frame:'frames',status:'statuses',category:'categories'}[b.dataset.addList];const v=prompt('Nuova voce');if(v){db.settings.lists[key].push(v);save();const s=b.previousElementSibling;s.insertAdjacentHTML('beforeend',`<option selected>${esc(v)}</option>`)}});$('#modalSave').onclick=e=>{e.preventDefault();onSave(new FormData($('#modalForm')))}}
 async function fileData(file){return new Promise((res,rej)=>{const r=new FileReader;r.onload=()=>res(r.result);r.onerror=rej;r.readAsDataURL(file)})}async function fileText(file){try{return await file.text()}catch{return ''}}
 function artworkModal(a={}){openModal(a.id?'Modifica opera':'Nuova opera',`<div class="formgrid">${field('Titolo','title',a.title,'text','full')}${field('Anno','year',a.year)}${field('Codice opera','code',a.code||('MG-'+String(db.artworks.length+1).padStart(4,'0')))}${selectField('Tecnica','technique',db.settings.lists.techniques,a.technique)}${selectField('Supporto','support',db.settings.lists.supports,a.support)}${selectField('Dimensioni','dimensions',db.settings.lists.dimensions,a.dimensions)}${selectField('Cornice','frame',db.settings.lists.frames,a.frame)}${selectField('Stato','status',db.settings.lists.statuses,a.status||'Disponibile')}${field('Prezzo (€)','price',a.price,'number')}${field('Serie / collezione','collection',a.collection)}${field('Posizione attuale','location',a.location)}${area('Descrizione','description',a.description)}${area('Note private','notes',a.notes)}<div class="field full"><label>Immagine principale</label><input name="imageFile" type="file" accept="image/*"></div></div>`,async fd=>{const file=fd.get('imageFile');const obj={...a,id:a.id||uid(),title:fd.get('title'),year:fd.get('year'),code:fd.get('code'),technique:fd.get('technique'),support:fd.get('support'),dimensions:fd.get('dimensions'),frame:fd.get('frame'),status:fd.get('status'),price:fd.get('price'),collection:fd.get('collection'),location:fd.get('location'),description:fd.get('description'),notes:fd.get('notes'),image:file?.size?await fileData(file):a.image||'',updated:new Date().toISOString(),created:a.created||new Date().toISOString()};if(a.id)db.artworks=db.artworks.map(x=>x.id===a.id?obj:x);else db.artworks.unshift(obj);save();modal.close();render();toast('Opera salvata')})}
@@ -505,90 +505,113 @@ function textEditorOpen(title,text){
 }
 
 /* ===== IMPAGINAZIONE PDF PROFESSIONALE ===== */
-const PDF_MARG={top:18,bottom:20,left:16,right:16};
+const PDF_DEFAULT={
+  formato:'a4', orientamento:'p',
+  mTop:18,mBottom:20,mLeft:16,mRight:16,
+  font:'times', corpo:11, titolo:24, colore:'#8a6a1f',
+  copertina:true, intro:true, indice:true, colophon:true, numeri:true,
+  intestazione:true, imgMax:70, imgPos:'centro',
+  operaPerPagina:true, riempi:true
+};
+function pdfCfg(){return Object.assign({},PDF_DEFAULT,db.settings.pdf||{});}
+const PDF_FONTS=[['times','Times (classico)'],['helvetica','Helvetica (moderno)'],['courier','Courier (macchina)']];
+const PDF_FORMATI=[['a4','A4 (21×29,7)'],['a5','A5 (14,8×21)'],['letter','Letter (21,6×27,9)'],['a3','A3 (29,7×42)']];
 
-function pdfMisure(pdf){
+function pdfMisure(pdf,C){
+  C=C||pdfCfg();
   const pw=pdf.internal.pageSize.getWidth(), ph=pdf.internal.pageSize.getHeight();
-  return {pw,ph,utileW:pw-PDF_MARG.left-PDF_MARG.right,utileH:ph-PDF_MARG.top-PDF_MARG.bottom};
+  return {pw,ph,mt:C.mTop,mb:C.mBottom,ml:C.mLeft,mr:C.mRight,
+    utileW:pw-C.mLeft-C.mRight, utileH:ph-C.mTop-C.mBottom};
 }
 
 // disegna un elemento DOM in una pagina, scalandolo per stare nell'area utile
 async function pdfBloccoInPagina(pdf,el,opt){
-  const M=pdfMisure(pdf);
+  const C=(opt&&opt.C)||pdfCfg();
+  const M=pdfMisure(pdf,C);
   const canvas=await html2canvas(el,{scale:2,backgroundColor:'#ffffff',useCORS:true,logging:false});
   let w=M.utileW, h=canvas.height*w/canvas.width;
-  const maxH=opt&&opt.maxH?opt.maxH:M.utileH;
+  const maxH=(opt&&opt.maxH)||M.utileH;
   if(h>maxH){h=maxH;w=canvas.width*h/canvas.height;}
-  const x=PDF_MARG.left+(M.utileW-w)/2;
-  const y=(opt&&opt.y!=null)?opt.y:PDF_MARG.top;
+  const x=M.ml+(M.utileW-w)/2;
+  const y=(opt&&opt.y!=null)?opt.y:M.mt;
   pdf.addImage(canvas.toDataURL('image/jpeg',0.92),'JPEG',x,y,w,h);
   return y+h;
 }
 
 // crea un contenitore fuori schermo per rendere i blocchi alla larghezza giusta
-function pdfStage(){
+function pdfStage(C){
+  C=C||pdfCfg();
+  const fam=C.font==='helvetica'?'Helvetica,Arial,sans-serif':(C.font==='courier'?'Courier New,monospace':'Georgia,Times New Roman,serif');
   const st=document.createElement('div');
-  st.setAttribute('style','position:fixed;left:-10000px;top:0;width:794px;background:#fff;color:#111;font-family:Georgia,serif;line-height:1.6');
+  st.setAttribute('style','position:fixed;left:-10000px;top:0;width:794px;background:#fff;color:#111;line-height:1.6;font-family:'+fam+';font-size:'+(C.corpo*1.35)+'px');
   document.body.appendChild(st);
   return st;
 }
 
-function pdfPiePagina(pdf,num,tot,testo){
-  const M=pdfMisure(pdf);
+function pdfPiePagina(pdf,num,tot,testo,C){
+  C=C||pdfCfg();
+  const M=pdfMisure(pdf,C);
   pdf.setFontSize(8);pdf.setTextColor(120);
-  if(testo)pdf.text(String(testo).slice(0,70),PDF_MARG.left,M.ph-9);
-  pdf.text(String(num)+' / '+String(tot),M.pw-PDF_MARG.right,M.ph-9,{align:'right'});
+  if(testo)pdf.text(String(testo).slice(0,70),M.ml,M.ph-9);
+  pdf.text(String(num)+' / '+String(tot),M.pw-M.mr,M.ph-9,{align:'right'});
   pdf.setTextColor(0);
 }
 
 // genera il PDF impaginato di un progetto catalogo
 async function pdfCatalogoImpaginato(p){
+  const C=pdfCfg();
   const {jsPDF}=window.jspdf;
-  const pdf=new jsPDF({orientation:'p',unit:'mm',format:'a4'});
-  const M=pdfMisure(pdf);
-  const st=pdfStage();
+  const pdf=new jsPDF({orientation:C.orientamento,unit:'mm',format:C.formato});
+  const M=pdfMisure(pdf,C);
+  const st=pdfStage(C);
   const arts=(p.artworkIds||[]).map(id=>db.artworks.find(a=>a.id===id)).filter(Boolean);
   const F=p.fields||[];
   const autore=esc(db.settings.artist||'');
+  const col=C.colore||'#8a6a1f';
+  const T=(n)=>Math.round(C.titolo*n);
+  let prima=true;
+  const nuovaPagina=()=>{if(prima){prima=false;}else{pdf.addPage();}};
   try{
     // ---- COPERTINA ----
-    st.innerHTML='<div style="padding:56px 40px;text-align:center">'
-      +'<div style="border:3px solid #8a6a1f;padding:44px 28px">'
-      +'<div style="letter-spacing:.28em;text-transform:uppercase;font-size:13px;color:#8a6a1f;font-weight:700">'+esc(p.type||'Catalogo')+'</div>'
-      +'<h1 style="font-size:40px;margin:22px 0 10px;line-height:1.2">'+esc(p.title||'')+'</h1>'
-      +(p.subtitle?'<h2 style="font-size:20px;font-weight:400;font-style:italic;margin:0 0 18px">'+esc(p.subtitle)+'</h2>':'')
-      +'<div style="width:70px;height:2px;background:#8a6a1f;margin:22px auto"></div>'
-      +'<div style="font-size:19px;font-weight:700">'+autore+'</div>'
-      +'<div style="font-size:13px;color:#555;margin-top:6px">'+arts.length+' opere</div>'
-      +'</div></div>';
-    await pdfBloccoInPagina(pdf,st,{y:PDF_MARG.top,maxH:M.utileH});
-
+    if(C.copertina){
+      nuovaPagina();
+      const sub=(p.subtitle&&p.subtitle.trim()&&p.subtitle.trim()!==autore)?'<h2 style="font-size:'+T(0.82)+'px;font-weight:400;font-style:italic;margin:0 0 18px">'+esc(p.subtitle)+'</h2>':'';
+      st.innerHTML='<div style="padding:40px 30px;text-align:center;min-height:900px;display:flex;flex-direction:column;justify-content:center">'
+        +'<div style="border:3px solid '+col+';padding:56px 30px">'
+        +'<div style="letter-spacing:.28em;text-transform:uppercase;font-size:'+T(0.5)+'px;color:'+col+';font-weight:700">'+esc(p.type||'Catalogo')+'</div>'
+        +'<h1 style="font-size:'+T(1.7)+'px;margin:26px 0 12px;line-height:1.2">'+esc(p.title||'')+'</h1>'
+        +sub
+        +'<div style="width:70px;height:2px;background:'+col+';margin:26px auto"></div>'
+        +'<div style="font-size:'+T(0.8)+'px;font-weight:700">'+autore+'</div>'
+        +'<div style="font-size:'+T(0.55)+'px;color:#555;margin-top:8px">'+arts.length+(arts.length===1?' opera':' opere')+'</div>'
+        +'</div></div>';
+      await pdfBloccoInPagina(pdf,st,{C,maxH:M.utileH});
+    }
     // ---- INTRODUZIONE ----
-    if(p.intro&&p.intro.trim()){
-      pdf.addPage();
-      st.innerHTML='<div style="padding:10px 6px">'
-        +'<h2 style="font-size:24px;border-bottom:2px solid #8a6a1f;padding-bottom:8px;margin:0 0 16px">Introduzione</h2>'
-        +'<div style="font-size:15px;text-align:justify;white-space:pre-wrap">'+esc(p.intro)+'</div></div>';
-      await pdfBloccoInPagina(pdf,st,{y:PDF_MARG.top,maxH:M.utileH});
+    if(C.intro&&p.intro&&p.intro.trim()){
+      nuovaPagina();
+      st.innerHTML='<div style="padding:6px">'
+        +'<h2 style="font-size:'+T(1)+'px;border-bottom:2px solid '+col+';padding-bottom:8px;margin:0 0 18px;color:'+col+'">Introduzione</h2>'
+        +'<div style="text-align:justify;white-space:pre-wrap">'+esc(p.intro)+'</div></div>';
+      await pdfBloccoInPagina(pdf,st,{C,maxH:M.utileH});
     }
-
     // ---- INDICE ----
-    if(arts.length>1){
-      pdf.addPage();
-      st.innerHTML='<div style="padding:10px 6px">'
-        +'<h2 style="font-size:24px;border-bottom:2px solid #8a6a1f;padding-bottom:8px;margin:0 0 16px">Indice delle opere</h2>'
-        +'<table style="width:100%;border-collapse:collapse;font-size:14px">'
-        +arts.map((a,i)=>'<tr><td style="padding:7px 4px;border-bottom:1px solid #e2e2e2;width:34px;color:#8a6a1f;font-weight:700">'+(i+1)+'</td>'
-          +'<td style="padding:7px 4px;border-bottom:1px solid #e2e2e2">'+esc(a.title||'Senza titolo')+(a.year?' <span style="color:#777">('+esc(a.year)+')</span>':'')+'</td></tr>').join('')
+    if(C.indice&&arts.length>1){
+      nuovaPagina();
+      st.innerHTML='<div style="padding:6px">'
+        +'<h2 style="font-size:'+T(1)+'px;border-bottom:2px solid '+col+';padding-bottom:8px;margin:0 0 18px;color:'+col+'">Indice delle opere</h2>'
+        +'<table style="width:100%;border-collapse:collapse">'
+        +arts.map((a,i)=>'<tr><td style="padding:8px 4px;border-bottom:1px solid #e2e2e2;width:38px;color:'+col+';font-weight:700">'+(i+1)+'</td>'
+          +'<td style="padding:8px 4px;border-bottom:1px solid #e2e2e2">'+esc(a.title||'Senza titolo')+(a.year?' <span style="color:#777">('+esc(a.year)+')</span>':'')+'</td></tr>').join('')
         +'</table></div>';
-      await pdfBloccoInPagina(pdf,st,{y:PDF_MARG.top,maxH:M.utileH});
+      await pdfBloccoInPagina(pdf,st,{C,maxH:M.utileH});
     }
-
-    // ---- UNA OPERA PER PAGINA ----
-    const riga=(lab,val)=>val?'<tr><td style="padding:5px 8px;border-bottom:1px solid #e6e6e6;font-weight:700;width:38%;color:#8a6a1f;font-size:13px">'+lab+'</td><td style="padding:5px 8px;border-bottom:1px solid #e6e6e6;font-size:13px">'+esc(val)+'</td></tr>':'';
+    // ---- OPERE ----
+    const riga=(lab,val)=>val?'<tr><td style="padding:6px 8px;border-bottom:1px solid #e6e6e6;font-weight:700;width:36%;color:'+col+'">'+lab+'</td><td style="padding:6px 8px;border-bottom:1px solid #e6e6e6">'+esc(val)+'</td></tr>':'';
+    const allinea=C.imgPos==='sinistra'?'flex-start':(C.imgPos==='destra'?'flex-end':'center');
     for(let i=0;i<arts.length;i++){
       const a=arts[i];
-      pdf.addPage();
+      nuovaPagina();
       const dati=(F.includes('year')?riga('Anno',a.year):'')
         +(F.includes('code')?riga('Codice',a.code):'')
         +(F.includes('technique')?riga('Tecnica',a.technique?(a.technique+(a.support?' su '+a.support:'')):''):'')
@@ -596,50 +619,96 @@ async function pdfCatalogoImpaginato(p){
         +(F.includes('frame')?riga('Cornice',a.frame):'')
         +(F.includes('status')?riga('Stato',a.status):'')
         +((F.includes('price')&&a.price)?riga('Prezzo',euro(a.price)):'');
-      st.innerHTML='<div style="padding:6px">'
-        +'<div style="display:flex;justify-content:space-between;align-items:baseline;border-bottom:1px solid #ddd;padding-bottom:5px;margin-bottom:14px">'
-        +'<span style="font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:#8a6a1f;font-weight:700">Opera '+(i+1)+' di '+arts.length+'</span>'
-        +'<span style="font-size:11px;color:#888">'+esc(p.title||'')+'</span></div>'
-        +(a.image?'<div style="text-align:center;margin-bottom:16px"><img src="'+a.image+'" style="max-width:100%;max-height:400px;object-fit:contain;border:1px solid #ccc"></div>':'')
-        +'<h2 style="font-size:24px;font-style:italic;text-align:center;margin:0 0 4px">'+esc(a.title||'Senza titolo')+'</h2>'
-        +(a.year?'<div style="text-align:center;color:#777;font-size:14px;margin-bottom:14px">'+esc(a.year)+'</div>':'<div style="margin-bottom:10px"></div>')
-        +(dati?'<table style="width:100%;border-collapse:collapse;margin-bottom:12px">'+dati+'</table>':'')
-        +((F.includes('description')&&a.description)?'<div style="font-size:13px;text-align:justify;color:#333;border-top:1px solid #eee;padding-top:10px;white-space:pre-wrap">'+esc(a.description)+'</div>':'')
+      const testa=C.intestazione?'<div style="display:flex;justify-content:space-between;align-items:baseline;border-bottom:1px solid #ddd;padding-bottom:6px;margin-bottom:16px">'
+        +'<span style="font-size:'+T(0.46)+'px;letter-spacing:.16em;text-transform:uppercase;color:'+col+';font-weight:700">Opera '+(i+1)+' di '+arts.length+'</span>'
+        +'<span style="font-size:'+T(0.46)+'px;color:#888">'+esc(p.title||'')+'</span></div>':'';
+      const altezzaImg=Math.round(9*(C.imgMax||70));
+      st.innerHTML='<div style="padding:6px;'+(C.riempi?'min-height:940px;display:flex;flex-direction:column;':'')+'">'
+        +testa
+        +(a.image?'<div style="text-align:'+(C.imgPos==='centro'?'center':C.imgPos)+';margin-bottom:18px;display:flex;justify-content:'+allinea+'"><img src="'+a.image+'" style="max-width:100%;max-height:'+altezzaImg+'px;object-fit:contain;border:1px solid #ccc"></div>':'')
+        +'<h2 style="font-size:'+T(1)+'px;font-style:italic;text-align:center;margin:0 0 4px">'+esc(a.title||'Senza titolo')+'</h2>'
+        +(a.year?'<div style="text-align:center;color:#777;margin-bottom:16px">'+esc(a.year)+'</div>':'<div style="margin-bottom:12px"></div>')
+        +(dati?'<table style="width:100%;border-collapse:collapse;margin-bottom:14px">'+dati+'</table>':'')
+        +((F.includes('description')&&a.description)?'<div style="text-align:justify;color:#333;border-top:1px solid #eee;padding-top:12px;white-space:pre-wrap">'+esc(a.description)+'</div>':'')
         +'</div>';
-      await pdfBloccoInPagina(pdf,st,{y:PDF_MARG.top,maxH:M.utileH});
+      await pdfBloccoInPagina(pdf,st,{C,maxH:M.utileH});
     }
-
     // ---- COLOPHON ----
-    pdf.addPage();
-    st.innerHTML='<div style="padding:40px 20px;text-align:center">'
-      +'<div style="width:60px;height:2px;background:#8a6a1f;margin:0 auto 20px"></div>'
-      +'<div style="font-size:19px;font-weight:700;margin-bottom:8px">'+autore+'</div>'
-      +(db.settings.bio?'<div style="font-size:13px;color:#444;max-width:440px;margin:0 auto 16px;text-align:justify;white-space:pre-wrap">'+esc(db.settings.bio)+'</div>':'')
-      +'<div style="font-size:13px;color:#666">'+esc(db.settings.email||'')+(db.settings.phone?' \u00b7 '+esc(db.settings.phone):'')+'</div>'
-      +'<div style="font-size:11px;color:#999;margin-top:22px">Catalogo generato con MAIR GO! \u00b7 '+new Date().toLocaleDateString('it-IT')+'</div>'
-      +'</div>';
-    await pdfBloccoInPagina(pdf,st,{y:PDF_MARG.top,maxH:M.utileH});
-
-    // ---- NUMERI DI PAGINA (salta la copertina) ----
-    const tot=pdf.internal.getNumberOfPages();
-    for(let n=2;n<=tot;n++){pdf.setPage(n);pdfPiePagina(pdf,n,tot,p.title||'');}
-  } finally {
-    st.remove();
-  }
+    if(C.colophon){
+      nuovaPagina();
+      st.innerHTML='<div style="padding:40px 20px;text-align:center">'
+        +'<div style="width:60px;height:2px;background:'+col+';margin:0 auto 22px"></div>'
+        +'<div style="font-size:'+T(0.8)+'px;font-weight:700;margin-bottom:10px">'+autore+'</div>'
+        +(db.settings.bio?'<div style="color:#444;max-width:440px;margin:0 auto 18px;text-align:justify;white-space:pre-wrap">'+esc(db.settings.bio)+'</div>':'')
+        +'<div style="color:#666">'+esc(db.settings.email||'')+(db.settings.phone?' \u00b7 '+esc(db.settings.phone):'')+'</div>'
+        +'<div style="font-size:'+T(0.46)+'px;color:#999;margin-top:24px">Catalogo generato con MAIR GO! \u00b7 '+new Date().toLocaleDateString('it-IT')+'</div>'
+        +'</div>';
+      await pdfBloccoInPagina(pdf,st,{C,maxH:M.utileH});
+    }
+    // ---- NUMERI ----
+    if(C.numeri){
+      const tot=pdf.internal.getNumberOfPages();
+      const da=C.copertina?2:1;
+      for(let n=da;n<=tot;n++){pdf.setPage(n);pdfPiePagina(pdf,n,tot,p.title||'',C);}
+    }
+  } finally { st.remove(); }
   return pdf;
 }
 
 // genera il PDF di un certificato (pagina singola, centrata)
 async function pdfCertificatoImpaginato(c){
+  const C=pdfCfg();
   const {jsPDF}=window.jspdf;
-  const pdf=new jsPDF({orientation:'p',unit:'mm',format:'a4'});
-  const M=pdfMisure(pdf);
-  const st=pdfStage();
+  const pdf=new jsPDF({orientation:C.orientamento,unit:'mm',format:C.formato});
+  const M=pdfMisure(pdf,C);
+  const st=pdfStage(C);
   try{
     st.innerHTML='<div style="padding:6px">'+certDocHtml(c)+'</div>';
-    await pdfBloccoInPagina(pdf,st,{y:PDF_MARG.top,maxH:M.utileH});
+    await pdfBloccoInPagina(pdf,st,{C,maxH:M.utileH});
   } finally { st.remove(); }
   return pdf;
+}
+
+/* ===== PANNELLO CONFIGURAZIONE PDF ===== */
+function pdfSettingsModal(){
+  const C=pdfCfg();
+  const sel=(nome,lista,val)=>'<select name="'+nome+'">'+lista.map(([v,l])=>'<option value="'+v+'"'+(String(val)===String(v)?' selected':'')+'>'+l+'</option>').join('')+'</select>';
+  const chk=(nome,label,val)=>'<label class="chkline"><input type="checkbox" name="'+nome+'"'+(val?' checked':'')+'> '+label+'</label>';
+  openModal('Impaginazione PDF','<div class="formgrid">'
+    +'<div class="field"><label>Formato pagina</label>'+sel('formato',PDF_FORMATI,C.formato)+'</div>'
+    +'<div class="field"><label>Orientamento</label>'+sel('orientamento',[['p','Verticale'],['l','Orizzontale']],C.orientamento)+'</div>'
+    +'<div class="field"><label>Margine alto (mm)</label><input name="mTop" type="number" min="5" max="60" value="'+C.mTop+'"></div>'
+    +'<div class="field"><label>Margine basso (mm)</label><input name="mBottom" type="number" min="5" max="60" value="'+C.mBottom+'"></div>'
+    +'<div class="field"><label>Margine sinistro (mm)</label><input name="mLeft" type="number" min="5" max="60" value="'+C.mLeft+'"></div>'
+    +'<div class="field"><label>Margine destro (mm)</label><input name="mRight" type="number" min="5" max="60" value="'+C.mRight+'"></div>'
+    +'<div class="field"><label>Carattere</label>'+sel('font',PDF_FONTS,C.font)+'</div>'
+    +'<div class="field"><label>Colore accento</label><input name="colore" type="color" value="'+C.colore+'"></div>'
+    +'<div class="field"><label>Corpo del testo</label><input name="corpo" type="number" min="7" max="18" value="'+C.corpo+'"></div>'
+    +'<div class="field"><label>Dimensione titoli</label><input name="titolo" type="number" min="14" max="48" value="'+C.titolo+'"></div>'
+    +'<div class="field"><label>Altezza max immagine (%)</label><input name="imgMax" type="number" min="20" max="100" value="'+C.imgMax+'"></div>'
+    +'<div class="field"><label>Posizione immagine</label>'+sel('imgPos',[['centro','Centrata'],['left','A sinistra'],['right','A destra']],C.imgPos)+'</div>'
+    +'<div class="field full"><label>Sezioni del documento</label><div class="chkgrid">'
+      +chk('copertina','Copertina',C.copertina)
+      +chk('intro','Introduzione',C.intro)
+      +chk('indice','Indice opere',C.indice)
+      +chk('colophon','Pagina finale',C.colophon)
+      +chk('numeri','Numeri di pagina',C.numeri)
+      +chk('intestazione','Intestazione opera',C.intestazione)
+      +chk('riempi','Riempi la pagina',C.riempi)
+    +'</div></div>'
+    +'<p class="meta full">Le impostazioni valgono per tutti i cataloghi e certificati generati.</p>'
+  +'</div>',fd=>{
+    db.settings.pdf={
+      formato:fd.get('formato'),orientamento:fd.get('orientamento'),
+      mTop:+fd.get('mTop'),mBottom:+fd.get('mBottom'),mLeft:+fd.get('mLeft'),mRight:+fd.get('mRight'),
+      font:fd.get('font'),colore:fd.get('colore'),corpo:+fd.get('corpo'),titolo:+fd.get('titolo'),
+      imgMax:+fd.get('imgMax'),imgPos:fd.get('imgPos'),
+      copertina:!!fd.get('copertina'),intro:!!fd.get('intro'),indice:!!fd.get('indice'),
+      colophon:!!fd.get('colophon'),numeri:!!fd.get('numeri'),intestazione:!!fd.get('intestazione'),
+      riempi:!!fd.get('riempi')
+    };
+    save();modal.close();toast('Impaginazione salvata');
+  });
 }
 
 function docViewerOpen(title,inner,extraCss,plainText){
@@ -673,6 +742,7 @@ function docViewerOpen(title,inner,extraCss,plainText){
     const bClose=mk('\u2190 Chiudi');
     const bPrint=mk('\ud83d\udcc4 Salva PDF',true);
     const bShare=mk('\ud83d\udce4 Condividi PDF');
+    const bCfg=mk('\u2699\ufe0f Impagina');
     const bText=mk('\u270d\ufe0f Testo');
     const bCopy=mk('\ud83d\udccb Copia');
     host.appendChild(bar);
@@ -799,6 +869,7 @@ function docViewerOpen(title,inner,extraCss,plainText){
     };
     bPrint.onclick=()=>generaPDF(false);
     bShare.onclick=()=>generaPDF(true);
+    bCfg.onclick=()=>pdfSettingsModal();
     bText.onclick=()=>{textEditorOpen(title,plainText||paper.innerText)};
     bCopy.onclick=async()=>{
       try{await navigator.clipboard.writeText(plainText||paper.innerText);toast('Testo copiato')}
@@ -810,7 +881,7 @@ function docViewerOpen(title,inner,extraCss,plainText){
 }
 
 let previewId=null;function pdfPreviewView(){const p=db.pdfProjects.find(x=>x.id===previewId);if(!p)return empty('📄','Progetto non trovato.');const arts=(p.artworkIds||[]).map(id=>db.artworks.find(a=>a.id===id)).filter(Boolean),F=p.fields||[];return `<div class="toolbar no-print"><button class="btn" data-action="backPdf">← PDF Studio</button><button class="btn primary" data-action="printPdf">📄 Apri documento</button><button class="btn" data-action="sharePdf">✍️ Testo modificabile</button></div><article class="pdf-page" data-theme="${esc(p.theme)}"><header style="border-bottom:3px solid var(--accent);padding-bottom:28px;margin-bottom:35px"><small>MAIR GO! · ${esc(p.type)}</small><h1>${esc(p.title)}</h1><h2>${esc(p.subtitle)}</h2><p>${esc(p.intro||'')}</p></header>${arts.map(a=>`<section class="pdf-art"><div>${a.image?`<img src="${a.image}" alt="${esc(a.title)}">`:''}</div><div><h2>${esc(a.title)}</h2>${F.includes('year')?`<p><strong>Anno:</strong> ${esc(a.year)}</p>`:''}${F.includes('code')?`<p><strong>Codice:</strong> ${esc(a.code)}</p>`:''}${F.includes('technique')?`<p><strong>Tecnica:</strong> ${esc(a.technique)}${a.support?' su '+esc(a.support):''}</p>`:''}${F.includes('dimensions')?`<p><strong>Dimensioni:</strong> ${esc(a.dimensions)}</p>`:''}${F.includes('frame')?`<p><strong>Cornice:</strong> ${esc(a.frame)}</p>`:''}${F.includes('status')?`<p><strong>Stato:</strong> ${esc(a.status)}</p>`:''}${F.includes('price')&&a.price?`<p><strong>Prezzo:</strong> ${euro(a.price)}</p>`:''}${F.includes('description')?`<p>${esc(a.description)}</p>`:''}</div></section>`).join('')}<footer style="border-top:1px solid #bbb;padding-top:20px;margin-top:40px"><strong>${esc(db.settings.artist)}</strong><br>${esc(db.settings.email)} ${esc(db.settings.phone)}</footer></article>`}
-const actions={openDiag:()=>diagOpen(),customizeHome:()=>homeCustomizeModal(),prepareEmail:()=>{const name=document.querySelector('[name=contactName]')?.value||'',from=document.querySelector('[name=contactEmail]')?.value||'',cat=$('#contactCategory')?.value||'Altro',sub=document.querySelector('[name=contactSubject]')?.value||'Contatto da MAIR GO!',msg=document.querySelector('[name=contactMessage]')?.value||'';const body=`Nome: ${name}\nEmail: ${from}\nCategoria: ${cat}\n\n${msg}`;location.href=`mailto:dandreart.info@gmail.com?subject=${encodeURIComponent('MAIR GO! - '+cat+' - '+sub)}&body=${encodeURIComponent(body)}`},copyContactEmail:async()=>{await navigator.clipboard.writeText('dandreart.info@gmail.com');toast('Indirizzo copiato')},newWorkspace:()=>workspaceModal(),editWorkspace:id=>workspaceModal(db.workspaces.find(x=>x.id===id)),deleteWorkspace:id=>del('workspaces',id),newExhibition:()=>exhibitionModal(),editExhibition:id=>exhibitionModal(db.exhibitions.find(x=>x.id===id)),deleteExhibition:id=>del('exhibitions',id),catalogFromExhibition:id=>catalogFromExhibition(id),newClient:()=>clientModal(),editClient:id=>clientModal(db.clients.find(x=>x.id===id)),deleteClient:id=>del('clients',id),newSale:()=>saleModal(),newSaleForClient:id=>saleModal({clientId:id}),editSale:id=>saleModal(db.sales.find(x=>x.id===id)),deleteSale:id=>del('sales',id),printReceipt:id=>printReceipt(id),newAgenda:()=>agendaModal(),editAgenda:id=>agendaModal(db.agenda.find(x=>x.id===id)),deleteAgenda:id=>del('agenda',id),exportAgendaIcs:()=>exportAgendaIcs(),newArtwork:()=>artworkModal(),editArtwork:id=>artworkModal(db.artworks.find(x=>x.id===id)),deleteArtwork:id=>del('artworks',id),toggleArtworkFav:id=>{const x=db.artworks.find(a=>a.id===id);x.favorite=!x.favorite;save();render()},newLibrary:()=>libraryModal(),editLibrary:id=>libraryModal(db.library.find(x=>x.id===id)),openLibrary:id=>openLibrary(id),deleteLibrary:id=>del('library',id),toggleLibFav:id=>{const x=db.library.find(a=>a.id===id);x.favorite=!x.favorite;save();render()},newPdfProject:()=>pdfProjectModal(),editPdfProject:id=>pdfProjectModal(db.pdfProjects.find(x=>x.id===id)),deletePdfProject:id=>del('pdfProjects',id),openPdfProject:id=>{previewId=id;route='pdfpreview';render()},newCertificate:()=>certificateModal(),editCertificate:id=>certificateModal(db.certificates.find(x=>x.id===id)),deleteCertificate:id=>del('certificates',id),openCertificate:id=>{certPreviewId=id;go('certpreview')},backCert:()=>go('certificates'),printCert:()=>{diagLog('CLICK','printCert premuto');const c=db.certificates.find(x=>x.id===certPreviewId);if(!c)return;const tpl=CERT_TEMPLATES[c.template]||CERT_TEMPLATES.autenticita;window.__PDFCTX__={tipo:'certificato',dato:c};docViewerOpen(c.title||tpl.title,certDocHtml(c),'',certPlain(c))},shareCert:()=>{const c=db.certificates.find(x=>x.id===certPreviewId);if(!c)return;const tpl=CERT_TEMPLATES[c.template]||CERT_TEMPLATES.autenticita;textEditorOpen(c.title||tpl.title,certPlain(c))},backPdf:()=>go('pdfstudio'),printPdf:()=>{diagLog('CLICK','printPdf premuto');const p=db.pdfProjects.find(x=>x.id===previewId);if(!p)return;window.__PDFCTX__={tipo:'catalogo',dato:p};docViewerOpen(p.title||'Catalogo',pdfDocHtml(p),'',pdfPlain(p))},sharePdf:()=>{const p=db.pdfProjects.find(x=>x.id===previewId);if(!p)return;textEditorOpen(p.title||'Catalogo',pdfPlain(p))},saveProfile:()=>{db.settings.artist=$('[name=artist]').value;db.settings.bio=$('[name=bio]').value;db.settings.email=$('[name=email]').value;db.settings.phone=$('[name=phone]').value;save();toast('Profilo salvato')},saveAppearance:()=>{db.settings.theme=$('#themeSetting').value;db.settings.fontSize=$('#fontSetting').value;db.settings.animations=$('#animationsSetting').checked;db.settings.splash=$('#splashSetting').checked;save();render();toast('Aspetto salvato')},savePin:async()=>{const enabled=$('#pinEnabled').checked,p=$('#newPin').value,c=$('#confirmPin').value;if(p&&(!/^\d{4,6}$/.test(p)||p!==c))return alert('Inserisci due PIN uguali di 4–6 cifre.');if(p)db.settings.pinHash=await hashPin(p);if(enabled&&!db.settings.pinHash)return alert('Imposta prima un PIN.');db.settings.pinEnabled=enabled;save();toast('Sicurezza salvata')},resetArtworkFilters:()=>{document.querySelectorAll('.filtergrid input,.filtergrid select').forEach(x=>x.value='');bindArtworkFilters();},addListItem:k=>{const v=prompt('Nuova voce');if(v){db.settings.lists[k].push(v);save();render()}},removeListItem:id=>{const[k,i]=id.split(':');db.settings.lists[k].splice(+i,1);save();render()},saveLists:()=>{document.querySelectorAll('[data-list-key]').forEach(x=>db.settings.lists[x.dataset.listKey][+x.dataset.listI]=x.value.trim());save();toast('Liste salvate')},exportBackup:()=>{db.settings.lastBackup=new Date().toISOString();save();download(new Blob([JSON.stringify(db)],{type:'application/json'}),`MAIR_GO_Backup_${new Date().toISOString().slice(0,10)}.mair`);toast('Backup salvato nei Download ✓');if(route==='home')render()},importBackup:()=>{const i=document.createElement('input');i.type='file';i.accept='.mair,.json';i.onchange=async()=>{try{db=merge(clone(defaults),JSON.parse(await i.files[0].text()));save();render();toast('Backup ripristinato')}catch{alert('Backup non valido')}};i.click()}};window.actions=actions;function del(k,id){if(confirm('Eliminare definitivamente?')){db[k]=db[k].filter(x=>x.id!==id);save();render()}}
+const actions={openDiag:()=>diagOpen(),pdfSettings:()=>pdfSettingsModal(),customizeHome:()=>homeCustomizeModal(),prepareEmail:()=>{const name=document.querySelector('[name=contactName]')?.value||'',from=document.querySelector('[name=contactEmail]')?.value||'',cat=$('#contactCategory')?.value||'Altro',sub=document.querySelector('[name=contactSubject]')?.value||'Contatto da MAIR GO!',msg=document.querySelector('[name=contactMessage]')?.value||'';const body=`Nome: ${name}\nEmail: ${from}\nCategoria: ${cat}\n\n${msg}`;location.href=`mailto:dandreart.info@gmail.com?subject=${encodeURIComponent('MAIR GO! - '+cat+' - '+sub)}&body=${encodeURIComponent(body)}`},copyContactEmail:async()=>{await navigator.clipboard.writeText('dandreart.info@gmail.com');toast('Indirizzo copiato')},newWorkspace:()=>workspaceModal(),editWorkspace:id=>workspaceModal(db.workspaces.find(x=>x.id===id)),deleteWorkspace:id=>del('workspaces',id),newExhibition:()=>exhibitionModal(),editExhibition:id=>exhibitionModal(db.exhibitions.find(x=>x.id===id)),deleteExhibition:id=>del('exhibitions',id),catalogFromExhibition:id=>catalogFromExhibition(id),newClient:()=>clientModal(),editClient:id=>clientModal(db.clients.find(x=>x.id===id)),deleteClient:id=>del('clients',id),newSale:()=>saleModal(),newSaleForClient:id=>saleModal({clientId:id}),editSale:id=>saleModal(db.sales.find(x=>x.id===id)),deleteSale:id=>del('sales',id),printReceipt:id=>printReceipt(id),newAgenda:()=>agendaModal(),editAgenda:id=>agendaModal(db.agenda.find(x=>x.id===id)),deleteAgenda:id=>del('agenda',id),exportAgendaIcs:()=>exportAgendaIcs(),newArtwork:()=>artworkModal(),editArtwork:id=>artworkModal(db.artworks.find(x=>x.id===id)),deleteArtwork:id=>del('artworks',id),toggleArtworkFav:id=>{const x=db.artworks.find(a=>a.id===id);x.favorite=!x.favorite;save();render()},newLibrary:()=>libraryModal(),editLibrary:id=>libraryModal(db.library.find(x=>x.id===id)),openLibrary:id=>openLibrary(id),deleteLibrary:id=>del('library',id),toggleLibFav:id=>{const x=db.library.find(a=>a.id===id);x.favorite=!x.favorite;save();render()},newPdfProject:()=>pdfProjectModal(),editPdfProject:id=>pdfProjectModal(db.pdfProjects.find(x=>x.id===id)),deletePdfProject:id=>del('pdfProjects',id),openPdfProject:id=>{previewId=id;route='pdfpreview';render()},newCertificate:()=>certificateModal(),editCertificate:id=>certificateModal(db.certificates.find(x=>x.id===id)),deleteCertificate:id=>del('certificates',id),openCertificate:id=>{certPreviewId=id;go('certpreview')},backCert:()=>go('certificates'),printCert:()=>{diagLog('CLICK','printCert premuto');const c=db.certificates.find(x=>x.id===certPreviewId);if(!c)return;const tpl=CERT_TEMPLATES[c.template]||CERT_TEMPLATES.autenticita;window.__PDFCTX__={tipo:'certificato',dato:c};docViewerOpen(c.title||tpl.title,certDocHtml(c),'',certPlain(c))},shareCert:()=>{const c=db.certificates.find(x=>x.id===certPreviewId);if(!c)return;const tpl=CERT_TEMPLATES[c.template]||CERT_TEMPLATES.autenticita;textEditorOpen(c.title||tpl.title,certPlain(c))},backPdf:()=>go('pdfstudio'),printPdf:()=>{diagLog('CLICK','printPdf premuto');const p=db.pdfProjects.find(x=>x.id===previewId);if(!p)return;window.__PDFCTX__={tipo:'catalogo',dato:p};docViewerOpen(p.title||'Catalogo',pdfDocHtml(p),'',pdfPlain(p))},sharePdf:()=>{const p=db.pdfProjects.find(x=>x.id===previewId);if(!p)return;textEditorOpen(p.title||'Catalogo',pdfPlain(p))},saveProfile:()=>{db.settings.artist=$('[name=artist]').value;db.settings.bio=$('[name=bio]').value;db.settings.email=$('[name=email]').value;db.settings.phone=$('[name=phone]').value;save();toast('Profilo salvato')},saveAppearance:()=>{db.settings.theme=$('#themeSetting').value;db.settings.fontSize=$('#fontSetting').value;db.settings.animations=$('#animationsSetting').checked;db.settings.splash=$('#splashSetting').checked;save();render();toast('Aspetto salvato')},savePin:async()=>{const enabled=$('#pinEnabled').checked,p=$('#newPin').value,c=$('#confirmPin').value;if(p&&(!/^\d{4,6}$/.test(p)||p!==c))return alert('Inserisci due PIN uguali di 4–6 cifre.');if(p)db.settings.pinHash=await hashPin(p);if(enabled&&!db.settings.pinHash)return alert('Imposta prima un PIN.');db.settings.pinEnabled=enabled;save();toast('Sicurezza salvata')},resetArtworkFilters:()=>{document.querySelectorAll('.filtergrid input,.filtergrid select').forEach(x=>x.value='');bindArtworkFilters();},addListItem:k=>{const v=prompt('Nuova voce');if(v){db.settings.lists[k].push(v);save();render()}},removeListItem:id=>{const[k,i]=id.split(':');db.settings.lists[k].splice(+i,1);save();render()},saveLists:()=>{document.querySelectorAll('[data-list-key]').forEach(x=>db.settings.lists[x.dataset.listKey][+x.dataset.listI]=x.value.trim());save();toast('Liste salvate')},exportBackup:()=>{db.settings.lastBackup=new Date().toISOString();save();download(new Blob([JSON.stringify(db)],{type:'application/json'}),`MAIR_GO_Backup_${new Date().toISOString().slice(0,10)}.mair`);toast('Backup salvato nei Download ✓');if(route==='home')render()},importBackup:()=>{const i=document.createElement('input');i.type='file';i.accept='.mair,.json';i.onchange=async()=>{try{db=merge(clone(defaults),JSON.parse(await i.files[0].text()));save();render();toast('Backup ripristinato')}catch{alert('Backup non valido')}};i.click()}};window.actions=actions;function del(k,id){if(confirm('Eliminare definitivamente?')){db[k]=db[k].filter(x=>x.id!==id);save();render()}}
 
 function bindSimpleFilter(inputId,gridId,arr,cardFn){const i=$('#'+inputId),g=$('#'+gridId);if(!i||!g)return;const run=()=>{const q=i.value.toLowerCase();g.innerHTML=arr.filter(x=>JSON.stringify(x).toLowerCase().includes(q)).map(cardFn).join('')||empty('⌕','Nessun risultato.');document.querySelectorAll('#'+gridId+' [data-action]').forEach(x=>x.onclick=()=>actions[x.dataset.action]?.(x.dataset.id,x))};i.oninput=run}
 function bindAgendaFilters(){const q=$('#agendaSearch'),t=$('#agendaType'),g=$('#agendaList');if(!q||!t||!g)return;const run=()=>{const s=q.value.toLowerCase();g.innerHTML=[...db.agenda].filter(x=>(!t.value||x.type===t.value)&&JSON.stringify(x).toLowerCase().includes(s)).sort((a,b)=>new Date(a.date)-new Date(b.date)).map(agendaCard).join('')||empty('⌕','Nessun evento.');document.querySelectorAll('#agendaList [data-action]').forEach(x=>x.onclick=()=>actions[x.dataset.action]?.(x.dataset.id,x))};q.oninput=t.onchange=run}
