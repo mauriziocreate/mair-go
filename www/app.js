@@ -9,7 +9,7 @@ function diagOpen(){
   box.setAttribute('style','position:fixed;top:0;left:0;right:0;bottom:0;z-index:999999;background:#111;color:#0f0;font:12px/1.5 monospace;padding:10px;overflow:auto');
   const testo=window.__LOG__.length?window.__LOG__.join('\n\n'):'(nessun errore registrato)';
   const info='DIAGNOSTICA MAIR GO!\n'
-    +'Versione app.js: 7.1\n'
+    +'Versione app.js: 7.2\n'
     +'docViewerOpen esiste: '+(typeof docViewerOpen)+'\n'
     +'textEditorOpen esiste: '+(typeof textEditorOpen)+'\n'
     +'certDocHtml esiste: '+(typeof certDocHtml)+'\n'
@@ -145,7 +145,7 @@ function clone(x){return JSON.parse(JSON.stringify(x))}function load(){try{const
   }
   updateHeader();
 }const uid=()=>crypto.randomUUID?.()||Date.now().toString(36)+Math.random().toString(36).slice(2);const esc=s=>String(s??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));const euro=n=>n?new Intl.NumberFormat('it-IT',{style:'currency',currency:'EUR'}).format(+n):'';function toast(t){const x=$('#toast');x.textContent=t;x.classList.add('show');setTimeout(()=>x.classList.remove('show'),1800)}function download(blob,name){const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=name;a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1000)}
-const titles={home:'MAIR GO!',artworks:'Opere',library:'Biblioteca Pro',pdfstudio:'PDF Studio',settings:'Impostazioni',info:'Informazioni',timeline:'Timeline',workspace:'Workspace',exhibitions:'Mostre',clients:'Clienti',sales:'Vendite',agenda:'Agenda',certificates:'Certificati',certpreview:'Certificato',guide:'Guida offline',contact:'Contatti e segnalazioni'};function updateHeader(){document.documentElement.dataset.theme=db.settings.theme;document.documentElement.dataset.accent=db.settings.accent||'oro';document.documentElement.dataset.font=db.settings.fontSize||'medium';document.documentElement.classList.toggle('reduce-motion',db.settings.animations===false);$('#pageTitle').textContent=titles[route]||'MAIR GO!';$('#pageSub').textContent=route==='home'?'Il tuo atelier digitale':db.settings.artist;document.querySelectorAll('.bottomnav button').forEach(b=>b.classList.toggle('active',b.dataset.route===route))}function go(r){route=r;location.hash=r;render();scrollTo(0,0)}function render(){updateHeader();app.innerHTML=(views[route]||views.home)();bind()}function bind(){document.querySelectorAll('[data-go]').forEach(x=>x.onclick=()=>go(x.dataset.go));document.querySelectorAll('[data-action]').forEach(x=>x.onclick=()=>actions[x.dataset.action]?.(x.dataset.id,x));if(route==='artworks')bindArtworkFilters();if(route==='library')bindLibraryFilters();if(route==='exhibitions')bindSimpleFilter('exSearch','exGrid',db.exhibitions,exhibitionCard);if(route==='clients')bindSimpleFilter('clientSearch','clientGrid',db.clients,clientCard);if(route==='sales')bindSimpleFilter('saleSearch','saleGrid',db.sales,saleCard);if(route==='agenda')bindAgendaFilters()}
+const titles={home:'MAIR GO!',artworks:'Opere',library:'Biblioteca Pro',pdfstudio:'PDF Studio',settings:'Impostazioni',info:'Informazioni',timeline:'Timeline',workspace:'Workspace',exhibitions:'Mostre',clients:'Clienti',sales:'Vendite',agenda:'Agenda',certificates:'Certificati',social:'Zona Social',certpreview:'Certificato',guide:'Guida offline',contact:'Contatti e segnalazioni'};function updateHeader(){document.documentElement.dataset.theme=db.settings.theme;document.documentElement.dataset.accent=db.settings.accent||'oro';document.documentElement.dataset.font=db.settings.fontSize||'medium';document.documentElement.classList.toggle('reduce-motion',db.settings.animations===false);$('#pageTitle').textContent=titles[route]||'MAIR GO!';$('#pageSub').textContent=route==='home'?'Il tuo atelier digitale':db.settings.artist;document.querySelectorAll('.bottomnav button').forEach(b=>b.classList.toggle('active',b.dataset.route===route))}function go(r){route=r;location.hash=r;render();scrollTo(0,0)}function render(){updateHeader();app.innerHTML=(views[route]||views.home)();bind()}function bind(){document.querySelectorAll('[data-go]').forEach(x=>x.onclick=()=>go(x.dataset.go));document.querySelectorAll('[data-action]').forEach(x=>x.onclick=()=>actions[x.dataset.action]?.(x.dataset.id,x));if(route==='artworks')bindArtworkFilters();if(route==='library')bindLibraryFilters();if(route==='exhibitions')bindSimpleFilter('exSearch','exGrid',db.exhibitions,exhibitionCard);if(route==='clients')bindSimpleFilter('clientSearch','clientGrid',db.clients,clientCard);if(route==='sales')bindSimpleFilter('saleSearch','saleGrid',db.sales,saleCard);if(route==='agenda')bindAgendaFilters()}
 function section(t,b=''){return `<div class="sectionhead"><h2>${t}</h2>${b}</div>`}function empty(i,t,b=''){return `<div class="empty"><div style="font-size:2.5rem">${i}</div><p>${t}</p>${b}</div>`}function img(src,alt=''){return src?`<img src="${src}" alt="${esc(alt)}">`:'✦'}function field(label,name,value='',type='text',full=''){return `<div class="field ${full}"><label>${label}</label><input name="${name}" type="${type}" value="${esc(value)}"></div>`}function area(label,name,value='',full='full'){return `<div class="field ${full}"><label>${label}</label><textarea name="${name}">${esc(value)}</textarea></div>`}function selectField(label,name,list,value='',full=''){return `<div class="field ${full}"><label>${label}</label><div class="field-inline"><select name="${name}">${list.map(v=>`<option ${v===value?'selected':''}>${esc(v)}</option>`).join('')}</select><button type="button" class="btn" data-add-list="${name}">＋</button></div></div>`}
 function artworkCard(a){return `<article class="card"><div class="cardimg">${img(a.image,a.title)}</div><div class="cardbody"><div class="row spread"><h3>${esc(a.title||'Senza titolo')}</h3><button class="star" data-action="toggleArtworkFav" data-id="${a.id}">${a.favorite?'★':'☆'}</button></div><div class="meta">${esc(a.year||'s.d.')} · ${esc(a.technique||'Tecnica non indicata')}</div><span class="badge">${esc(a.dimensions||'Dimensioni n.d.')}</span><span class="badge">${esc(a.status||'Disponibile')}</span>${a.price?`<span class="badge">${euro(a.price)}</span>`:''}<div class="row" style="margin-top:12px"><button class="btn primary" data-action="editArtwork" data-id="${a.id}">Apri</button><button class="btn danger" data-action="deleteArtwork" data-id="${a.id}">Elimina</button></div></div></article>`}
 function libCard(d){const ico=d.mime?.includes('pdf')?'📕':d.mime?.includes('word')||d.name?.endsWith('.docx')?'📘':d.mime?.startsWith('image')?'🖼️':'📄';return `<article class="card"><div class="cardbody"><div class="row spread"><div class="doc-type">${ico}</div><button class="star" data-action="toggleLibFav" data-id="${d.id}">${d.favorite?'★':'☆'}</button></div><h3>${esc(d.title||d.name)}</h3><div class="meta">${esc(d.author||'Autore non indicato')} · ${esc(d.category||'Altro')}</div><p>${esc(d.description||'')}</p>${(d.tags||[]).map(t=>`<span class="badge">${esc(t)}</span>`).join('')}<div class="row" style="margin-top:12px"><button class="btn primary" data-action="openLibrary" data-id="${d.id}">Leggi</button><button class="btn" data-action="editLibrary" data-id="${d.id}">Modifica</button><button class="btn danger" data-action="deleteLibrary" data-id="${d.id}">Elimina</button></div></div></article>`}
@@ -187,6 +187,7 @@ const HOME_TILES={
   clients:{icon:'\ud83d\udc65',title:'Clienti',desc:'Rubrica collezionisti e galleristi.',count:()=>db.clients.length},
   sales:{icon:'\ud83d\udcb6',title:'Vendite',desc:'Trattative, incassi e ricevute.',count:()=>db.sales.length},
   agenda:{icon:'\ud83d\udcc5',title:'Agenda',desc:'Impegni, scadenze e promemoria.',count:()=>db.agenda.length},
+  social:{icon:'\ud83d\udcf1',title:'Social',desc:'Immagini pronte per Instagram, Facebook e TikTok.',count:null},
   timeline:{icon:'\ud83d\udd52',title:'Timeline',desc:'Cronologia delle attivit\u00e0 e degli eventi.',count:null},
   settings:{icon:'\u2699\ufe0f',title:'Impostazioni',desc:'Profilo, aspetto, liste e backup.',count:null},
   guide:{icon:'\ud83d\udcd6',title:'Guida offline',desc:'Come usare ogni sezione dell\u2019app.',count:null},
@@ -196,10 +197,244 @@ const HOME_TILES={
 const HOME_DEFAULT={
   titolo:'',sottotitolo:'',immagine:'',
   stats:['opere','disponibili','vendute','documenti'],
-  tiles:['artworks','library','pdfstudio','certificates','workspace','exhibitions','clients','sales','agenda','timeline','settings','guide','info','contact'],
+  tiles:['artworks','library','pdfstudio','certificates','workspace','exhibitions','clients','sales','agenda','social','timeline','settings','guide','info','contact'],
   azione:'newArtwork'
 };
 function homeCfg(){const h=db.settings.home||{};return Object.assign({},HOME_DEFAULT,h);}
+
+function agendaOggi(){
+  const oggi=new Date();oggi.setHours(0,0,0,0);
+  const fra7=new Date(oggi.getTime()+7*86400000);
+  const cat={scaduti:[],oggi:[],domani:[],settimana:[]};
+  (db.agenda||[]).forEach(x=>{
+    if(!x.date)return;
+    if(x.done)return;
+    const d=new Date(x.date);d.setHours(0,0,0,0);
+    const diff=Math.round((d-oggi)/86400000);
+    if(diff<0)cat.scaduti.push(x);
+    else if(diff===0)cat.oggi.push(x);
+    else if(diff===1)cat.domani.push(x);
+    else if(d<=fra7)cat.settimana.push(x);
+  });
+  const ord=(a,b)=>new Date(a.date)-new Date(b.date)||String(a.time||'').localeCompare(String(b.time||''));
+  Object.keys(cat).forEach(k=>cat[k].sort(ord));
+  return cat;
+}
+function promemoriaOggi(){
+  const c=agendaOggi();
+  const tot=c.scaduti.length+c.oggi.length+c.domani.length+c.settimana.length;
+  if(!tot)return '';
+  const voce=x=>'<li><span class="pm-ora">'+(x.time?esc(x.time):'\u2014')+'</span><span class="pm-tit">'+esc(x.title||'Senza titolo')+'</span>'+(x.location?'<span class="pm-luogo">'+esc(x.location)+'</span>':'')+'</li>';
+  const gruppo=(tit,arr,cls)=>arr.length?'<div class="pm-gruppo '+cls+'"><h4>'+tit+' <span>'+arr.length+'</span></h4><ul>'+arr.slice(0,5).map(voce).join('')+(arr.length>5?'<li class="pm-altri">+ altri '+(arr.length-5)+'</li>':'')+'</ul></div>':'';
+  const urgente=c.scaduti.length||c.oggi.length;
+  return '<section class="promemoria'+(urgente?' urgente':'')+'">'
+    +'<div class="pm-testa"><h3>\ud83d\udcc5 Da fare</h3><button class="btn" data-go="agenda">Apri agenda</button></div>'
+    +gruppo('In ritardo',c.scaduti,'g-rit')
+    +gruppo('Oggi',c.oggi,'g-oggi')
+    +gruppo('Domani',c.domani,'g-dom')
+    +gruppo('Prossimi giorni',c.settimana,'g-set')
+    +'</section>';
+}
+
+/* ===================== ZONA SOCIAL ===================== */
+const SOCIAL_FORMATI=[['1080x1080','Quadrato 1:1 (Instagram)'],['1080x1350','Verticale 4:5 (Instagram)'],['1080x1920','Storia 9:16 (Stories/TikTok)'],['1200x630','Orizzontale (Facebook/X)']];
+const SOCIAL_STILI=[['scuro','Fondo scuro elegante'],['chiaro','Fondo chiaro minimal'],['oro','Nero e oro'],['sfumato','Sfumatura artistica']];
+
+function socialView(){
+  const sel=db.artworks.filter(a=>a.image);
+  return section('Social','<button class="btn primary" data-action="newSocialPost">\u2726 Crea post</button>')
+   +'<section class="hero"><h2>\ud83d\udcf1 Zona Social</h2><p>Prepara immagini pronte per Instagram, Facebook e TikTok partendo dalle tue opere. Puoi creare una singola immagine curata o una sequenza fino a 5 opere.</p></section>'
+   +(sel.length?'<div class="row" style="gap:10px;flex-wrap:wrap;margin-bottom:16px">'
+     +'<button class="btn" data-action="socialSingolo">\ud83d\uddbc\ufe0f Immagine singola</button>'
+     +'<button class="btn" data-action="socialSequenza">\ud83c\udfac Sequenza (max 5)</button>'
+     +'</div>':'')
+   +(sel.length?'<div class="grid">'+sel.slice(0,12).map(a=>'<article class="card"><div class="cardbody"><img src="'+a.image+'" style="width:100%;height:150px;object-fit:cover;border-radius:8px;margin-bottom:10px"><h3>'+esc(a.title||'Senza titolo')+'</h3><div class="meta">'+esc(a.year||'')+' '+esc(a.technique||'')+'</div><button class="btn primary" data-action="socialDaOpera" data-id="'+a.id+'" style="margin-top:10px">Crea post</button></div></article>').join('')+'</div>'
+     : empty('\ud83d\udcf1','Nessuna opera con immagine. Aggiungi immagini alle opere per creare post social.'));
+}
+
+// disegna una card social su canvas
+async function socialCanvas(opera,cfg){
+  const [W,H]=(cfg.formato||'1080x1080').split('x').map(Number);
+  const cv=document.createElement('canvas');cv.width=W;cv.height=H;
+  const ctx=cv.getContext('2d');
+  const stile=cfg.stile||'scuro';
+  const oro='#c9a227';
+  // sfondo
+  if(stile==='chiaro'){ctx.fillStyle='#f4f1ea';}
+  else if(stile==='oro'){ctx.fillStyle='#0d0d0d';}
+  else if(stile==='sfumato'){const g=ctx.createLinearGradient(0,0,W,H);g.addColorStop(0,'#1a1410');g.addColorStop(1,'#3a2c1c');ctx.fillStyle=g;}
+  else {ctx.fillStyle='#141210';}
+  ctx.fillRect(0,0,W,H);
+  const testoCol=(stile==='chiaro')?'#1a1a1a':'#f5efe2';
+  // immagine opera
+  if(opera.image){
+    const img=await new Promise((ris,rif)=>{const i=new Image();i.onload=()=>ris(i);i.onerror=rif;i.src=opera.image;});
+    const areaH=H*0.62, areaW=W*0.82;
+    const sc=Math.min(areaW/img.width,areaH/img.height);
+    const iw=img.width*sc, ih=img.height*sc;
+    const ix=(W-iw)/2, iy=H*0.10;
+    ctx.save();
+    ctx.shadowColor='rgba(0,0,0,.55)';ctx.shadowBlur=40;ctx.shadowOffsetY=12;
+    ctx.drawImage(img,ix,iy,iw,ih);
+    ctx.restore();
+    ctx.strokeStyle=oro;ctx.lineWidth=Math.max(2,W*0.004);
+    ctx.strokeRect(ix,iy,iw,ih);
+  }
+  // testi
+  const cx=W/2;
+  let y=H*0.79;
+  ctx.textAlign='center';
+  ctx.fillStyle=oro;
+  ctx.font='600 '+Math.round(W*0.028)+'px Georgia, serif';
+  ctx.fillText((cfg.etichetta||'OPERA').toUpperCase().split('').join(' '),cx,y);
+  y+=H*0.055;
+  ctx.fillStyle=testoCol;
+  ctx.font='italic 700 '+Math.round(W*0.062)+'px Georgia, serif';
+  const tit=String(opera.title||'Senza titolo');
+  const maxW=W*0.86;
+  let t=tit;
+  while(ctx.measureText(t).width>maxW&&t.length>4)t=t.slice(0,-2);
+  if(t!==tit)t=t+'\u2026';
+  ctx.fillText(t,cx,y);
+  y+=H*0.045;
+  ctx.fillStyle=(stile==='chiaro')?'#555':'#b9ac93';
+  ctx.font='400 '+Math.round(W*0.028)+'px Georgia, serif';
+  const dett=[opera.year,opera.technique,opera.dimensions].filter(Boolean).join('  \u00b7  ');
+  if(dett)ctx.fillText(dett.slice(0,60),cx,y);
+  // firma
+  ctx.fillStyle=oro;
+  ctx.font='700 '+Math.round(W*0.03)+'px Georgia, serif';
+  ctx.fillText(String(db.settings.artist||''),cx,H*0.945);
+  // cornice
+  ctx.strokeStyle=oro;ctx.lineWidth=Math.max(2,W*0.005);
+  ctx.strokeRect(W*0.035,H*0.03,W*0.93,H*0.94);
+  return cv;
+}
+
+async function socialPostModal(opera){
+  const cfg={formato:'1080x1080',stile:'scuro',etichetta:'Opera'};
+  openModal('Post social — '+(opera.title||'Opera'),'<div class="formgrid">'
+    +'<div class="field"><label>Formato</label><select name="formato">'+SOCIAL_FORMATI.map(([v,l])=>'<option value="'+v+'">'+l+'</option>').join('')+'</select></div>'
+    +'<div class="field"><label>Stile</label><select name="stile">'+SOCIAL_STILI.map(([v,l])=>'<option value="'+v+'">'+l+'</option>').join('')+'</select></div>'
+    +field('Etichetta in alto','etichetta','Opera')
+    +'<p class="meta full">L\u2019immagine verr\u00e0 generata e potrai salvarla o condividerla sui social.</p>'
+  +'</div>',async fd=>{
+    modal.close();
+    await socialGenera(opera,{formato:fd.get('formato'),stile:fd.get('stile'),etichetta:fd.get('etichetta')||'Opera'});
+  });
+}
+
+async function socialGenera(opera,cfg){
+  try{
+    toast('Preparo l\u2019immagine\u2026');
+    const cv=await socialCanvas(opera,cfg);
+    const dataUrl=cv.toDataURL('image/jpeg',0.94);
+    socialAnteprima(dataUrl,safeName(opera.title||'post')+'_social.jpg',opera);
+  }catch(e){
+    diagLog('SOCIAL-ERRORE',e&&e.message?e.message:String(e));
+    alert('Impossibile creare l\u2019immagine: '+(e&&e.message?e.message:e));
+  }
+}
+
+function socialAnteprima(dataUrl,nome,opera){
+  const host=document.createElement('div');host.id='socialview';
+  host.setAttribute('style','position:fixed;top:0;left:0;right:0;bottom:0;z-index:99999;background:#111;display:flex;flex-direction:column');
+  const bar=document.createElement('div');
+  bar.setAttribute('style','padding:10px;background:#fff;display:flex;gap:8px;flex-wrap:wrap');
+  const mk=(t,pri)=>{const b=document.createElement('button');b.textContent=t;
+    b.setAttribute('style','padding:10px 16px;font:600 .95rem system-ui;border:1px solid #bbb;border-radius:8px;'+(pri?'background:#8a6a1f;color:#fff;border-color:#8a6a1f':'background:#fff;color:#111'));
+    bar.appendChild(b);return b;};
+  const bC=mk('\u2190 Chiudi');
+  const bS=mk('\ud83d\udcbe Salva immagine',true);
+  const bT=mk('\u270d\ufe0f Testo per il post');
+  bC.onclick=()=>host.remove();
+  bS.onclick=async()=>{
+    const b64=dataUrl.split(',')[1];
+    try{
+      const Cap=window.Capacitor,FS=Cap&&Cap.Plugins&&Cap.Plugins.Filesystem;
+      if(FS){
+        let res=null,usata='';
+        for(const d of ['EXTERNAL','DATA','DOCUMENTS','CACHE']){
+          try{res=await FS.writeFile({path:nome,data:b64,directory:d,recursive:true});usata=d;break;}catch(e){}
+        }
+        if(res){
+          diagLog('SOCIAL','salvata in '+usata+': '+nome);
+          const Sh=Cap.Plugins&&Cap.Plugins.Share;
+          if(Sh&&res.uri){try{await Sh.share({title:nome,url:res.uri,dialogTitle:'Condividi sui social'});return;}catch(e){}}
+          alert('Immagine salvata: '+nome);return;
+        }
+      }
+    }catch(e){diagLog('SOCIAL-SAVE',e&&e.message?e.message:String(e));}
+    try{const a=document.createElement('a');a.href=dataUrl;a.download=nome;a.click();}catch(e){alert('Impossibile salvare');}
+  };
+  bT.onclick=()=>{
+    const tag=['#arte','#pittura','#artecontemporanea','#'+String(db.settings.artist||'').replace(/\s+/g,'')].join(' ');
+    const testo=(opera.title||'Senza titolo')+(opera.year?' ('+opera.year+')':'')+'\n'
+      +[opera.technique,opera.dimensions].filter(Boolean).join(' \u00b7 ')+'\n\n'
+      +(opera.description||'')+'\n\n'+db.settings.artist+'\n'+tag;
+    textEditorOpen('Testo per il post',testo);
+  };
+  const wrap=document.createElement('div');
+  wrap.setAttribute('style','flex:1;overflow:auto;display:flex;align-items:center;justify-content:center;padding:14px');
+  const img=document.createElement('img');img.src=dataUrl;
+  img.setAttribute('style','max-width:100%;max-height:100%;box-shadow:0 6px 30px rgba(0,0,0,.6)');
+  wrap.appendChild(img);
+  host.appendChild(bar);host.appendChild(wrap);
+  document.body.appendChild(host);
+}
+
+async function socialSequenzaModal(){
+  const conImg=db.artworks.filter(a=>a.image);
+  if(!conImg.length){toast('Nessuna opera con immagine');return}
+  openModal('Sequenza social (max 5 opere)','<div class="formgrid">'
+    +'<div class="field"><label>Formato</label><select name="formato">'+SOCIAL_FORMATI.map(([v,l])=>'<option value="'+v+'">'+l+'</option>').join('')+'</select></div>'
+    +'<div class="field"><label>Stile</label><select name="stile">'+SOCIAL_STILI.map(([v,l])=>'<option value="'+v+'">'+l+'</option>').join('')+'</select></div>'
+    +'<div class="field full"><label>Scegli fino a 5 opere</label><div class="chkgrid">'
+      +conImg.slice(0,40).map(a=>'<label class="chkline"><input type="checkbox" name="op" value="'+a.id+'"> '+esc(a.title||'Senza titolo')+'</label>').join('')
+    +'</div></div>'
+  +'</div>',async fd=>{
+    const ids=fd.getAll('op').slice(0,5);
+    if(!ids.length){toast('Seleziona almeno un\u2019opera');return}
+    modal.close();
+    const cfg={formato:fd.get('formato'),stile:fd.get('stile'),etichetta:'Opera'};
+    const imgs=[];
+    for(let i=0;i<ids.length;i++){
+      const a=db.artworks.find(x=>x.id===ids[i]);
+      if(!a)continue;
+      toast('Preparo '+(i+1)+' di '+ids.length+'\u2026');
+      const cv=await socialCanvas(a,Object.assign({},cfg,{etichetta:(i+1)+' / '+ids.length}));
+      imgs.push({url:cv.toDataURL('image/jpeg',0.94),nome:safeName(a.title||('opera'+(i+1)))+'_social.jpg',opera:a});
+    }
+    socialGalleria(imgs);
+  });
+}
+
+function socialGalleria(imgs){
+  const host=document.createElement('div');
+  host.setAttribute('style','position:fixed;top:0;left:0;right:0;bottom:0;z-index:99999;background:#111;display:flex;flex-direction:column');
+  const bar=document.createElement('div');
+  bar.setAttribute('style','padding:10px;background:#fff;display:flex;gap:8px;flex-wrap:wrap;align-items:center');
+  const bC=document.createElement('button');bC.textContent='\u2190 Chiudi';
+  bC.setAttribute('style','padding:10px 16px;font:600 .95rem system-ui');
+  bC.onclick=()=>host.remove();
+  const info=document.createElement('span');
+  info.textContent=imgs.length+' immagini pronte \u00b7 tocca una per salvarla';
+  info.setAttribute('style','font:13px system-ui;color:#555');
+  bar.appendChild(bC);bar.appendChild(info);
+  const wrap=document.createElement('div');
+  wrap.setAttribute('style','flex:1;overflow:auto;padding:14px;display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:12px');
+  imgs.forEach(o=>{
+    const c=document.createElement('div');
+    c.setAttribute('style','cursor:pointer');
+    const im=document.createElement('img');im.src=o.url;
+    im.setAttribute('style','width:100%;border-radius:8px;box-shadow:0 4px 16px rgba(0,0,0,.5)');
+    c.appendChild(im);
+    c.onclick=()=>socialAnteprima(o.url,o.nome,o.opera);
+    wrap.appendChild(c);
+  });
+  host.appendChild(bar);host.appendChild(wrap);
+  document.body.appendChild(host);
+}
 
 function homeView(){
   const h=homeCfg();
@@ -212,7 +447,7 @@ function homeView(){
   const stats=(h.stats||[]).filter(k=>HOME_STATS[k]).map(k=>{const S=HOME_STATS[k];return stat(S.label,S.calc(),S.icon)}).join('');
   const tiles=(h.tiles||[]).filter(k=>HOME_TILES[k]).map((k,idx)=>{const T=HOME_TILES[k];const n=T.count?T.count():null;
     return `<button class="tile${idx===0?' big':''}" data-go="${k}">${n!==null?`<span class="count">${n}</span>`:''}<span class="symbol">${T.icon}</span><h3>${esc(T.title)}</h3><p>${esc(T.desc)}</p></button>`}).join('');
-  return `${hero}${stats?`<div class="stats">${stats}</div>`:''}
+  return `${hero}${stats?`<div class="stats">${stats}</div>`:''}${h.promemoria!==false?promemoriaOggi():''}
     <div class="row spread" style="margin:18px 0 8px"><h3 style="margin:0">Sezioni</h3><button class="btn" data-action="customizeHome">\u2699\ufe0f Personalizza</button></div>
     <div class="tiles">${tiles||'<p class="meta">Nessuna sezione selezionata. Tocca \u201cPersonalizza\u201d.</p>'}</div>`;
 }
@@ -232,6 +467,7 @@ function homeCustomizeModal(){
       <option value="newPdfProject" ${h.azione==='newPdfProject'?'selected':''}>Nuovo catalogo</option>
       <option value="newLibrary" ${h.azione==='newLibrary'?'selected':''}>Nuovo documento</option>
       <option value="newAgenda" ${h.azione==='newAgenda'?'selected':''}>Nuovo impegno</option></select></div>
+    <div class="field full"><label class="chkline"><input type="checkbox" name="promemoria" ${h.promemoria!==false?'checked':''}> Mostra il riquadro \u201cDa fare\u201d</label></div>
     <div class="field full"><label>Statistiche da mostrare</label><div class="chkgrid">${chk('stats',HOME_STATS,h.stats||[])}</div></div>
     <div class="field full"><label>Sezioni da mostrare</label><div class="chkgrid">${chk('tiles',HOME_TILES,h.tiles||[])}</div></div>
     <div class="field full"><label>Ordine delle sezioni (una per riga, quelle non elencate vanno in fondo)</label><textarea name="ordine" rows="6">${esc(ordine.map(k=>HOME_TILES[k].title).join('\n'))}</textarea></div>
@@ -245,12 +481,12 @@ function homeCustomizeModal(){
     testo.forEach(t=>{const k=perTitolo[t.toLowerCase()];if(k&&tiles.includes(k)&&!ordinati.includes(k))ordinati.push(k)});
     tiles.forEach(k=>{if(!ordinati.includes(k))ordinati.push(k)});
     db.settings.home={titolo:fd.get('titolo')||'',sottotitolo:fd.get('sottotitolo')||'',immagine:nuovaImg,
-      stats:fd.getAll('stats'),tiles:ordinati,azione:fd.get('azione')||''};
+      stats:fd.getAll('stats'),tiles:ordinati,azione:fd.get('azione')||'',promemoria:!!fd.get('promemoria')};
     save();modal.close();go('home');toast('Schermata principale aggiornata');
   });
 }
 
-const views={home:()=>homeView(),artworks:()=>`${section('Archivio opere','<button class="btn primary" data-action="newArtwork">＋ Nuova opera</button>')}<details class="filterpanel"><summary>Filtri avanzati</summary><div class="filtergrid"><input id="artSearch" class="search" placeholder="Cerca in ogni campo…"><select id="artStatus"><option value="">Stato: tutti</option>${db.settings.lists.statuses.map(x=>`<option>${esc(x)}</option>`)}</select><select id="artYear"><option value="">Anno: tutti</option>${[...new Set(db.artworks.map(a=>a.year).filter(Boolean))].sort().reverse().map(x=>`<option>${esc(x)}</option>`)}</select><select id="artTechnique"><option value="">Tecnica: tutte</option>${db.settings.lists.techniques.map(x=>`<option>${esc(x)}</option>`)}</select><select id="artSupport"><option value="">Supporto: tutti</option>${db.settings.lists.supports.map(x=>`<option>${esc(x)}</option>`)}</select><select id="artDimension"><option value="">Dimensione: tutte</option>${db.settings.lists.dimensions.map(x=>`<option>${esc(x)}</option>`)}</select><select id="artFrame"><option value="">Cornice: tutte</option>${db.settings.lists.frames.map(x=>`<option>${esc(x)}</option>`)}</select><input id="artCollection" placeholder="Serie / collezione"><input id="artLocation" placeholder="Posizione"><select id="artFavorite"><option value="">Preferiti: tutti</option><option value="yes">Solo preferiti</option></select><input id="artMinPrice" type="number" placeholder="Prezzo minimo"><input id="artMaxPrice" type="number" placeholder="Prezzo massimo"><button class="btn" data-action="resetArtworkFilters">Azzera filtri</button></div><div id="filterCount" class="meta"></div></details><div id="artGrid" class="grid">${db.artworks.map(artworkCard).join('')||empty('🎨','Non hai ancora inserito opere.','<button class="btn primary" data-action="newArtwork">Aggiungi la prima opera</button>')}</div>`,
+const views={home:()=>homeView(),social:()=>socialView(),artworks:()=>`${section('Archivio opere','<button class="btn primary" data-action="newArtwork">＋ Nuova opera</button>')}<details class="filterpanel"><summary>Filtri avanzati</summary><div class="filtergrid"><input id="artSearch" class="search" placeholder="Cerca in ogni campo…"><select id="artStatus"><option value="">Stato: tutti</option>${db.settings.lists.statuses.map(x=>`<option>${esc(x)}</option>`)}</select><select id="artYear"><option value="">Anno: tutti</option>${[...new Set(db.artworks.map(a=>a.year).filter(Boolean))].sort().reverse().map(x=>`<option>${esc(x)}</option>`)}</select><select id="artTechnique"><option value="">Tecnica: tutte</option>${db.settings.lists.techniques.map(x=>`<option>${esc(x)}</option>`)}</select><select id="artSupport"><option value="">Supporto: tutti</option>${db.settings.lists.supports.map(x=>`<option>${esc(x)}</option>`)}</select><select id="artDimension"><option value="">Dimensione: tutte</option>${db.settings.lists.dimensions.map(x=>`<option>${esc(x)}</option>`)}</select><select id="artFrame"><option value="">Cornice: tutte</option>${db.settings.lists.frames.map(x=>`<option>${esc(x)}</option>`)}</select><input id="artCollection" placeholder="Serie / collezione"><input id="artLocation" placeholder="Posizione"><select id="artFavorite"><option value="">Preferiti: tutti</option><option value="yes">Solo preferiti</option></select><input id="artMinPrice" type="number" placeholder="Prezzo minimo"><input id="artMaxPrice" type="number" placeholder="Prezzo massimo"><button class="btn" data-action="resetArtworkFilters">Azzera filtri</button></div><div id="filterCount" class="meta"></div></details><div id="artGrid" class="grid">${db.artworks.map(artworkCard).join('')||empty('🎨','Non hai ancora inserito opere.','<button class="btn primary" data-action="newArtwork">Aggiungi la prima opera</button>')}</div>`,
 library:()=>`${section('Biblioteca Pro','<button class="btn primary" data-action="newLibrary">＋ Carica file</button>')}<div class="toolbar"><input id="libSearch" class="search" placeholder="Cerca titolo, autore, tag, descrizione e note…"><select id="libType"><option value="">Tutti i file</option><option value="pdf">PDF</option><option value="doc">Documenti</option><option value="image">Immagini</option><option value="fav">Preferiti</option><option value="linked">Collegati alle opere</option></select><select id="libCat"><option value="">Tutte le categorie</option>${db.settings.lists.categories.map(x=>`<option>${esc(x)}</option>`)}</select></div><div id="libGrid" class="grid">${db.library.map(libCard).join('')||empty('📚','Carica PDF, DOCX, testi, immagini, cataloghi e schede tecniche.','<button class="btn primary" data-action="newLibrary">Carica il primo file</button>')}</div>`,
 pdfstudio:()=>`${section('PDF Studio','<button class="btn primary" data-action="newPdfProject">＋ Nuovo PDF</button>')}<section class="hero"><h2>Documenti altamente personalizzabili</h2><p>Crea stampe dell'archivio, cataloghi di esposizioni e PDF filtrati. Scegli tema, copertina, campi, testi e opere; poi salva in PDF o condividi.</p></section><div class="template-row"><span class="badge">Archivio</span><span class="badge">Catalogo mostra</span><span class="badge">Portfolio</span><span class="badge">Listino</span><span class="badge">Dossier</span><span class="badge">Certificato</span></div><div class="grid">${db.pdfProjects.map(p=>`<article class="card"><div class="cardbody"><h3>${esc(p.title)}</h3><div class="meta">${esc(p.type)} · ${(p.artworkIds||[]).length} opere · ${esc(p.theme)}</div><p>${esc(p.subtitle||'')}</p><div class="row"><button class="btn primary" data-action="openPdfProject" data-id="${p.id}">Apri</button><button class="btn" data-action="editPdfProject" data-id="${p.id}">Modifica</button><button class="btn danger" data-action="deletePdfProject" data-id="${p.id}">Elimina</button></div></div></article>`).join('')||empty('📄','Crea il tuo primo catalogo, inventario o dossier.','<button class="btn primary" data-action="newPdfProject">Nuovo PDF</button>')}</div>`,
 settings:()=>settingsView(),info:()=>infoView(),guide:()=>guideView(),contact:()=>contactView(),timeline:()=>timelineView(),workspace:()=>workspaceView(),exhibitions:()=>exhibitionsView(),clients:()=>clientsView(),sales:()=>salesView(),agenda:()=>agendaView(),certificates:()=>certificatesView(),certpreview:()=>certPreviewView(),pdfpreview:()=>pdfPreviewView()};
@@ -273,7 +509,14 @@ function saleModal(s={}){openModal(s.id?'Modifica vendita':'Registra vendita',`<
 function agendaModal(x={}){openModal(x.id?'Modifica evento':'Nuovo evento',`<div class="formgrid">${field('Titolo','title',x.title,'text','full')}<div class="field"><label>Tipo</label><select name="type">${['Appuntamento','Mostra','Consegna','Scadenza','Promemoria','Altro'].map(v=>`<option ${x.type===v?'selected':''}>${v}</option>`).join('')}</select></div>${field('Data','date',x.date||new Date().toISOString().slice(0,10),'date')}${field('Ora','time',x.time,'time')}${field('Luogo','location',x.location)}${area('Note','notes',x.notes)}</div>`,fd=>{const o={...x,id:x.id||uid(),title:fd.get('title'),type:fd.get('type'),date:fd.get('date'),time:fd.get('time'),location:fd.get('location'),notes:fd.get('notes'),updated:new Date().toISOString(),created:x.created||new Date().toISOString()};if(x.id)db.agenda=db.agenda.map(v=>v.id===x.id?o:v);else db.agenda.unshift(o);save();modal.close();render();toast('Evento salvato')})}
 function catalogFromExhibition(id){const x=db.exhibitions.find(v=>v.id===id);if(!x)return;const p={id:uid(),title:x.title||'Catalogo mostra',subtitle:[x.venue,x.city].filter(Boolean).join(' · '),type:'Catalogo esposizione',theme:'Museo',intro:x.description||'',fields:['year','technique','dimensions','description','status','code'],artworkIds:x.artworkIds||[],created:new Date().toISOString()};db.pdfProjects.unshift(p);save();previewId=p.id;route='pdfpreview';render();toast('Catalogo creato')}
 function printReceipt(id){const s=db.sales.find(x=>x.id===id);if(!s)return;window.__PDFCTX__={tipo:'ricevuta',dato:s};docViewerOpen('Ricevuta vendita',receiptDocHtml(s),'',receiptPlain(s))}
-function exportAgendaIcs(){const body=db.agenda.map(x=>`BEGIN:VEVENT\nUID:${x.id}@mairgo.local\nDTSTART:${String(x.date||'').replaceAll('-','')}${x.time?'T'+x.time.replace(':','')+'00':''}\nSUMMARY:${String(x.title||'').replace(/[,;]/g,' ')}\nLOCATION:${String(x.location||'').replace(/[,;]/g,' ')}\nDESCRIPTION:${String(x.notes||'').replace(/\n/g,' ')}\nEND:VEVENT`).join('\n');download(new Blob([`BEGIN:VCALENDAR\nVERSION:2.0\nPRODID:-//MAIR GO!//IT\n${body}\nEND:VCALENDAR`],{type:'text/calendar'}),'MAIR_GO_Agenda.ics')}
+function exportAgendaIcs(){
+  const dt=x=>{const d=String(x.date||'').replaceAll('-','');const t=x.time?'T'+x.time.replace(':','')+'00':'';return d+t;};
+  const esc2=t=>String(t||'').replace(/\\/g,'\\\\').replace(/[,;]/g,' ').replace(/\r?\n/g,'\\n');
+  if(!db.agenda.length){toast('Agenda vuota');return}
+  const body=db.agenda.map(x=>'BEGIN:VEVENT\r\nUID:'+x.id+'@mairgo.local\r\nDTSTAMP:'+new Date().toISOString().replace(/[-:]/g,'').split('.')[0]+'Z\r\nDTSTART:'+dt(x)+'\r\nSUMMARY:'+esc2(x.title)+'\r\nLOCATION:'+esc2(x.location)+'\r\nDESCRIPTION:'+esc2(x.notes)+'\r\nEND:VEVENT').join('\r\n');
+  const ics='BEGIN:VCALENDAR\r\nVERSION:2.0\r\nPRODID:-//MAIR GO!//IT\r\nCALSCALE:GREGORIAN\r\n'+body+'\r\nEND:VCALENDAR';
+  salvaFile('MAIR_GO_Agenda.ics',ics,'text/calendar');
+}
 
 function infoView(){return `${section('Informazioni')}<section class="legal-card"><div class="about-logo">M</div><h2>MAIR GO!</h2><p class="lead"><strong>App creata dall'artista internazionale Maurizio D'Andrea.</strong></p><p>Applicazione completamente gratuita, distribuita senza servizio di assistenza garantito. È progettata secondo il principio <strong>Local First</strong>: opere, documenti, contatti, vendite, note e impostazioni vengono conservati nel browser del cellulare o del computer utilizzato.</p><h3>Privacy</h3><p>MAIR GO! non richiede registrazione, non crea account, non usa sistemi pubblicitari e non invia automaticamente i dati a server esterni. Le funzioni di condivisione, apertura di siti o invio di email si attivano soltanto su comando dell'utente.</p><h3>Sicurezza e accesso al dispositivo</h3><p>L'app non accede autonomamente a rubrica, chiamate, SMS, microfono, fotocamera, posizione GPS o altri contenuti del dispositivo. L'accesso a file, immagini e documenti avviene esclusivamente quando l'utente li seleziona tramite i comandi del browser.</p><h3>Responsabilità e backup</h3><p>L'utilizzo avviene sotto la piena responsabilità dell'utente. La cancellazione dei dati del browser, la disinstallazione, un guasto o la perdita del dispositivo possono causare perdita di dati. È indispensabile creare regolarmente un backup <strong>.mair</strong> e conservarlo in un luogo sicuro.</p><p>L'autore non garantisce continuità del servizio, compatibilità con ogni dispositivo o recupero dei dati e non risponde di perdite o danni derivanti dall'utilizzo dell'app, nei limiti consentiti dalla legge applicabile.</p><h3>Contatti</h3><p><a href="mailto:dandreart.info@gmail.com">dandreart.info@gmail.com</a><br><a href="https://www.dandreart.info" target="_blank" rel="noopener">www.dandreart.info</a></p><p class="meta">MAIR GO! 5.0 · Software gratuito · Dati locali · Nessun cloud obbligatorio</p></section>`}
 function contactView(){return `${section('Contatti e segnalazioni')}<section class="form-card"><h2>Scrivi a Maurizio D'Andrea</h2><p>Segnala un bug, invia un suggerimento, proponi una funzione o offri un contributo. Premendo “Prepara email” si aprirà l'app di posta del dispositivo: MAIR GO! non invia nulla automaticamente.</p><div class="formgrid">${field('Nome','contactName','','text','full')}${field('La tua email','contactEmail','','email','full')}<div class="field full"><label>Categoria</label><select id="contactCategory"><option>Segnalazione bug</option><option>Suggerimento</option><option>Richiesta funzione</option><option>Contributo</option><option>Collaborazione</option><option>Altro</option></select></div>${field('Oggetto','contactSubject','','text','full')}${area('Messaggio','contactMessage','','full')}</div><div class="row"><button class="btn primary" data-action="prepareEmail">✉️ Prepara email</button><button class="btn" data-action="copyContactEmail">Copia indirizzo</button></div><p class="meta">Destinatario: dandreart.info@gmail.com</p></section>`}
@@ -711,6 +954,35 @@ function pdfSettingsModal(){
   });
 }
 
+/* ===== SALVATAGGIO FILE COMPATIBILE ANDROID ===== */
+async function salvaFile(nome,contenuto,mime,condividi){
+  try{
+    const Cap=window.Capacitor;
+    const FS=Cap&&Cap.Plugins&&Cap.Plugins.Filesystem;
+    if(FS){
+      const b64=btoa(unescape(encodeURIComponent(contenuto)));
+      const dirs=['EXTERNAL','DATA','DOCUMENTS','CACHE'];
+      let res=null,usata='';
+      for(const d of dirs){
+        try{res=await FS.writeFile({path:nome,data:b64,directory:d,recursive:true});usata=d;break;}
+        catch(e){diagLog('FILE-DIR','fallita '+d+': '+(e&&e.message?e.message:e));}
+      }
+      if(res){
+        diagLog('FILE','salvato in '+usata+': '+nome);
+        const Sh=Cap.Plugins&&Cap.Plugins.Share;
+        if(Sh&&res.uri){
+          try{await Sh.share({title:nome,text:nome,url:res.uri,dialogTitle:'Salva o invia '+nome});return true;}
+          catch(e){diagLog('FILE-SHARE',e&&e.message?e.message:String(e));}
+        }
+        alert('File creato: '+nome);
+        return true;
+      }
+    }
+  }catch(e){diagLog('FILE-ERRORE',e&&e.message?e.message:String(e));}
+  try{download(new Blob([contenuto],{type:mime||'text/plain'}),nome);return true;}
+  catch(e){diagLog('FILE-DOWNLOAD-ERRORE',e&&e.message?e.message:String(e));alert('Impossibile salvare il file.');return false;}
+}
+
 function docViewerOpen(title,inner,extraCss,plainText){
   try{
     const old=document.getElementById('docviewer');if(old)old.remove();
@@ -881,7 +1153,7 @@ function docViewerOpen(title,inner,extraCss,plainText){
 }
 
 let previewId=null;function pdfPreviewView(){const p=db.pdfProjects.find(x=>x.id===previewId);if(!p)return empty('📄','Progetto non trovato.');const arts=(p.artworkIds||[]).map(id=>db.artworks.find(a=>a.id===id)).filter(Boolean),F=p.fields||[];return `<div class="toolbar no-print"><button class="btn" data-action="backPdf">← PDF Studio</button><button class="btn primary" data-action="printPdf">📄 Apri documento</button><button class="btn" data-action="sharePdf">✍️ Testo modificabile</button></div><article class="pdf-page" data-theme="${esc(p.theme)}"><header style="border-bottom:3px solid var(--accent);padding-bottom:28px;margin-bottom:35px"><small>MAIR GO! · ${esc(p.type)}</small><h1>${esc(p.title)}</h1><h2>${esc(p.subtitle)}</h2><p>${esc(p.intro||'')}</p></header>${arts.map(a=>`<section class="pdf-art"><div>${a.image?`<img src="${a.image}" alt="${esc(a.title)}">`:''}</div><div><h2>${esc(a.title)}</h2>${F.includes('year')?`<p><strong>Anno:</strong> ${esc(a.year)}</p>`:''}${F.includes('code')?`<p><strong>Codice:</strong> ${esc(a.code)}</p>`:''}${F.includes('technique')?`<p><strong>Tecnica:</strong> ${esc(a.technique)}${a.support?' su '+esc(a.support):''}</p>`:''}${F.includes('dimensions')?`<p><strong>Dimensioni:</strong> ${esc(a.dimensions)}</p>`:''}${F.includes('frame')?`<p><strong>Cornice:</strong> ${esc(a.frame)}</p>`:''}${F.includes('status')?`<p><strong>Stato:</strong> ${esc(a.status)}</p>`:''}${F.includes('price')&&a.price?`<p><strong>Prezzo:</strong> ${euro(a.price)}</p>`:''}${F.includes('description')?`<p>${esc(a.description)}</p>`:''}</div></section>`).join('')}<footer style="border-top:1px solid #bbb;padding-top:20px;margin-top:40px"><strong>${esc(db.settings.artist)}</strong><br>${esc(db.settings.email)} ${esc(db.settings.phone)}</footer></article>`}
-const actions={openDiag:()=>diagOpen(),pdfSettings:()=>pdfSettingsModal(),customizeHome:()=>homeCustomizeModal(),prepareEmail:()=>{const name=document.querySelector('[name=contactName]')?.value||'',from=document.querySelector('[name=contactEmail]')?.value||'',cat=$('#contactCategory')?.value||'Altro',sub=document.querySelector('[name=contactSubject]')?.value||'Contatto da MAIR GO!',msg=document.querySelector('[name=contactMessage]')?.value||'';const body=`Nome: ${name}\nEmail: ${from}\nCategoria: ${cat}\n\n${msg}`;location.href=`mailto:dandreart.info@gmail.com?subject=${encodeURIComponent('MAIR GO! - '+cat+' - '+sub)}&body=${encodeURIComponent(body)}`},copyContactEmail:async()=>{await navigator.clipboard.writeText('dandreart.info@gmail.com');toast('Indirizzo copiato')},newWorkspace:()=>workspaceModal(),editWorkspace:id=>workspaceModal(db.workspaces.find(x=>x.id===id)),deleteWorkspace:id=>del('workspaces',id),newExhibition:()=>exhibitionModal(),editExhibition:id=>exhibitionModal(db.exhibitions.find(x=>x.id===id)),deleteExhibition:id=>del('exhibitions',id),catalogFromExhibition:id=>catalogFromExhibition(id),newClient:()=>clientModal(),editClient:id=>clientModal(db.clients.find(x=>x.id===id)),deleteClient:id=>del('clients',id),newSale:()=>saleModal(),newSaleForClient:id=>saleModal({clientId:id}),editSale:id=>saleModal(db.sales.find(x=>x.id===id)),deleteSale:id=>del('sales',id),printReceipt:id=>printReceipt(id),newAgenda:()=>agendaModal(),editAgenda:id=>agendaModal(db.agenda.find(x=>x.id===id)),deleteAgenda:id=>del('agenda',id),exportAgendaIcs:()=>exportAgendaIcs(),newArtwork:()=>artworkModal(),editArtwork:id=>artworkModal(db.artworks.find(x=>x.id===id)),deleteArtwork:id=>del('artworks',id),toggleArtworkFav:id=>{const x=db.artworks.find(a=>a.id===id);x.favorite=!x.favorite;save();render()},newLibrary:()=>libraryModal(),editLibrary:id=>libraryModal(db.library.find(x=>x.id===id)),openLibrary:id=>openLibrary(id),deleteLibrary:id=>del('library',id),toggleLibFav:id=>{const x=db.library.find(a=>a.id===id);x.favorite=!x.favorite;save();render()},newPdfProject:()=>pdfProjectModal(),editPdfProject:id=>pdfProjectModal(db.pdfProjects.find(x=>x.id===id)),deletePdfProject:id=>del('pdfProjects',id),openPdfProject:id=>{previewId=id;route='pdfpreview';render()},newCertificate:()=>certificateModal(),editCertificate:id=>certificateModal(db.certificates.find(x=>x.id===id)),deleteCertificate:id=>del('certificates',id),openCertificate:id=>{certPreviewId=id;go('certpreview')},backCert:()=>go('certificates'),printCert:()=>{diagLog('CLICK','printCert premuto');const c=db.certificates.find(x=>x.id===certPreviewId);if(!c)return;const tpl=CERT_TEMPLATES[c.template]||CERT_TEMPLATES.autenticita;window.__PDFCTX__={tipo:'certificato',dato:c};docViewerOpen(c.title||tpl.title,certDocHtml(c),'',certPlain(c))},shareCert:()=>{const c=db.certificates.find(x=>x.id===certPreviewId);if(!c)return;const tpl=CERT_TEMPLATES[c.template]||CERT_TEMPLATES.autenticita;textEditorOpen(c.title||tpl.title,certPlain(c))},backPdf:()=>go('pdfstudio'),printPdf:()=>{diagLog('CLICK','printPdf premuto');const p=db.pdfProjects.find(x=>x.id===previewId);if(!p)return;window.__PDFCTX__={tipo:'catalogo',dato:p};docViewerOpen(p.title||'Catalogo',pdfDocHtml(p),'',pdfPlain(p))},sharePdf:()=>{const p=db.pdfProjects.find(x=>x.id===previewId);if(!p)return;textEditorOpen(p.title||'Catalogo',pdfPlain(p))},saveProfile:()=>{db.settings.artist=$('[name=artist]').value;db.settings.bio=$('[name=bio]').value;db.settings.email=$('[name=email]').value;db.settings.phone=$('[name=phone]').value;save();toast('Profilo salvato')},saveAppearance:()=>{db.settings.theme=$('#themeSetting').value;db.settings.fontSize=$('#fontSetting').value;db.settings.animations=$('#animationsSetting').checked;db.settings.splash=$('#splashSetting').checked;save();render();toast('Aspetto salvato')},savePin:async()=>{const enabled=$('#pinEnabled').checked,p=$('#newPin').value,c=$('#confirmPin').value;if(p&&(!/^\d{4,6}$/.test(p)||p!==c))return alert('Inserisci due PIN uguali di 4–6 cifre.');if(p)db.settings.pinHash=await hashPin(p);if(enabled&&!db.settings.pinHash)return alert('Imposta prima un PIN.');db.settings.pinEnabled=enabled;save();toast('Sicurezza salvata')},resetArtworkFilters:()=>{document.querySelectorAll('.filtergrid input,.filtergrid select').forEach(x=>x.value='');bindArtworkFilters();},addListItem:k=>{const v=prompt('Nuova voce');if(v){db.settings.lists[k].push(v);save();render()}},removeListItem:id=>{const[k,i]=id.split(':');db.settings.lists[k].splice(+i,1);save();render()},saveLists:()=>{document.querySelectorAll('[data-list-key]').forEach(x=>db.settings.lists[x.dataset.listKey][+x.dataset.listI]=x.value.trim());save();toast('Liste salvate')},exportBackup:()=>{db.settings.lastBackup=new Date().toISOString();save();download(new Blob([JSON.stringify(db)],{type:'application/json'}),`MAIR_GO_Backup_${new Date().toISOString().slice(0,10)}.mair`);toast('Backup salvato nei Download ✓');if(route==='home')render()},importBackup:()=>{const i=document.createElement('input');i.type='file';i.accept='.mair,.json';i.onchange=async()=>{try{db=merge(clone(defaults),JSON.parse(await i.files[0].text()));save();render();toast('Backup ripristinato')}catch{alert('Backup non valido')}};i.click()}};window.actions=actions;function del(k,id){if(confirm('Eliminare definitivamente?')){db[k]=db[k].filter(x=>x.id!==id);save();render()}}
+const actions={openDiag:()=>diagOpen(),newSocialPost:()=>{const a=db.artworks.filter(x=>x.image);if(!a.length){toast('Aggiungi immagini alle opere');return}socialPostModal(a[0])},socialSingolo:()=>{const a=db.artworks.filter(x=>x.image);if(a.length)socialPostModal(a[0])},socialSequenza:()=>socialSequenzaModal(),socialDaOpera:id=>{const a=db.artworks.find(x=>x.id===id);if(a)socialPostModal(a)},pdfSettings:()=>pdfSettingsModal(),customizeHome:()=>homeCustomizeModal(),prepareEmail:()=>{const name=document.querySelector('[name=contactName]')?.value||'',from=document.querySelector('[name=contactEmail]')?.value||'',cat=$('#contactCategory')?.value||'Altro',sub=document.querySelector('[name=contactSubject]')?.value||'Contatto da MAIR GO!',msg=document.querySelector('[name=contactMessage]')?.value||'';const body=`Nome: ${name}\nEmail: ${from}\nCategoria: ${cat}\n\n${msg}`;location.href=`mailto:dandreart.info@gmail.com?subject=${encodeURIComponent('MAIR GO! - '+cat+' - '+sub)}&body=${encodeURIComponent(body)}`},copyContactEmail:async()=>{await navigator.clipboard.writeText('dandreart.info@gmail.com');toast('Indirizzo copiato')},newWorkspace:()=>workspaceModal(),editWorkspace:id=>workspaceModal(db.workspaces.find(x=>x.id===id)),deleteWorkspace:id=>del('workspaces',id),newExhibition:()=>exhibitionModal(),editExhibition:id=>exhibitionModal(db.exhibitions.find(x=>x.id===id)),deleteExhibition:id=>del('exhibitions',id),catalogFromExhibition:id=>catalogFromExhibition(id),newClient:()=>clientModal(),editClient:id=>clientModal(db.clients.find(x=>x.id===id)),deleteClient:id=>del('clients',id),newSale:()=>saleModal(),newSaleForClient:id=>saleModal({clientId:id}),editSale:id=>saleModal(db.sales.find(x=>x.id===id)),deleteSale:id=>del('sales',id),printReceipt:id=>printReceipt(id),newAgenda:()=>agendaModal(),editAgenda:id=>agendaModal(db.agenda.find(x=>x.id===id)),deleteAgenda:id=>del('agenda',id),exportAgendaIcs:()=>exportAgendaIcs(),newArtwork:()=>artworkModal(),editArtwork:id=>artworkModal(db.artworks.find(x=>x.id===id)),deleteArtwork:id=>del('artworks',id),toggleArtworkFav:id=>{const x=db.artworks.find(a=>a.id===id);x.favorite=!x.favorite;save();render()},newLibrary:()=>libraryModal(),editLibrary:id=>libraryModal(db.library.find(x=>x.id===id)),openLibrary:id=>openLibrary(id),deleteLibrary:id=>del('library',id),toggleLibFav:id=>{const x=db.library.find(a=>a.id===id);x.favorite=!x.favorite;save();render()},newPdfProject:()=>pdfProjectModal(),editPdfProject:id=>pdfProjectModal(db.pdfProjects.find(x=>x.id===id)),deletePdfProject:id=>del('pdfProjects',id),openPdfProject:id=>{previewId=id;route='pdfpreview';render()},newCertificate:()=>certificateModal(),editCertificate:id=>certificateModal(db.certificates.find(x=>x.id===id)),deleteCertificate:id=>del('certificates',id),openCertificate:id=>{certPreviewId=id;go('certpreview')},backCert:()=>go('certificates'),printCert:()=>{diagLog('CLICK','printCert premuto');const c=db.certificates.find(x=>x.id===certPreviewId);if(!c)return;const tpl=CERT_TEMPLATES[c.template]||CERT_TEMPLATES.autenticita;window.__PDFCTX__={tipo:'certificato',dato:c};docViewerOpen(c.title||tpl.title,certDocHtml(c),'',certPlain(c))},shareCert:()=>{const c=db.certificates.find(x=>x.id===certPreviewId);if(!c)return;const tpl=CERT_TEMPLATES[c.template]||CERT_TEMPLATES.autenticita;textEditorOpen(c.title||tpl.title,certPlain(c))},backPdf:()=>go('pdfstudio'),printPdf:()=>{diagLog('CLICK','printPdf premuto');const p=db.pdfProjects.find(x=>x.id===previewId);if(!p)return;window.__PDFCTX__={tipo:'catalogo',dato:p};docViewerOpen(p.title||'Catalogo',pdfDocHtml(p),'',pdfPlain(p))},sharePdf:()=>{const p=db.pdfProjects.find(x=>x.id===previewId);if(!p)return;textEditorOpen(p.title||'Catalogo',pdfPlain(p))},saveProfile:()=>{db.settings.artist=$('[name=artist]').value;db.settings.bio=$('[name=bio]').value;db.settings.email=$('[name=email]').value;db.settings.phone=$('[name=phone]').value;save();toast('Profilo salvato')},saveAppearance:()=>{db.settings.theme=$('#themeSetting').value;db.settings.fontSize=$('#fontSetting').value;db.settings.animations=$('#animationsSetting').checked;db.settings.splash=$('#splashSetting').checked;save();render();toast('Aspetto salvato')},savePin:async()=>{const enabled=$('#pinEnabled').checked,p=$('#newPin').value,c=$('#confirmPin').value;if(p&&(!/^\d{4,6}$/.test(p)||p!==c))return alert('Inserisci due PIN uguali di 4–6 cifre.');if(p)db.settings.pinHash=await hashPin(p);if(enabled&&!db.settings.pinHash)return alert('Imposta prima un PIN.');db.settings.pinEnabled=enabled;save();toast('Sicurezza salvata')},resetArtworkFilters:()=>{document.querySelectorAll('.filtergrid input,.filtergrid select').forEach(x=>x.value='');bindArtworkFilters();},addListItem:k=>{const v=prompt('Nuova voce');if(v){db.settings.lists[k].push(v);save();render()}},removeListItem:id=>{const[k,i]=id.split(':');db.settings.lists[k].splice(+i,1);save();render()},saveLists:()=>{document.querySelectorAll('[data-list-key]').forEach(x=>db.settings.lists[x.dataset.listKey][+x.dataset.listI]=x.value.trim());save();toast('Liste salvate')},exportBackup:async()=>{db.settings.lastBackup=new Date().toISOString();save();const ok=await salvaFile('MAIR_GO_Backup_'+new Date().toISOString().slice(0,10)+'.mair',JSON.stringify(db),'application/json');if(ok)toast('Backup creato');if(route==='home'||route==='settings')render()},importBackup:()=>{const i=document.createElement('input');i.type='file';i.accept='.mair,.json';i.onchange=async()=>{try{db=merge(clone(defaults),JSON.parse(await i.files[0].text()));save();render();toast('Backup ripristinato')}catch{alert('Backup non valido')}};i.click()}};window.actions=actions;function del(k,id){if(confirm('Eliminare definitivamente?')){db[k]=db[k].filter(x=>x.id!==id);save();render()}}
 
 function bindSimpleFilter(inputId,gridId,arr,cardFn){const i=$('#'+inputId),g=$('#'+gridId);if(!i||!g)return;const run=()=>{const q=i.value.toLowerCase();g.innerHTML=arr.filter(x=>JSON.stringify(x).toLowerCase().includes(q)).map(cardFn).join('')||empty('⌕','Nessun risultato.');document.querySelectorAll('#'+gridId+' [data-action]').forEach(x=>x.onclick=()=>actions[x.dataset.action]?.(x.dataset.id,x))};i.oninput=run}
 function bindAgendaFilters(){const q=$('#agendaSearch'),t=$('#agendaType'),g=$('#agendaList');if(!q||!t||!g)return;const run=()=>{const s=q.value.toLowerCase();g.innerHTML=[...db.agenda].filter(x=>(!t.value||x.type===t.value)&&JSON.stringify(x).toLowerCase().includes(s)).sort((a,b)=>new Date(a.date)-new Date(b.date)).map(agendaCard).join('')||empty('⌕','Nessun evento.');document.querySelectorAll('#agendaList [data-action]').forEach(x=>x.onclick=()=>actions[x.dataset.action]?.(x.dataset.id,x))};q.oninput=t.onchange=run}

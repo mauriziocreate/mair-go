@@ -114,3 +114,24 @@ input,select,textarea{min-width:0;max-width:100%}
 .chkgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:6px}
 .chkline{display:flex;align-items:center;gap:8px;padding:8px 10px;border:1px solid var(--line);border-radius:8px;font-size:.92rem;background:var(--panel)}
 .chkline input{width:18px;height:18px;flex:0 0 auto}
+
+/* ===== PROMEMORIA "DA FARE" ===== */
+.promemoria{border:1px solid var(--line);border-radius:var(--radius);padding:16px 18px;margin-bottom:22px;background:var(--panel);box-shadow:var(--shadow)}
+.promemoria.urgente{border-color:#c98a1f;background:color-mix(in srgb,#c98a1f 8%,var(--panel))}
+.pm-testa{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:10px}
+.pm-testa h3{margin:0;font-size:1.05rem}
+.pm-gruppo{margin-top:10px}
+.pm-gruppo h4{margin:0 0 6px;font-size:.82rem;text-transform:uppercase;letter-spacing:.08em;color:var(--muted)}
+.pm-gruppo h4 span{background:var(--line);border-radius:20px;padding:1px 8px;margin-left:6px;font-size:.75rem}
+.pm-gruppo.g-rit h4{color:#c0392b}
+.pm-gruppo.g-rit h4 span{background:#c0392b;color:#fff}
+.pm-gruppo.g-oggi h4{color:#b8860b}
+.pm-gruppo.g-oggi h4 span{background:#b8860b;color:#fff}
+.promemoria ul{list-style:none;margin:0;padding:0}
+.promemoria li{display:flex;gap:10px;align-items:baseline;padding:6px 0;border-bottom:1px solid var(--line);font-size:.92rem}
+.promemoria li:last-child{border-bottom:0}
+.pm-ora{flex:0 0 46px;color:var(--muted);font-variant-numeric:tabular-nums;font-size:.85rem}
+.pm-tit{flex:1;font-weight:600}
+.pm-luogo{color:var(--muted);font-size:.82rem}
+.pm-altri{color:var(--muted);font-style:italic}
+@media(max-width:560px){.pm-luogo{display:none}}
