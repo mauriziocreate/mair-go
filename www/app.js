@@ -9,7 +9,7 @@ function diagOpen(){
   box.setAttribute('style','position:fixed;top:0;left:0;right:0;bottom:0;z-index:999999;background:#111;color:#0f0;font:12px/1.5 monospace;padding:10px;overflow:auto');
   const testo=window.__LOG__.length?window.__LOG__.join('\n\n'):'(nessun errore registrato)';
   const info='DIAGNOSTICA MAIR GO!\n'
-    +'Versione app.js: 5.7\n'
+    +'Versione app.js: 5.8\n'
     +'docViewerOpen esiste: '+(typeof docViewerOpen)+'\n'
     +'textEditorOpen esiste: '+(typeof textEditorOpen)+'\n'
     +'certDocHtml esiste: '+(typeof certDocHtml)+'\n'
@@ -332,6 +332,58 @@ img{max-width:100%;height:auto}
 @media print{.doc-actions{display:none}body{padding:0}}
 ${extraCss||''}
 </style></head><body><div class="doc-actions"><button onclick="window.print()">🖨️ Stampa / Salva come PDF</button></div>${inner}</body></html>`;}
+
+function safeName(t){return String(t||'documento').replace(/[^\w\sÀ-ÿ-]/g,'').trim().replace(/\s+/g,'_').slice(0,50);}
+function certDocHtml(c){
+  const tpl=CERT_TEMPLATES[c.template]||CERT_TEMPLATES.autenticita;
+  const a=db.artworks.find(x=>x.id===c.artworkId)||{};
+  const F=c.fields||tpl.fields;
+  const src={code:a.code||'',year:a.year||'',technique:a.technique||'',support:a.support||'',dimensions:a.dimensions||'',frame:a.frame||'',edition:c.edition||'',price:c.price?euro(c.price):'',buyer:c.buyer||'',donee:c.buyer||'',collection:a.collection||c.provenance||'',provenance:c.provenance||'',exhibition:c.exhibition||'',place:c.place||'',date:c.date?fmtDate(c.date):''};
+  const rows=F.filter(k=>k!=='signature'&&src[k]).map(k=>'<tr><td style="font-weight:700;width:40%">'+esc(CERT_FIELD_LABELS[k]||k)+'</td><td>'+esc(src[k])+'</td></tr>').join('');
+  const sig=(c.sigMode==='image'&&c.signatureImg)?'<img src="'+c.signatureImg+'" style="max-height:80px">':'<span style="font-style:italic;font-size:1.6rem">'+esc(c.artist||db.settings.artist)+'</span>';
+  return '<div style="border:2px solid #8a6a1f;padding:26px">'
+   +'<div style="text-align:center;margin-bottom:18px"><small style="letter-spacing:.2em;text-transform:uppercase;color:#8a6a1f;font-weight:700">'+esc(tpl.label)+'</small>'
+   +'<h1 style="margin:.2em 0">'+esc(c.title||tpl.title)+'</h1>'
+   +(c.certNumber?'<p style="color:#8a6a1f;font-weight:700">N. '+esc(c.certNumber)+'</p>':'')+'</div>'
+   +(a.image?'<div style="text-align:center;margin:16px 0"><img src="'+a.image+'" style="max-height:340px;border:1px solid #ccc"></div>':'')
+   +(a.title?'<h2 style="text-align:center;font-style:italic">\u00ab'+esc(a.title)+'\u00bb</h2>':'')
+   +'<p style="text-align:justify">'+esc(c.body||tpl.body)+'</p>'
+   +(rows?'<table>'+rows+'</table>':'')
+   +'<div style="display:flex;justify-content:space-between;align-items:flex-end;margin-top:40px;flex-wrap:wrap;gap:16px">'
+   +'<div style="text-align:center;min-width:200px">'+sig+'<hr style="border:0;border-top:1px solid #111;margin:6px 0 4px"><small>'+esc(c.artist||db.settings.artist)+' \u00b7 Artista</small></div>'
+   +'<div><small>'+esc(c.place||'')+(c.place&&c.date?', ':'')+(c.date?fmtDate(c.date):'')+'</small></div></div></div>';
+}
+function pdfDocHtml(p){
+  const arts=(p.artworkIds||[]).map(id=>db.artworks.find(a=>a.id===id)).filter(Boolean);
+  const F=p.fields||[];
+  const riga=(lab,val)=>val?'<p><strong>'+lab+':</strong> '+esc(val)+'</p>':'';
+  return '<header style="border-bottom:3px solid #8a6a1f;padding-bottom:18px;margin-bottom:24px">'
+   +'<small>MAIR GO! \u00b7 '+esc(p.type||'')+'</small><h1 style="margin:.2em 0">'+esc(p.title||'')+'</h1>'
+   +'<h2>'+esc(p.subtitle||'')+'</h2><p>'+esc(p.intro||'')+'</p></header>'
+   +arts.map(a=>'<section class="art"><div>'+(a.image?'<img src="'+a.image+'">':'')+'</div><div>'
+     +'<h2>'+esc(a.title||'')+'</h2>'
+     +(F.includes('year')?riga('Anno',a.year):'')
+     +(F.includes('code')?riga('Codice',a.code):'')
+     +(F.includes('technique')?riga('Tecnica',a.technique?(a.technique+(a.support?' su '+a.support:'')):''):'')
+     +(F.includes('dimensions')?riga('Dimensioni',a.dimensions):'')
+     +(F.includes('frame')?riga('Cornice',a.frame):'')
+     +(F.includes('status')?riga('Stato',a.status):'')
+     +(F.includes('price')&&a.price?'<p><strong>Prezzo:</strong> '+euro(a.price)+'</p>':'')
+     +(F.includes('description')&&a.description?'<p>'+esc(a.description)+'</p>':'')
+     +'</div></section>').join('')
+   +'<footer style="border-top:1px solid #bbb;padding-top:16px;margin-top:32px"><strong>'+esc(db.settings.artist)+'</strong><br>'+esc(db.settings.email||'')+' '+esc(db.settings.phone||'')+'</footer>';
+}
+function receiptDocHtml(s){
+  const a=db.artworks.find(x=>x.id===s.artworkId),c=db.clients.find(x=>x.id===s.clientId);
+  return '<h1>Ricevuta / riepilogo vendita</h1><p><strong>'+esc(db.settings.artist)+'</strong></p>'
+   +'<table><tr><td>Opera</td><td>'+esc(a&&a.title||'\u2014')+'</td></tr>'
+   +'<tr><td>Cliente</td><td>'+esc(c&&c.name||'\u2014')+'</td></tr>'
+   +'<tr><td>Data</td><td>'+fmtDate(s.date)+'</td></tr>'
+   +'<tr><td>Totale</td><td>'+euro(s.total)+'</td></tr>'
+   +'<tr><td>Incassato</td><td>'+euro(s.paid)+'</td></tr>'
+   +'<tr><td>Metodo</td><td>'+esc(s.paymentMethod||'\u2014')+'</td></tr></table>'
+   +'<p>'+esc(s.notes||'')+'</p><p style="margin-top:36px">Firma _______________________</p>';
+}
 
 function certPlain(c){const tpl=CERT_TEMPLATES[c.template]||CERT_TEMPLATES.autenticita;const a=db.artworks.find(x=>x.id===c.artworkId);const F=c.fields||tpl.fields;const src={code:a?.code,year:a?.year,technique:a?.technique,support:a?.support,dimensions:a?.dimensions,frame:a?.frame,edition:c.edition,price:c.price?euro(c.price):'',buyer:c.buyer,donee:c.buyer,collection:a?.collection||c.provenance,provenance:c.provenance,exhibition:c.exhibition,place:c.place,date:c.date?fmtDate(c.date):''};
 const righe=F.filter(k=>k!=='signature'&&src[k]).map(k=>`${CERT_FIELD_LABELS[k]||k}: ${src[k]}`).join('\n');
