@@ -151,3 +151,19 @@ input,select,textarea{min-width:0;max-width:100%}
 .legal-card h3{margin-top:22px;padding-top:14px;border-top:1px solid var(--line)}
 .legal-card ul{line-height:1.65;padding-left:22px}
 .legal-card li{margin:5px 0}
+
+/* ===== LINK UTILI / CONTATTI ===== */
+.link-cat{margin-bottom:24px}
+.link-cat h3{display:flex;align-items:center;gap:8px;margin:0 0 10px;font-size:1.05rem}
+.link-list{display:flex;flex-direction:column;gap:8px}
+.link-row{display:flex;align-items:center;gap:8px;border:1px solid var(--line);border-radius:var(--radius);background:var(--panel);padding:10px 12px}
+.link-main{flex:1;display:flex;align-items:flex-start;gap:10px;text-decoration:none;color:inherit;min-width:0}
+.link-ico{font-size:1.1rem;flex:0 0 auto}
+.link-main strong{display:block;font-size:.96rem}
+.link-main small{display:block;color:var(--muted);font-size:.8rem;line-height:1.4}
+.link-url{word-break:break-all;opacity:.75}
+.link-act{display:flex;gap:6px;flex:0 0 auto}
+.link-act .btn{padding:6px 10px;font-size:.82rem}
+.link-inline{display:flex;flex-wrap:wrap;gap:10px;margin:6px 0;font-size:.88rem}
+.link-inline a{color:var(--accent,#8a6a1f);text-decoration:none}
+@media(max-width:560px){.link-row{flex-direction:column;align-items:stretch}.link-act{justify-content:flex-end}}
