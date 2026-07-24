@@ -9,7 +9,7 @@ function diagOpen(){
   box.setAttribute('style','position:fixed;top:0;left:0;right:0;bottom:0;z-index:999999;background:#111;color:#0f0;font:12px/1.5 monospace;padding:10px;overflow:auto');
   const testo=window.__LOG__.length?window.__LOG__.join('\n\n'):'(nessun errore registrato)';
   const info='DIAGNOSTICA MAIR GO!\n'
-    +'Versione app.js: 7.5\n'
+    +'Versione app.js: 7.6\n'
     +'docViewerOpen esiste: '+(typeof docViewerOpen)+'\n'
     +'textEditorOpen esiste: '+(typeof textEditorOpen)+'\n'
     +'certDocHtml esiste: '+(typeof certDocHtml)+'\n'
@@ -148,7 +148,7 @@ function clone(x){return JSON.parse(JSON.stringify(x))}function load(){try{const
   }
   updateHeader();
 }const uid=()=>crypto.randomUUID?.()||Date.now().toString(36)+Math.random().toString(36).slice(2);const esc=s=>String(s??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));const euro=n=>n?new Intl.NumberFormat('it-IT',{style:'currency',currency:'EUR'}).format(+n):'';function toast(t){const x=$('#toast');x.textContent=t;x.classList.add('show');setTimeout(()=>x.classList.remove('show'),1800)}function download(blob,name){const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=name;a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1000)}
-const titles={home:'MAIR GO!',artworks:'Opere',library:'Biblioteca Pro',pdfstudio:'PDF Studio',settings:'Impostazioni',info:'Informazioni',timeline:'Timeline',workspace:'Workspace',exhibitions:'Mostre',clients:'Clienti',sales:'Vendite',agenda:'Agenda',certificates:'Certificati',social:'Zona Social',links:'Link utili',pros:'Curatori e critici',galleries:'Gallerie',certpreview:'Certificato',guide:'Guida offline',contact:'Contatti e segnalazioni'};function updateHeader(){document.documentElement.dataset.theme=db.settings.theme;document.documentElement.dataset.accent=db.settings.accent||'oro';document.documentElement.dataset.font=db.settings.fontSize||'medium';document.documentElement.classList.toggle('reduce-motion',db.settings.animations===false);$('#pageTitle').textContent=titles[route]||'MAIR GO!';$('#pageSub').textContent=route==='home'?'Il tuo atelier digitale':db.settings.artist;document.querySelectorAll('.bottomnav button').forEach(b=>b.classList.toggle('active',b.dataset.route===route))}function go(r){route=r;location.hash=r;render();scrollTo(0,0)}function render(){updateHeader();app.innerHTML=(views[route]||views.home)();bind()}function bind(){document.querySelectorAll('[data-go]').forEach(x=>x.onclick=()=>go(x.dataset.go));document.querySelectorAll('[data-action]').forEach(x=>x.onclick=()=>actions[x.dataset.action]?.(x.dataset.id,x));if(route==='artworks')bindArtworkFilters();if(route==='library')bindLibraryFilters();if(route==='exhibitions')bindSimpleFilter('exSearch','exGrid',db.exhibitions,exhibitionCard);if(route==='clients')bindSimpleFilter('clientSearch','clientGrid',db.clients,clientCard);if(route==='sales')bindSimpleFilter('saleSearch','saleGrid',db.sales,saleCard);if(route==='agenda')bindAgendaFilters()}
+const titles={home:'MAIR GO!',artworks:'Opere',library:'Biblioteca Pro',pdfstudio:'PDF Studio',settings:'Impostazioni',info:'Informazioni',timeline:'Timeline',workspace:'Workspace',exhibitions:'Mostre',clients:'Clienti',sales:'Vendite',agenda:'Agenda',certificates:'Certificati',social:'Zona Social',links:'Link utili',pros:'Curatori e critici',galleries:'Gallerie',certpreview:'Certificato',guide:'Guida offline',contact:'Contatti e segnalazioni'};function updateHeader(){document.documentElement.dataset.theme=db.settings.theme;document.documentElement.dataset.accent=db.settings.accent||'oro';document.documentElement.dataset.font=db.settings.fontSize||'medium';document.documentElement.classList.toggle('reduce-motion',db.settings.animations===false);$('#pageTitle').textContent=titles[route]||'MAIR GO!';$('#pageSub').textContent=route==='home'?'Il tuo atelier digitale':db.settings.artist;document.querySelectorAll('.bottomnav button').forEach(b=>b.classList.toggle('active',b.dataset.route===route))}function go(r){route=r;location.hash=r;render();scrollTo(0,0)}function render(){updateHeader();app.innerHTML=(views[route]||views.home)();bind()}function bind(){document.querySelectorAll('[data-go]').forEach(x=>x.onclick=()=>go(x.dataset.go));document.querySelectorAll('[data-action]').forEach(x=>x.onclick=()=>actions[x.dataset.action]?.(x.dataset.id,x));if(route==='artworks')bindArtworkFilters();if(route==='library')bindLibraryFilters();if(route==='exhibitions')bindSimpleFilter('exSearch','exGrid',db.exhibitions,exhibitionCard);if(route==='clients')bindSimpleFilter('clientSearch','clientGrid',db.clients,clientCard);if(route==='sales')bindSimpleFilter('saleSearch','saleGrid',db.sales,saleCard);if(route==='pros')bindProFilter();if(route==='galleries')bindSimpleFilter('gallerySearch','galleryGrid',db.galleries||[],galleryCard);if(route==='links')bindLinkFilter();if(route==='certificates')bindSimpleFilter('certSearch','certGrid',db.certificates||[],certCard);if(route==='agenda')bindAgendaFilters()}
 function section(t,b=''){return `<div class="sectionhead"><h2>${t}</h2>${b}</div>`}function empty(i,t,b=''){return `<div class="empty"><div style="font-size:2.5rem">${i}</div><p>${t}</p>${b}</div>`}function img(src,alt=''){return src?`<img src="${src}" alt="${esc(alt)}">`:'✦'}function field(label,name,value='',type='text',full=''){return `<div class="field ${full}"><label>${label}</label><input name="${name}" type="${type}" value="${esc(value)}"></div>`}function area(label,name,value='',full='full'){return `<div class="field ${full}"><label>${label}</label><textarea name="${name}">${esc(value)}</textarea></div>`}function selectField(label,name,list,value='',full=''){return `<div class="field ${full}"><label>${label}</label><div class="field-inline"><select name="${name}">${list.map(v=>`<option ${v===value?'selected':''}>${esc(v)}</option>`).join('')}</select><button type="button" class="btn" data-add-list="${name}">＋</button></div></div>`}
 function artworkCard(a){return `<article class="card"><div class="cardimg">${img(a.image,a.title)}</div><div class="cardbody"><div class="row spread"><h3>${esc(a.title||'Senza titolo')}</h3><button class="star" data-action="toggleArtworkFav" data-id="${a.id}">${a.favorite?'★':'☆'}</button></div><div class="meta">${esc(a.year||'s.d.')} · ${esc(a.technique||'Tecnica non indicata')}</div><span class="badge">${esc(a.dimensions||'Dimensioni n.d.')}</span><span class="badge">${esc(a.status||'Disponibile')}</span>${a.price?`<span class="badge">${euro(a.price)}</span>`:''}<div class="row" style="margin-top:12px"><button class="btn primary" data-action="editArtwork" data-id="${a.id}">Apri</button><button class="btn danger" data-action="deleteArtwork" data-id="${a.id}">Elimina</button></div></div></article>`}
 function libCard(d){const ico=d.mime?.includes('pdf')?'📕':d.mime?.includes('word')||d.name?.endsWith('.docx')?'📘':d.mime?.startsWith('image')?'🖼️':'📄';return `<article class="card"><div class="cardbody"><div class="row spread"><div class="doc-type">${ico}</div><button class="star" data-action="toggleLibFav" data-id="${d.id}">${d.favorite?'★':'☆'}</button></div><h3>${esc(d.title||d.name)}</h3><div class="meta">${esc(d.author||'Autore non indicato')} · ${esc(d.category||'Altro')}</div><p>${esc(d.description||'')}</p>${(d.tags||[]).map(t=>`<span class="badge">${esc(t)}</span>`).join('')}<div class="row" style="margin-top:12px"><button class="btn primary" data-action="openLibrary" data-id="${d.id}">Leggi</button><button class="btn" data-action="editLibrary" data-id="${d.id}">Modifica</button><button class="btn danger" data-action="deleteLibrary" data-id="${d.id}">Elimina</button></div></div></article>`}
@@ -895,11 +895,12 @@ function linksView(){
   }).join('');
   return section('Link utili','<button class="btn primary" data-action="newLink">&#65291; Nuovo link</button>')
    +'<section class="hero"><h2>&#128279; Link utili per l\u2019arte</h2><p>Raccolta personale di siti, riviste, bandi e risorse. Tocca un link per aprirlo.</p></section>'
+   +'<div class="toolbar"><input id="linkSearch" class="search" placeholder="Cerca per titolo, indirizzo, nota, categoria\u2026"></div>'
    +'<div class="row" style="gap:8px;flex-wrap:wrap;margin-bottom:16px">'
      +'<button class="btn" data-action="manageLinkCats">&#9881;&#65039; Categorie</button>'
      +'<button class="btn" data-action="printLinks">&#128196; Stampa PDF</button>'
    +'</div>'
-   +((db.links||[]).length?blocchi:empty('&#128279;','Nessun link salvato.','<button class="btn primary" data-action="newLink">Aggiungi il primo link</button>'));
+   +'<div id="linkGrid">'+((db.links||[]).length?blocchi:empty('&#128279;','Nessun link salvato.','<button class="btn primary" data-action="newLink">Aggiungi il primo link</button>'))+'</div>';
 }
 function linkModal(l={}){
   const cats=linkCats();
@@ -959,14 +960,11 @@ function linksPlain(){
 const PRO_RUOLI=['Curatore','Gallerista','Critico d\u2019arte','Giornalista','Collezionista','Organizzatore','Fotografo','Altro'];
 function proView(){
   const list=(db.pros||[]);
-  const perRuolo={};
-  list.forEach(p=>{(perRuolo[p.role||'Altro']=perRuolo[p.role||'Altro']||[]).push(p);});
-  const blocchi=Object.keys(perRuolo).sort().map(r=>'<section class="link-cat"><h3>'+esc(r)+' <span class="badge">'+perRuolo[r].length+'</span></h3>'
-    +'<div class="grid">'+perRuolo[r].map(proCard).join('')+'</div></section>').join('');
   return section('Curatori e critici','<button class="btn primary" data-action="newPro">&#65291; Nuovo contatto</button>')
    +'<section class="hero"><h2>&#128100; Curatori, gallerie e critici</h2><p>Rubrica dei contatti professionali del mondo dell\u2019arte, con foto, recapiti e profili social.</p></section>'
+   +'<div class="toolbar"><input id="proSearch" class="search" placeholder="Cerca per nome, ruolo, galleria, citt\u00e0, telefono, email\u2026"><select id="proRole"><option value="">Tutti i ruoli</option>'+PRO_RUOLI.map(r=>'<option>'+r+'</option>').join('')+'</select></div>'
    +'<div class="row" style="margin-bottom:16px"><button class="btn" data-action="printPros">&#128196; Stampa PDF</button></div>'
-   +(list.length?blocchi:empty('&#128100;','Nessun contatto professionale.','<button class="btn primary" data-action="newPro">Aggiungi il primo</button>'));
+   +'<div id="proGrid" class="grid">'+(list.length?list.map(proCard).join(''):empty('&#128100;','Nessun contatto professionale.','<button class="btn primary" data-action="newPro">Aggiungi il primo</button>'))+'</div>';
 }
 function proCard(p){
   const rec=[];
@@ -1030,9 +1028,9 @@ function galleriesView(){
   const list=db.galleries||[];
   return section('Gallerie','<button class="btn primary" data-action="newGallery">&#65291; Nuova galleria</button>')
    +'<section class="hero"><h2>&#127963;&#65039; Gallerie</h2><p>Spazi espositivi con immagine, referente, recapiti e sito.</p></section>'
+   +'<div class="toolbar"><input id="gallerySearch" class="search" placeholder="Cerca per nome, citt\u00e0, referente, telefono, email\u2026"></div>'
    +'<div class="row" style="margin-bottom:16px"><button class="btn" data-action="printGalleries">&#128196; Stampa PDF</button></div>'
-   +(list.length?'<div class="grid">'+list.map(galleryCard).join('')+'</div>'
-     :empty('&#127963;&#65039;','Nessuna galleria salvata.','<button class="btn primary" data-action="newGallery">Aggiungi la prima</button>'));
+   +'<div id="galleryGrid" class="grid">'+(list.length?list.map(galleryCard).join(''):empty('&#127963;&#65039;','Nessuna galleria salvata.','<button class="btn primary" data-action="newGallery">Aggiungi la prima</button>'))+'</div>';
 }
 function galleryCard(g){
   const rec=[];
@@ -1189,8 +1187,15 @@ function guideView(){return `${section('Guida offline')}
 <p><strong>Stampa PDF</strong> genera l\u2019elenco con tutti i recapiti.</p>
 </details>
 
+<details class="guide-item"><summary><strong>&#9906; Cercare nelle sezioni</strong></summary>
+<p>Opere, Biblioteca, Mostre, Clienti, Vendite, Agenda, Certificati, Curatori, Gallerie e Link hanno una <strong>barra di ricerca</strong> in cima.</p>
+<p>La ricerca esamina <strong>tutti i campi</strong> della scheda: nome, cognome, titolo, citt&agrave;, telefono, email, data, note, prezzo, categoria e cos&igrave; via. Non serve sapere in quale campo si trova il dato.</p>
+<p>Puoi scrivere <strong>pi&ugrave; parole</strong>: vengono mostrate solo le schede che le contengono tutte. Ad esempio "milano curatore" trova i curatori di Milano.</p>
+<p>In Curatori c\u2019&egrave; anche un filtro per ruolo, in Opere e Biblioteca i filtri avanzati, in Agenda il filtro per tipo.</p>
+</details>
+
 <details class="guide-item"><summary><strong>&#128682; Uscire dall\u2019app</strong></summary>
-<p>In <em>Impostazioni &rarr; Chiudi applicazione</em> trovi il pulsante per uscire completamente. I dati restano salvati.</p>
+<p>In alto a destra, accanto al pulsante del tema, c\u2019&egrave; l\u2019icona <strong>&#9211;</strong> per uscire dall\u2019app. Lo stesso comando &egrave; anche in <em>Impostazioni &rarr; Chiudi applicazione</em>. I dati restano salvati.</p>
 <p>Il <strong>tasto Indietro</strong> del telefono chiude prima eventuali finestre aperte, poi riporta alla schermata principale, e infine propone di uscire.</p>
 </details>
 
@@ -1325,7 +1330,8 @@ function certificatesView(){
   return `${section('Certificati','<button class="btn primary" data-action="newCertificate">＋ Nuovo certificato</button>')}
   <section class="hero"><h2>✦ Certificati personalizzabili</h2><p>Scegli il modello, seleziona il quadro dall'archivio, personalizza campi, testo, tema e firma. Poi stampa o salva in PDF. Tutto resta locale.</p></section>
   <div class="template-row">${Object.values(CERT_TEMPLATES).map(t=>`<span class="badge">${t.icon} ${esc(t.label)}</span>`).join('')}</div>
-  <div class="grid">${db.certificates.map(certCard).join('')||empty('✦','Nessun certificato creato.','<button class="btn primary" data-action="newCertificate">Crea il primo certificato</button>')}</div>`;
+  <div class="toolbar"><input id="certSearch" class="search" placeholder="Cerca per titolo, numero, opera, acquirente, luogo…"></div>
+  <div id="certGrid" class="grid">${db.certificates.map(certCard).join('')||empty('✦','Nessun certificato creato.','<button class="btn primary" data-action="newCertificate">Crea il primo certificato</button>')}</div>`;
 }
 function certCard(c){const tpl=CERT_TEMPLATES[c.template]||CERT_TEMPLATES.autenticita;const a=db.artworks.find(x=>x.id===c.artworkId);return `<article class="card"><div class="cardbody"><div class="row spread"><h3>${esc(c.title||tpl.title)}</h3><span class="badge">${tpl.icon}</span></div><div class="meta">${esc(tpl.label)}${a?' · '+esc(a.title):''}${c.certNumber?' · N. '+esc(c.certNumber):''}</div><p class="meta">${esc(c.place||'')} ${c.date?'· '+fmtDate(c.date):''}</p><div class="row" style="margin-top:12px"><button class="btn primary" data-action="openCertificate" data-id="${c.id}">Apri</button><button class="btn" data-action="editCertificate" data-id="${c.id}">Modifica</button><button class="btn danger" data-action="deleteCertificate" data-id="${c.id}">Elimina</button></div></div></article>`;}
 
@@ -1927,7 +1933,73 @@ const actions={openDiag:()=>diagOpen(),
  newGallery:()=>galleryModal(),editGallery:id=>galleryModal((db.galleries||[]).find(x=>x.id===id)),deleteGallery:id=>del('galleries',id),
  printGalleries:()=>{window.__PDFCTX__={tipo:'generico'};docViewerOpen('Gallerie',galleriesDocHtml(),'',galleriesPlain())},esciApp:()=>esciApp(),chiudiTutto:()=>chiudiOverlay(),newSocialPost:()=>{const a=db.artworks.filter(x=>x.image);if(!a.length){toast('Aggiungi immagini alle opere');return}socialPostModal(a[0])},socialSingolo:()=>{const a=db.artworks.filter(x=>x.image);if(a.length)socialPostModal(a[0])},socialSequenza:()=>socialSequenzaModal(),socialVideo:()=>videoModal(),socialDaOpera:id=>{const a=db.artworks.find(x=>x.id===id);if(a)socialPostModal(a)},pdfSettings:()=>pdfSettingsModal(),customizeHome:()=>homeCustomizeModal(),prepareEmail:()=>{const name=document.querySelector('[name=contactName]')?.value||'',from=document.querySelector('[name=contactEmail]')?.value||'',cat=$('#contactCategory')?.value||'Altro',sub=document.querySelector('[name=contactSubject]')?.value||'Contatto da MAIR GO!',msg=document.querySelector('[name=contactMessage]')?.value||'';const body=`Nome: ${name}\nEmail: ${from}\nCategoria: ${cat}\n\n${msg}`;location.href=`mailto:dandreart.info@gmail.com?subject=${encodeURIComponent('MAIR GO! - '+cat+' - '+sub)}&body=${encodeURIComponent(body)}`},copyContactEmail:async()=>{await navigator.clipboard.writeText('dandreart.info@gmail.com');toast('Indirizzo copiato')},newWorkspace:()=>workspaceModal(),editWorkspace:id=>workspaceModal(db.workspaces.find(x=>x.id===id)),deleteWorkspace:id=>del('workspaces',id),newExhibition:()=>exhibitionModal(),editExhibition:id=>exhibitionModal(db.exhibitions.find(x=>x.id===id)),deleteExhibition:id=>del('exhibitions',id),catalogFromExhibition:id=>catalogFromExhibition(id),newClient:()=>clientModal(),editClient:id=>clientModal(db.clients.find(x=>x.id===id)),deleteClient:id=>del('clients',id),newSale:()=>saleModal(),newSaleForClient:id=>saleModal({clientId:id}),editSale:id=>saleModal(db.sales.find(x=>x.id===id)),deleteSale:id=>del('sales',id),printReceipt:id=>printReceipt(id),newAgenda:()=>agendaModal(),editAgenda:id=>agendaModal(db.agenda.find(x=>x.id===id)),deleteAgenda:id=>del('agenda',id),exportAgendaIcs:()=>exportAgendaIcs(),newArtwork:()=>artworkModal(),editArtwork:id=>artworkModal(db.artworks.find(x=>x.id===id)),deleteArtwork:id=>del('artworks',id),toggleArtworkFav:id=>{const x=db.artworks.find(a=>a.id===id);x.favorite=!x.favorite;save();render()},newLibrary:()=>libraryModal(),editLibrary:id=>libraryModal(db.library.find(x=>x.id===id)),openLibrary:id=>openLibrary(id),deleteLibrary:id=>del('library',id),toggleLibFav:id=>{const x=db.library.find(a=>a.id===id);x.favorite=!x.favorite;save();render()},newPdfProject:()=>pdfProjectModal(),editPdfProject:id=>pdfProjectModal(db.pdfProjects.find(x=>x.id===id)),deletePdfProject:id=>del('pdfProjects',id),openPdfProject:id=>{previewId=id;route='pdfpreview';render()},newCertificate:()=>certificateModal(),editCertificate:id=>certificateModal(db.certificates.find(x=>x.id===id)),deleteCertificate:id=>del('certificates',id),openCertificate:id=>{certPreviewId=id;go('certpreview')},backCert:()=>go('certificates'),printCert:()=>{diagLog('CLICK','printCert premuto');const c=db.certificates.find(x=>x.id===certPreviewId);if(!c)return;const tpl=CERT_TEMPLATES[c.template]||CERT_TEMPLATES.autenticita;window.__PDFCTX__={tipo:'certificato',dato:c};docViewerOpen(c.title||tpl.title,certDocHtml(c),'',certPlain(c))},shareCert:()=>{const c=db.certificates.find(x=>x.id===certPreviewId);if(!c)return;const tpl=CERT_TEMPLATES[c.template]||CERT_TEMPLATES.autenticita;textEditorOpen(c.title||tpl.title,certPlain(c))},backPdf:()=>go('pdfstudio'),printPdf:()=>{diagLog('CLICK','printPdf premuto');const p=db.pdfProjects.find(x=>x.id===previewId);if(!p)return;window.__PDFCTX__={tipo:'catalogo',dato:p};docViewerOpen(p.title||'Catalogo',pdfDocHtml(p),'',pdfPlain(p))},sharePdf:()=>{const p=db.pdfProjects.find(x=>x.id===previewId);if(!p)return;textEditorOpen(p.title||'Catalogo',pdfPlain(p))},saveProfile:()=>{db.settings.artist=$('[name=artist]').value;db.settings.bio=$('[name=bio]').value;db.settings.email=$('[name=email]').value;db.settings.phone=$('[name=phone]').value;save();toast('Profilo salvato')},saveAppearance:()=>{db.settings.theme=$('#themeSetting').value;db.settings.fontSize=$('#fontSetting').value;db.settings.animations=$('#animationsSetting').checked;db.settings.splash=$('#splashSetting').checked;save();render();toast('Aspetto salvato')},savePin:async()=>{const enabled=$('#pinEnabled').checked,p=$('#newPin').value,c=$('#confirmPin').value;if(p&&(!/^\d{4,6}$/.test(p)||p!==c))return alert('Inserisci due PIN uguali di 4–6 cifre.');if(p)db.settings.pinHash=await hashPin(p);if(enabled&&!db.settings.pinHash)return alert('Imposta prima un PIN.');db.settings.pinEnabled=enabled;save();toast('Sicurezza salvata')},resetArtworkFilters:()=>{document.querySelectorAll('.filtergrid input,.filtergrid select').forEach(x=>x.value='');bindArtworkFilters();},addListItem:k=>{const v=prompt('Nuova voce');if(v){db.settings.lists[k].push(v);save();render()}},removeListItem:id=>{const[k,i]=id.split(':');db.settings.lists[k].splice(+i,1);save();render()},saveLists:()=>{document.querySelectorAll('[data-list-key]').forEach(x=>db.settings.lists[x.dataset.listKey][+x.dataset.listI]=x.value.trim());save();toast('Liste salvate')},exportBackup:async()=>{db.settings.lastBackup=new Date().toISOString();save();const ok=await salvaFile('MAIR_GO_Backup_'+new Date().toISOString().slice(0,10)+'.mair',JSON.stringify(db),'application/json');if(ok)toast('Backup creato');if(route==='home'||route==='settings')render()},importBackup:()=>{const i=document.createElement('input');i.type='file';i.accept='.mair,.json';i.onchange=async()=>{try{db=merge(clone(defaults),JSON.parse(await i.files[0].text()));save();render();toast('Backup ripristinato')}catch{alert('Backup non valido')}};i.click()}};window.actions=actions;function del(k,id){if(confirm('Eliminare definitivamente?')){db[k]=db[k].filter(x=>x.id!==id);save();render()}}
 
-function bindSimpleFilter(inputId,gridId,arr,cardFn){const i=$('#'+inputId),g=$('#'+gridId);if(!i||!g)return;const run=()=>{const q=i.value.toLowerCase();g.innerHTML=arr.filter(x=>JSON.stringify(x).toLowerCase().includes(q)).map(cardFn).join('')||empty('⌕','Nessun risultato.');document.querySelectorAll('#'+gridId+' [data-action]').forEach(x=>x.onclick=()=>actions[x.dataset.action]?.(x.dataset.id,x))};i.oninput=run}
+function testoRicercabile(x){
+  const salta=['image','photo','poster','signatureImg','data','file','thumb','id','created','updated'];
+  const parti=[];
+  const scava=o=>{
+    if(o==null)return;
+    if(Array.isArray(o)){o.forEach(scava);return;}
+    if(typeof o==='object'){
+      Object.keys(o).forEach(k=>{
+        if(salta.includes(k))return;
+        const v=o[k];
+        if(typeof v==='string'&&v.length>300)return;
+        scava(v);
+      });
+      return;
+    }
+    parti.push(String(o));
+  };
+  scava(x);
+  return parti.join(' ').toLowerCase();
+}
+function bindLinkFilter(){
+  const i=$('#linkSearch'),g=$('#linkGrid');if(!i||!g)return;
+  const run=()=>{
+    const q=i.value.trim().toLowerCase();
+    const termini=q.split(/\s+/).filter(Boolean);
+    const cats=linkCats();
+    let out='';
+    cats.forEach(c=>{
+      let arr=(db.links||[]).filter(l=>(cats.includes(l.category)?l.category:cats[0])===c);
+      if(termini.length)arr=arr.filter(l=>{const t=testoRicercabile(l);return termini.every(w=>t.includes(w));});
+      if(!arr.length)return;
+      arr.sort((a,b)=>String(a.title||'').localeCompare(String(b.title||'')));
+      out+='<section class="link-cat"><div class="row spread"><h3>'+esc(c)+' <span class="badge">'+arr.length+'</span></h3></div><div class="link-list">'
+        +arr.map(l=>'<article class="link-row"><a class="link-main" href="'+esc(l.url)+'" target="_blank" rel="noopener"><span class="link-ico">&#128279;</span><span><strong>'+esc(l.title||l.url)+'</strong>'+(l.notes?'<small>'+esc(l.notes)+'</small>':'')+'<small class="link-url">'+esc(l.url)+'</small></span></a>'
+        +'<div class="link-act"><button class="btn" data-action="editLink" data-id="'+l.id+'">Modifica</button><button class="btn danger" data-action="deleteLink" data-id="'+l.id+'">&times;</button></div></article>').join('')
+        +'</div></section>';
+    });
+    g.innerHTML=out||empty('&#9906;','Nessun link trovato.');
+    document.querySelectorAll('#linkGrid [data-action]').forEach(x=>x.onclick=()=>actions[x.dataset.action]?.(x.dataset.id,x));
+  };
+  i.oninput=run;
+}
+function bindProFilter(){
+  const i=$('#proSearch'),r=$('#proRole'),g=$('#proGrid');if(!i||!g)return;
+  const run=()=>{
+    const q=i.value.trim().toLowerCase();
+    const termini=q.split(/\s+/).filter(Boolean);
+    const ruolo=r?r.value:'';
+    let arr=(db.pros||[]);
+    if(ruolo)arr=arr.filter(p=>(p.role||'Altro')===ruolo);
+    if(termini.length)arr=arr.filter(p=>{const t=testoRicercabile(p);return termini.every(w=>t.includes(w));});
+    g.innerHTML=arr.map(proCard).join('')||empty('&#9906;','Nessun contatto trovato.');
+    document.querySelectorAll('#proGrid [data-action]').forEach(x=>x.onclick=()=>actions[x.dataset.action]?.(x.dataset.id,x));
+  };
+  i.oninput=run;if(r)r.onchange=run;
+}
+function bindSimpleFilter(inputId,gridId,arr,cardFn){
+  const i=$('#'+inputId),g=$('#'+gridId);if(!i||!g)return;
+  const run=()=>{
+    const q=i.value.trim().toLowerCase();
+    const termini=q.split(/\s+/).filter(Boolean);
+    const res=!termini.length?arr:arr.filter(x=>{const t=testoRicercabile(x);return termini.every(w=>t.includes(w));});
+    g.innerHTML=res.map(cardFn).join('')||empty('&#9906;','Nessun risultato per \u201c'+esc(i.value)+'\u201d.');
+    document.querySelectorAll('#'+gridId+' [data-action]').forEach(x=>x.onclick=()=>actions[x.dataset.action]?.(x.dataset.id,x));
+  };
+  i.oninput=run;
+}
 function bindAgendaFilters(){const q=$('#agendaSearch'),t=$('#agendaType'),g=$('#agendaList');if(!q||!t||!g)return;const run=()=>{const s=q.value.toLowerCase();g.innerHTML=[...db.agenda].filter(x=>(!t.value||x.type===t.value)&&JSON.stringify(x).toLowerCase().includes(s)).sort((a,b)=>new Date(a.date)-new Date(b.date)).map(agendaCard).join('')||empty('⌕','Nessun evento.');document.querySelectorAll('#agendaList [data-action]').forEach(x=>x.onclick=()=>actions[x.dataset.action]?.(x.dataset.id,x))};q.oninput=t.onchange=run}
 
 function bindArtworkFilters(){const ids=['artSearch','artStatus','artYear','artTechnique','artSupport','artDimension','artFrame','artCollection','artLocation','artFavorite','artMinPrice','artMaxPrice'];const E=Object.fromEntries(ids.map(id=>[id,$('#'+id)]));const run=()=>{const q=(E.artSearch?.value||'').toLowerCase(),min=Number(E.artMinPrice?.value||0),max=Number(E.artMaxPrice?.value||Infinity);const arr=db.artworks.filter(a=>(!E.artStatus.value||a.status===E.artStatus.value)&&(!E.artYear.value||a.year===E.artYear.value)&&(!E.artTechnique.value||a.technique===E.artTechnique.value)&&(!E.artSupport.value||a.support===E.artSupport.value)&&(!E.artDimension.value||a.dimensions===E.artDimension.value)&&(!E.artFrame.value||a.frame===E.artFrame.value)&&(!E.artCollection.value||String(a.collection||'').toLowerCase().includes(E.artCollection.value.toLowerCase()))&&(!E.artLocation.value||String(a.location||'').toLowerCase().includes(E.artLocation.value.toLowerCase()))&&(!E.artFavorite.value||a.favorite)&&Number(a.price||0)>=min&&Number(a.price||0)<=max&&JSON.stringify(a).toLowerCase().includes(q));$('#artGrid').innerHTML=arr.map(artworkCard).join('')||empty('⌕','Nessuna opera trovata.');if($('#filterCount'))$('#filterCount').textContent=`${arr.length} opere visualizzate su ${db.artworks.length}`;document.querySelectorAll('#artGrid [data-action]').forEach(x=>x.onclick=()=>actions[x.dataset.action]?.(x.dataset.id,x))};ids.forEach(id=>{const x=E[id];if(x)x.oninput=x.onchange=run});run()}
@@ -1935,7 +2007,7 @@ function bindLibraryFilters(){const s=$('#libSearch'),t=$('#libType'),c=$('#libC
 async function hashPin(pin){const data=new TextEncoder().encode('MAIR-GO-'+pin);const digest=await crypto.subtle.digest('SHA-256',data);return [...new Uint8Array(digest)].map(b=>b.toString(16).padStart(2,'0')).join('')}
 function showLock(){const lock=$('#lockScreen');lock.classList.remove('hidden');setTimeout(()=>$('#pinInput').focus(),100);$('#unlockBtn').onclick=async()=>{if(await hashPin($('#pinInput').value)===db.settings.pinHash){lock.classList.add('hidden');$('#pinInput').value=''}else{toast('PIN errato');$('#pinInput').select()}};$('#pinInput').onkeydown=e=>{if(e.key==='Enter')$('#unlockBtn').click()};$('#pinHelp').onclick=()=>alert('Per tutelare i dati, il PIN non può essere recuperato. È possibile ripristinare un backup precedente oppure cancellare i dati del sito dal browser.')}
 function startup(){const splash=$('#splash');if(db.settings.splash===false)splash.remove();else setTimeout(()=>splash.classList.add('splash-out'),1500);setTimeout(()=>{splash?.remove();if(db.settings.pinEnabled&&db.settings.pinHash)showLock();else primoAvvio()},1900)}
-$('#homeBtn').onclick=()=>go('home');$('#themeBtn').onclick=()=>{const i=themeOptions.findIndex(x=>x[0]===db.settings.theme);db.settings.theme=themeOptions[(i+1)%themeOptions.length][0];save();render();toast(themeOptions[(i+1)%themeOptions.length][1])};document.querySelectorAll('.bottomnav button').forEach(b=>b.onclick=()=>go(b.dataset.route));$('#viewerClose').onclick=()=>viewer.close();window.addEventListener('hashchange',()=>{route=location.hash.slice(1)||'home';render()});let deferredInstallPrompt=null;function installAvailable(){const standalone=matchMedia('(display-mode: standalone)').matches||navigator.standalone===true;const b=$('#installBtn');if(b)b.classList.toggle('hidden',standalone||!deferredInstallPrompt)}window.addEventListener('beforeinstallprompt',e=>{e.preventDefault();deferredInstallPrompt=e;installAvailable()});window.addEventListener('appinstalled',()=>{deferredInstallPrompt=null;installAvailable();toast('MAIR GO! installata')});$('#installBtn').onclick=async()=>{if(!deferredInstallPrompt)return;deferredInstallPrompt.prompt();await deferredInstallPrompt.userChoice;deferredInstallPrompt=null;installAvailable()};async function boot(){
+$('#homeBtn').onclick=()=>go('home');$('#exitBtn').onclick=()=>esciApp();$('#themeBtn').onclick=()=>{const i=themeOptions.findIndex(x=>x[0]===db.settings.theme);db.settings.theme=themeOptions[(i+1)%themeOptions.length][0];save();render();toast(themeOptions[(i+1)%themeOptions.length][1])};document.querySelectorAll('.bottomnav button').forEach(b=>b.onclick=()=>go(b.dataset.route));$('#viewerClose').onclick=()=>viewer.close();window.addEventListener('hashchange',()=>{route=location.hash.slice(1)||'home';render()});let deferredInstallPrompt=null;function installAvailable(){const standalone=matchMedia('(display-mode: standalone)').matches||navigator.standalone===true;const b=$('#installBtn');if(b)b.classList.toggle('hidden',standalone||!deferredInstallPrompt)}window.addEventListener('beforeinstallprompt',e=>{e.preventDefault();deferredInstallPrompt=e;installAvailable()});window.addEventListener('appinstalled',()=>{deferredInstallPrompt=null;installAvailable();toast('MAIR GO! installata')});$('#installBtn').onclick=async()=>{if(!deferredInstallPrompt)return;deferredInstallPrompt.prompt();await deferredInstallPrompt.userChoice;deferredInstallPrompt=null;installAvailable()};async function boot(){
   await initPersistence();
   if('serviceWorker'in navigator){
     try{
