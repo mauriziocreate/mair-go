@@ -9,7 +9,7 @@ function diagOpen(){
   box.setAttribute('style','position:fixed;top:0;left:0;right:0;bottom:0;z-index:999999;background:#111;color:#0f0;font:12px/1.5 monospace;padding:10px;overflow:auto');
   const testo=window.__LOG__.length?window.__LOG__.join('\n\n'):'(nessun errore registrato)';
   const info='DIAGNOSTICA MAIR GO!\n'
-    +'Versione app.js: 6.2\n'
+    +'Versione app.js: 6.3\n'
     +'docViewerOpen esiste: '+(typeof docViewerOpen)+'\n'
     +'textEditorOpen esiste: '+(typeof textEditorOpen)+'\n'
     +'certDocHtml esiste: '+(typeof certDocHtml)+'\n'
@@ -187,12 +187,16 @@ const HOME_TILES={
   clients:{icon:'\ud83d\udc65',title:'Clienti',desc:'Rubrica collezionisti e galleristi.',count:()=>db.clients.length},
   sales:{icon:'\ud83d\udcb6',title:'Vendite',desc:'Trattative, incassi e ricevute.',count:()=>db.sales.length},
   agenda:{icon:'\ud83d\udcc5',title:'Agenda',desc:'Impegni, scadenze e promemoria.',count:()=>db.agenda.length},
-  settings:{icon:'\u2699\ufe0f',title:'Impostazioni',desc:'Profilo, aspetto, liste e backup.',count:null}
+  timeline:{icon:'\ud83d\udd52',title:'Timeline',desc:'Cronologia delle attivit\u00e0 e degli eventi.',count:null},
+  settings:{icon:'\u2699\ufe0f',title:'Impostazioni',desc:'Profilo, aspetto, liste e backup.',count:null},
+  guide:{icon:'\ud83d\udcd6',title:'Guida offline',desc:'Come usare ogni sezione dell\u2019app.',count:null},
+  info:{icon:'\u2139\ufe0f',title:'Informazioni',desc:'Versione, licenza e note sull\u2019app.',count:null},
+  contact:{icon:'\u2709\ufe0f',title:'Contatti',desc:'Segnalazioni e richieste di assistenza.',count:null}
 };
 const HOME_DEFAULT={
   titolo:'',sottotitolo:'',immagine:'',
   stats:['opere','disponibili','vendute','documenti'],
-  tiles:['artworks','library','pdfstudio','certificates','workspace','exhibitions'],
+  tiles:['artworks','library','pdfstudio','certificates','workspace','exhibitions','clients','sales','agenda','timeline','settings','guide','info','contact'],
   azione:'newArtwork'
 };
 function homeCfg(){const h=db.settings.home||{};return Object.assign({},HOME_DEFAULT,h);}
