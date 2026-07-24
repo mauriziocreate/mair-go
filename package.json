@@ -1,6 +1,6 @@
 {
   "name": "mair-go",
-  "version": "5.9.0",
+  "version": "7.5.0",
   "description": "MAIR GO! - Art Management System di Maurizio D'Andrea",
   "private": true,
   "scripts": {
@@ -10,7 +10,8 @@
     "@capacitor/android": "6.1.2",
     "@capacitor/core": "6.1.2",
     "@capacitor/filesystem": "6.0.4",
-    "@capacitor/share": "6.0.3"
+    "@capacitor/share": "6.0.3",
+    "@capacitor/app": "6.0.2"
   },
   "devDependencies": {
     "@capacitor/cli": "6.1.2"
