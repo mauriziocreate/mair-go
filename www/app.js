@@ -9,7 +9,7 @@ function diagOpen(){
   box.setAttribute('style','position:fixed;top:0;left:0;right:0;bottom:0;z-index:999999;background:#111;color:#0f0;font:12px/1.5 monospace;padding:10px;overflow:auto');
   const testo=window.__LOG__.length?window.__LOG__.join('\n\n'):'(nessun errore registrato)';
   const info='DIAGNOSTICA MAIR GO!\n'
-    +'Versione app.js: 7.3\n'
+    +'Versione app.js: 7.4\n'
     +'docViewerOpen esiste: '+(typeof docViewerOpen)+'\n'
     +'textEditorOpen esiste: '+(typeof textEditorOpen)+'\n'
     +'certDocHtml esiste: '+(typeof certDocHtml)+'\n'
@@ -532,7 +532,7 @@ function vTitolo(ctx,W,H,titolo,sottotitolo,prog,stile){
   ctx.textAlign='center';
   ctx.fillStyle=oro;
   ctx.font='600 '+Math.round(W*0.026)+'px Georgia, serif';
-  ctx.fillText('M A I R  G O !',W/2,H*0.40);
+  ctx.fillText('',W/2,H*0.40);
   ctx.fillStyle=testoCol;
   ctx.font='700 '+Math.round(W*0.075)+'px Georgia, serif';
   ctx.fillText(vTestoAdattato(ctx,titolo||'Opere',W*0.86),W/2,H*0.50);
@@ -721,7 +721,7 @@ function homeView(){
   const azioni={newArtwork:'\uff0b Nuova opera',newCertificate:'\u2726 Nuovo certificato',newPdfProject:'\ud83d\udcc4 Nuovo catalogo',newLibrary:'\ud83d\udcda Nuovo documento',newAgenda:'\ud83d\udcc5 Nuovo impegno'};
   const btn=azioni[h.azione]?`<button class="btn primary" data-action="${esc(h.azione)}">${azioni[h.azione]}</button>`:'';
   const hero=`<section class="hero welcome${h.immagine?' has-img':''}"${h.immagine?` style="background-image:linear-gradient(rgba(0,0,0,.55),rgba(0,0,0,.55)),url('${h.immagine}');background-size:cover;background-position:center"`:''}>
-    <div><small>MAIR GO! \u00b7 LOCAL FIRST</small><h2>${esc(titolo)}</h2><p>${esc(sub)}</p></div>${btn}</section>`;
+    <div><small>ART MANAGEMENT SYSTEM</small><h2>${esc(titolo)}</h2><p>${esc(sub)}</p></div>${btn}</section>`;
   const stats=(h.stats||[]).filter(k=>HOME_STATS[k]).map(k=>{const S=HOME_STATS[k];return stat(S.label,S.calc(),S.icon)}).join('');
   const tiles=(h.tiles||[]).filter(k=>HOME_TILES[k]).map((k,idx)=>{const T=HOME_TILES[k];const n=T.count?T.count():null;
     return `<button class="tile${idx===0?' big':''}" data-go="${k}">${n!==null?`<span class="count">${n}</span>`:''}<span class="symbol">${T.icon}</span><h3>${esc(T.title)}</h3><p>${esc(T.desc)}</p></button>`}).join('');
@@ -796,11 +796,180 @@ function exportAgendaIcs(){
   salvaFile('MAIR_GO_Agenda.ics',ics,'text/calendar');
 }
 
-function infoView(){return `${section('Informazioni')}<section class="legal-card"><div class="about-logo">M</div><h2>MAIR GO!</h2><p class="lead"><strong>App creata dall'artista internazionale Maurizio D'Andrea.</strong></p><p>Applicazione completamente gratuita, distribuita senza servizio di assistenza garantito. È progettata secondo il principio <strong>Local First</strong>: opere, documenti, contatti, vendite, note e impostazioni vengono conservati nel browser del cellulare o del computer utilizzato.</p><h3>Privacy</h3><p>MAIR GO! non richiede registrazione, non crea account, non usa sistemi pubblicitari e non invia automaticamente i dati a server esterni. Le funzioni di condivisione, apertura di siti o invio di email si attivano soltanto su comando dell'utente.</p><h3>Sicurezza e accesso al dispositivo</h3><p>L'app non accede autonomamente a rubrica, chiamate, SMS, microfono, fotocamera, posizione GPS o altri contenuti del dispositivo. L'accesso a file, immagini e documenti avviene esclusivamente quando l'utente li seleziona tramite i comandi del browser.</p><h3>Responsabilità e backup</h3><p>L'utilizzo avviene sotto la piena responsabilità dell'utente. La cancellazione dei dati del browser, la disinstallazione, un guasto o la perdita del dispositivo possono causare perdita di dati. È indispensabile creare regolarmente un backup <strong>.mair</strong> e conservarlo in un luogo sicuro.</p><p>L'autore non garantisce continuità del servizio, compatibilità con ogni dispositivo o recupero dei dati e non risponde di perdite o danni derivanti dall'utilizzo dell'app, nei limiti consentiti dalla legge applicabile.</p><h3>Contatti</h3><p><a href="mailto:dandreart.info@gmail.com">dandreart.info@gmail.com</a><br><a href="https://www.dandreart.info" target="_blank" rel="noopener">www.dandreart.info</a></p><p class="meta">MAIR GO! 5.0 · Software gratuito · Dati locali · Nessun cloud obbligatorio</p></section>`}
-function contactView(){return `${section('Contatti e segnalazioni')}<section class="form-card"><h2>Scrivi a Maurizio D'Andrea</h2><p>Segnala un bug, invia un suggerimento, proponi una funzione o offri un contributo. Premendo “Prepara email” si aprirà l'app di posta del dispositivo: MAIR GO! non invia nulla automaticamente.</p><div class="formgrid">${field('Nome','contactName','','text','full')}${field('La tua email','contactEmail','','email','full')}<div class="field full"><label>Categoria</label><select id="contactCategory"><option>Segnalazione bug</option><option>Suggerimento</option><option>Richiesta funzione</option><option>Contributo</option><option>Collaborazione</option><option>Altro</option></select></div>${field('Oggetto','contactSubject','','text','full')}${area('Messaggio','contactMessage','','full')}</div><div class="row"><button class="btn primary" data-action="prepareEmail">✉️ Prepara email</button><button class="btn" data-action="copyContactEmail">Copia indirizzo</button></div><p class="meta">Destinatario: dandreart.info@gmail.com</p></section>`}
-function guideView(){return `${section('Guida offline')}<div class="guide-grid"><details open><summary>🚀 Primi passi</summary><p>Inserisci le opere da “Opere”, personalizza tecniche e dimensioni nelle Impostazioni, quindi carica documenti nella Biblioteca. Tutto viene salvato localmente.</p></details><details><summary>🎨 Archivio opere</summary><p>Ogni opera può contenere titolo, anno, codice, tecnica, supporto, dimensioni, cornice, stato, prezzo, descrizione e note. Le liste sono modificabili.</p></details><details><summary>📚 Biblioteca Pro</summary><p>Carica PDF, DOCX, TXT e immagini. Usa ricerca, categorie, tag, preferiti e collegamenti alle opere. Gli appunti di studio sono salvati insieme al documento.</p></details><details><summary>📄 PDF Studio</summary><p>Seleziona le opere, scegli campi e tema, prepara cataloghi, dossier o stampe d'archivio e usa “Stampa / Salva PDF”.</p></details><details><summary>💾 Backup</summary><p>Apri Impostazioni e crea frequentemente un backup .mair. È il modo affidabile per trasferire o recuperare i dati.</p></details><details><summary>📲 Installazione</summary><p>Quando il browser supporta l'installazione appare il pulsante “Installa”. Dopo l'installazione il pulsante scompare. Su iPhone usa Condividi → Aggiungi alla schermata Home.</p></details><details><summary>🛠 Risoluzione problemi</summary><p>Se appare una versione vecchia, chiudi l'app, aggiorna la pagina e riaprila. Non cancellare i dati del sito senza prima esportare un backup.</p></details></div>`}
-function timelineView(){const events=[...db.artworks.map(a=>({d:a.updated||a.created,t:`Opera: ${a.title||'Senza titolo'}`,i:'🎨'})),...db.library.map(x=>({d:x.date,t:`Biblioteca: ${x.title||x.name}`,i:'📚'})),...db.pdfProjects.map(x=>({d:x.created,t:`PDF: ${x.title}`,i:'📄'})),...db.exhibitions.map(x=>({d:x.updated||x.created,t:`Mostra: ${x.title}`,i:'🏛️'})),...db.clients.map(x=>({d:x.updated||x.created,t:`Cliente: ${x.name}`,i:'👥'})),...db.sales.map(x=>({d:x.updated||x.created,t:`Vendita: ${euro(x.total)}`,i:'💶'})),...db.agenda.map(x=>({d:x.updated||x.created,t:`Agenda: ${x.title}`,i:'📅'}))].filter(x=>x.d).sort((a,b)=>new Date(b.d)-new Date(a.d));return `${section('Timeline')}<div class="timeline">${events.map(e=>`<div class="timeline-item"><span>${e.i}</span><div><strong>${esc(e.t)}</strong><small>${new Date(e.d).toLocaleString('it-IT')}</small></div></div>`).join('')||empty('◷','La timeline si popolerà mentre usi l’app.')}</div>`}
-function settingsView(){const L=db.settings.lists;return `${section('Impostazioni')}<div class="settings-tabs"><a href="#appearance">Aspetto</a><a href="#security">Sicurezza</a><a href="#profile">Profilo</a><a href="#lists">Liste</a><a href="#backup">Backup</a></div><div class="formgrid"><div class="card" id="appearance"><div class="cardbody"><h3>🎨 Aspetto</h3><div class="field"><label>Tema dell'app</label><select id="themeSetting">${themeOptions.map(([v,l])=>`<option value="${v}" ${db.settings.theme===v?'selected':''}>${l}</option>`).join('')}</select></div><div class="field"><label>Dimensione caratteri</label><select id="fontSetting"><option value="small" ${db.settings.fontSize==='small'?'selected':''}>Piccola</option><option value="medium" ${db.settings.fontSize==='medium'?'selected':''}>Media</option><option value="large" ${db.settings.fontSize==='large'?'selected':''}>Grande</option></select></div><label class="switchrow"><input id="animationsSetting" type="checkbox" ${db.settings.animations!==false?'checked':''}> Animazioni</label><label class="switchrow"><input id="splashSetting" type="checkbox" ${db.settings.splash!==false?'checked':''}> Mostra splash all'avvio</label><button class="btn primary" data-action="saveAppearance">Salva aspetto</button></div></div><div class="card" id="security"><div class="cardbody"><h3>🔒 Sicurezza</h3><label class="switchrow"><input id="pinEnabled" type="checkbox" ${db.settings.pinEnabled?'checked':''}> Richiedi PIN all'avvio</label><div class="field"><label>Nuovo PIN (4–6 cifre)</label><input id="newPin" type="password" inputmode="numeric" maxlength="6" placeholder="Lascia vuoto per non cambiarlo"></div><div class="field"><label>Conferma PIN</label><input id="confirmPin" type="password" inputmode="numeric" maxlength="6"></div><button class="btn primary" data-action="savePin">Salva sicurezza</button><p class="meta">Il PIN è una protezione locale di accesso, non una cifratura dei file.</p></div></div><div class="card" id="profile"><div class="cardbody"><h3>👤 Profilo artista</h3>${field('Nome artista / atelier','artist',db.settings.artist)}${area('Biografia','bio',db.settings.bio,'')}${field('Email','email',db.settings.email,'email')}${field('Telefono','phone',db.settings.phone)}<button class="btn primary" data-action="saveProfile">Salva profilo</button></div></div><div class="card"><div class="cardbody"><h3>📄 Impaginazione PDF</h3><p class="meta">Formato, margini, caratteri, colori, immagini e sezioni dei documenti generati.</p><button class="btn" data-action="pdfSettings">Configura impaginazione</button></div></div><div class="card"><div class="cardbody"><h3>🛠 Diagnostica</h3><p class="meta">Se qualcosa non funziona, apri il registro errori e invia il testo allo sviluppatore.</p><button class="btn" data-action="openDiag">Apri diagnostica</button></div></div><div class="card" id="backup"><div class="cardbody"><h3>⬇️ Backup</h3>${backupBanner()}<p>Il backup <strong>.mair</strong> viene salvato nella cartella <strong>Download</strong> del telefono. È un file vero: <strong>non</strong> viene cancellato se svuoti la cache o i dati del browser. Conserva sempre l'ultimo file, e ogni tanto copialo anche altrove (email a te stesso, Google Drive) per proteggerti in caso di perdita del telefono.</p><div class="row"><button class="btn primary" data-action="exportBackup">💾 Esporta ora</button><button class="btn" data-action="importBackup">Importa</button></div><p class="meta">Ultimo backup: ${db.settings.lastBackup?new Date(db.settings.lastBackup).toLocaleString('it-IT'):'mai'}</p></div></div></div><h2 id="lists" style="margin-top:28px">Liste personalizzabili</h2><div class="grid">${Object.entries({techniques:'Tecniche',supports:'Supporti',dimensions:'Dimensioni',frames:'Cornici',statuses:'Stati',categories:'Categorie Biblioteca'}).map(([k,t])=>`<article class="card"><div class="cardbody"><h3>${t}</h3><div class="list-manager">${L[k].map((v,i)=>`<div class="list-row"><input value="${esc(v)}" data-list-key="${k}" data-list-i="${i}"><button class="btn danger" data-action="removeListItem" data-id="${k}:${i}">×</button></div>`).join('')}<button class="btn" data-action="addListItem" data-id="${k}">＋ Aggiungi voce</button><button class="btn primary" data-action="saveLists">Salva modifiche</button></div></div></article>`).join('')}</div>`}
+function guideView(){return `${section('Guida offline')}
+<section class="hero"><h2>&#128214; Come usare MAIR GO!</h2><p>Guida completa a tutte le funzioni. Consultabile senza connessione.</p></section>
+
+<div class="guide-wrap">
+
+<details class="guide-item" open><summary><strong>&#9888;&#65039; Backup: leggi prima di tutto il resto</strong></summary>
+<p>MAIR GO! conserva i dati <strong>dentro il tuo dispositivo</strong>. Non c'&egrave; un server, non c'&egrave; un account: nessuno pu&ograve; leggere il tuo archivio, ma <strong>nessuno pu&ograve; nemmeno restituirtelo</strong> se lo perdi.</p>
+<p><strong>Puoi perdere tutto se:</strong> disinstalli l'app, cancelli i dati dell'app dalle impostazioni di Android, il telefono si rompe o si perde, oppure cambi dispositivo.</p>
+<p><strong>La soluzione:</strong> vai in <em>Impostazioni &rarr; Backup &rarr; Esporta ora</em>. L'app crea un file <strong>.mair</strong> che contiene <strong>tutto</strong>: opere con le immagini, documenti, certificati, cataloghi, clienti, vendite, agenda e impostazioni.</p>
+<p>Quando premi Esporta si apre il pannello di condivisione di Android: da l&igrave; scegli dove mettere il file &mdash; Google Drive, email a te stesso, WhatsApp, oppure "Salva su file" per una cartella del telefono. <strong>Mandalo fuori dal dispositivo</strong>: un backup che resta solo nel telefono non ti salva se perdi il telefono.</p>
+<p>Per ripristinare: <em>Impostazioni &rarr; Backup &rarr; Importa</em>, scegli il file .mair e tutto torna com'era, immagini comprese.</p>
+<p>Nella schermata Backup un riquadro colorato ti avverte: <strong>verde</strong> se hai salvato di recente, <strong>giallo</strong> se sono passati 3 giorni o pi&ugrave;. Fai un backup ogni volta che aggiungi lavoro importante.</p>
+</details>
+
+<details class="guide-item"><summary><strong>&#128241; Installazione dell'app</strong></summary>
+<p>MAIR GO! si installa come <strong>app Android</strong> tramite un file <strong>APK</strong>, non passando dal Play Store.</p>
+<p><strong>Come si installa:</strong></p>
+<ol>
+<li>Ricevi o scarica il file <code>app-debug.apk</code> sul telefono.</li>
+<li>Aprilo dalla cartella Download o dalla notifica di download.</li>
+<li>Android avvisa che l'app proviene da "fonti sconosciute": &egrave; normale per le app non distribuite dallo Store. Concedi il permesso, viene chiesto una volta sola.</li>
+<li>Conferma l'installazione. L'icona compare nella schermata Home.</li>
+</ol>
+<p><strong>Perch&eacute; compare quell'avviso:</strong> Android mostra un messaggio di cautela per ogni app che non arriva dal Play Store. Non indica un problema dell'app: segnala solo che Google non l'ha verificata, perch&eacute; non &egrave; stata pubblicata sul suo negozio.</p>
+<p><strong>Aggiornamenti:</strong> per installare una versione nuova basta aprire il nuovo APK. Se Android rifiuta l'aggiornamento, disinstalla la versione precedente e reinstalla &mdash; <strong>ma fai prima un backup</strong>, perch&eacute; disinstallando i dati vengono cancellati.</p>
+<p><strong>iPhone:</strong> gli APK non sono installabili su iOS. &Egrave; una limitazione di Apple, non aggirabile.</p>
+</details>
+
+<details class="guide-item"><summary><strong>&#127912; Opere</strong></summary>
+<p>L'archivio centrale. Per ogni opera puoi registrare titolo, codice, anno, tecnica, supporto, dimensioni, cornice, stato, prezzo, descrizione e immagine.</p>
+<p><strong>Filtri avanzati:</strong> il pannello sotto la barra di ricerca &egrave; chiuso all'apertura; toccalo per espanderlo e filtrare per anno, tecnica, stato o prezzo.</p>
+<p><strong>Preferiti:</strong> la stellina segna le opere che vuoi ritrovare in fretta.</p>
+<p>Le liste di tecniche, supporti, dimensioni, cornici e stati sono personalizzabili in <em>Impostazioni &rarr; Liste</em>.</p>
+</details>
+
+<details class="guide-item"><summary><strong>&#128218; Biblioteca</strong></summary>
+<p>Archivio documentale per PDF, DOCX, immagini, testi e appunti: cataloghi, schede tecniche, contratti, articoli, materiale di ispirazione.</p>
+<p>Ogni voce ha una categoria (personalizzabile) e pu&ograve; essere aperta direttamente nell'app.</p>
+</details>
+
+<details class="guide-item"><summary><strong>&#128196; PDF Studio</strong></summary>
+<p>Crea cataloghi e dossier partendo dalle opere in archivio. Scegli titolo, sottotitolo, introduzione, quali opere includere e quali dati mostrare per ciascuna.</p>
+<p>Aprendo il progetto e toccando <strong>Apri documento</strong> vedi l'anteprima, poi:</p>
+<ul>
+<li><strong>Salva PDF</strong> &mdash; genera il file e apre il pannello per scegliere dove metterlo.</li>
+<li><strong>Condividi PDF</strong> &mdash; genera e invia direttamente.</li>
+<li><strong>Impagina</strong> &mdash; apre le opzioni di impaginazione.</li>
+<li><strong>Testo</strong> &mdash; versione testuale modificabile e copiabile.</li>
+</ul>
+<p><strong>Come esce il catalogo:</strong> copertina, introduzione, indice delle opere, poi <strong>una opera per pagina</strong> con immagine grande e scheda dati, e pagina finale con biografia e contatti. I numeri di pagina sono in basso.</p>
+</details>
+
+<details class="guide-item"><summary><strong>&#9881;&#65039; Impaginazione PDF personalizzabile</strong></summary>
+<p>Da <em>Impostazioni &rarr; Impaginazione PDF</em> (o dal pulsante Impagina) controlli:</p>
+<ul>
+<li><strong>Formato</strong>: A4, A5, Letter, A3, verticale o orizzontale.</li>
+<li><strong>Margini</strong>: alto, basso, sinistro e destro in millimetri.</li>
+<li><strong>Carattere</strong>: Times, Helvetica o Courier.</li>
+<li><strong>Colore accento</strong>, corpo del testo e dimensione dei titoli.</li>
+<li><strong>Immagini</strong>: altezza massima in percentuale e posizione.</li>
+<li><strong>Sezioni</strong>: copertina, introduzione, indice, pagina finale, numeri, intestazione opera, riempimento pagina.</li>
+</ul>
+<p>Le impostazioni valgono per tutti i documenti generati e restano salvate.</p>
+</details>
+
+<details class="guide-item"><summary><strong>&#10022; Certificati</strong></summary>
+<p>Cinque modelli pronti e personalizzabili: <strong>Autenticit&agrave;</strong>, <strong>Vendita/Cessione</strong>, <strong>Provenienza</strong>, <strong>Attestato di Esposizione</strong>, <strong>Donazione</strong>.</p>
+<p>Scegli il modello, colleghi l'opera dall'archivio (immagine e dati tecnici vengono importati da soli), decidi quali campi mostrare e modifichi liberamente il testo.</p>
+<p>Cinque temi grafici disponibili: Classico oro, Museo, Nero galleria, Editoriale, Minimal. La firma pu&ograve; essere testuale o un'immagine caricata.</p>
+</details>
+
+<details class="guide-item"><summary><strong>&#128241; Zona Social</strong></summary>
+<p>Trasforma le opere in materiale pronto per Instagram, Facebook e TikTok.</p>
+<p><strong>Immagine singola:</strong> genera una card curata con cornice dorata, titolo, dati tecnici e la tua firma. Quattro formati (quadrato, verticale 4:5, storia 9:16, orizzontale) e quattro stili grafici.</p>
+<p><strong>Sequenza immagini:</strong> fino a 5 opere numerate, ideali per un carosello.</p>
+<p><strong>Video:</strong> monta fino a 5 opere in un filmato con titolo iniziale, transizioni miste (dissolvenza, scorrimento, zoom lento), dati di ogni opera e chiusura con i tuoi contatti. Durata regolabile da 3 a 5 secondi per opera.</p>
+<p>La creazione del video avviene in tempo reale: per 5 opere servono circa 25 secondi, durante i quali <strong>lo schermo deve restare acceso</strong> e non bisogna uscire dall'app.</p>
+<p>Il pulsante <strong>Testo per il post</strong> prepara didascalia e hashtag gi&agrave; pronti da copiare.</p>
+</details>
+
+<details class="guide-item"><summary><strong>&#128197; Agenda e promemoria</strong></summary>
+<p>Appuntamenti, mostre, consegne, scadenze e promemoria con data, ora e luogo.</p>
+<p>Nella schermata principale il riquadro <strong>Da fare</strong> raccoglie automaticamente ci&ograve; che &egrave; <strong>in ritardo</strong>, <strong>oggi</strong>, <strong>domani</strong> e nei <strong>prossimi giorni</strong>. Diventa dorato quando ci sono impegni urgenti. Si pu&ograve; nascondere da Personalizza.</p>
+<p><strong>Esporta agenda .ics</strong> crea un file importabile in Google Calendar, Apple Calendario o Outlook.</p>
+</details>
+
+<details class="guide-item"><summary><strong>&#127963;&#65039; Mostre, Clienti, Vendite, Workspace</strong></summary>
+<p><strong>Mostre:</strong> esposizioni con sede, date e opere collegate. Da una mostra puoi generare direttamente un catalogo.</p>
+<p><strong>Clienti:</strong> rubrica di collezionisti e galleristi, con storico delle vendite.</p>
+<p><strong>Vendite:</strong> trattative e incassi, con generazione della ricevuta.</p>
+<p><strong>Workspace:</strong> progetti che raccolgono insieme opere, documenti e contatti.</p>
+</details>
+
+<details class="guide-item"><summary><strong>&#127968; Personalizzare la schermata principale</strong></summary>
+<p>Il pulsante <strong>Personalizza</strong> nella Home permette di scegliere:</p>
+<ul>
+<li>Titolo e frase di benvenuto personali.</li>
+<li>Immagine di sfondo per l'intestazione.</li>
+<li>Pulsante rapido principale.</li>
+<li>Quali statistiche mostrare (dieci disponibili, incluso l'incassato totale).</li>
+<li>Quali sezioni mostrare e in che ordine: la prima diventa il riquadro grande.</li>
+<li>Se mostrare il riquadro "Da fare".</li>
+</ul>
+</details>
+
+<details class="guide-item"><summary><strong>&#128274; Sicurezza e aspetto</strong></summary>
+<p><strong>PIN:</strong> da 4 a 6 cifre, richiesto all'avvio. Protegge l'accesso all'app, ma non cifra i file: per dati delicati usa anche il blocco schermo del telefono.</p>
+<p><strong>Aspetto:</strong> tema, dimensione dei caratteri, animazioni e schermata iniziale sono regolabili in Impostazioni.</p>
+</details>
+
+<details class="guide-item"><summary><strong>&#128736; Se qualcosa non funziona</strong></summary>
+<p>In <em>Impostazioni &rarr; Diagnostica</em> trovi il registro degli errori dell'app.</p>
+<p>Aprilo, tocca <strong>Copia tutto</strong> e invia il testo tramite la sezione Contatti: contiene le informazioni tecniche utili a individuare il problema.</p>
+</details>
+
+</div>`}
+
+function contactView(){return `${section('Contatti e segnalazioni')}
+<section class="hero"><h2>&#9993;&#65039; Scrivi all'autore</h2><p>Segnalazioni, malfunzionamenti, suggerimenti o richieste.</p></section>
+<div class="formgrid">
+${field('Il tuo nome','contactName','','text','full')}
+${field('La tua email','contactEmail','','email','full')}
+<div class="field full"><label>Categoria</label><select id="contactCategory">
+<option>Malfunzionamento</option><option>Suggerimento</option><option>Domanda sull'uso</option><option>Collaborazione</option><option>Altro</option>
+</select></div>
+${field('Oggetto','contactSubject','','text','full')}
+${area('Messaggio','contactMessage','')}
+<div class="row full"><button class="btn primary" data-action="prepareEmail">&#9993;&#65039; Prepara email</button><button class="btn" data-action="copyContactEmail">Copia indirizzo</button></div>
+<p class="meta full">Il pulsante apre la tua app di posta con il messaggio gi&agrave; compilato. Per i malfunzionamenti, allega il testo copiato dalla Diagnostica.</p>
+</div>`}
+
+function infoView(){return `${section('Informazioni')}<section class="legal-card"><div class="about-logo">M</div><h2>MAIR GO!</h2>
+<p class="lead"><strong>Art Management System creato dall'artista internazionale Maurizio D'Andrea.</strong></p>
+<p>Applicazione gratuita per gestire opere, documenti, cataloghi, certificati, mostre, clienti, vendite e agenda. Distribuita senza servizio di assistenza garantito.</p>
+
+<h3>&#128274; La tua privacy, in concreto</h3>
+<p><strong>I tuoi dati non escono dal tuo dispositivo.</strong> Non c'&egrave; un server che li riceve, non c'&egrave; un cloud che li conserva, non esiste un archivio centrale. Tutto quello che scrivi e carichi resta fisicamente nel telefono o nel computer che stai usando.</p>
+<p>Questo significa che <strong>nessuno pu&ograve; leggere il tuo archivio</strong>: n&eacute; l'autore dell'app, n&eacute; terze parti, n&eacute; societ&agrave; pubblicitarie. Non perch&eacute; ci sia una promessa di non guardare, ma perch&eacute; <strong>tecnicamente non esiste il luogo dove guardare</strong>.</p>
+
+<h3>&#9881;&#65039; Come funziona davvero</h3>
+<p>L'app salva i dati in due depositi interni al dispositivo:</p>
+<ul>
+<li><strong>Archivio principale</strong>: contiene opere, immagini, documenti, certificati, clienti e vendite. Regge anche file pesanti come le foto delle opere.</li>
+<li><strong>Copia di servizio</strong>: un secondo deposito pi&ugrave; piccolo, usato come riserva quando i dati sono contenuti.</li>
+</ul>
+<p>Il salvataggio &egrave; automatico: avviene a ogni modifica e anche quando chiudi l'app o la mandi in secondo piano.</p>
+
+<h3>&#128241; Cosa l'app NON fa</h3>
+<ul>
+<li>Non richiede registrazione n&eacute; crea account.</li>
+<li>Non chiede email, password o numero di telefono per funzionare.</li>
+<li>Non mostra pubblicit&agrave; e non profila l'utente.</li>
+<li>Non accede da sola a rubrica, chiamate, SMS, microfono, fotocamera, posizione GPS.</li>
+<li>Non invia statistiche d'uso n&eacute; segnalazioni automatiche.</li>
+</ul>
+<p>L'accesso a file e immagini avviene <strong>soltanto</strong> quando sei tu a selezionarli. Condivisioni, invio di email e apertura di siti partono unicamente da un tuo comando esplicito.</p>
+
+<h3>&#127760; Quando qualcosa esce dal dispositivo</h3>
+<p>Succede solo su tua richiesta, e sempre con un tocco tuo: quando salvi un PDF, esporti un backup, generi un'immagine o un video per i social, o usi il pulsante di condivisione. In quel momento &egrave; il sistema del telefono a gestire il file, e sei tu a scegliere dove mandarlo.</p>
+
+<h3>&#128273; Il PIN</h3>
+<p>Il PIN impedisce di aprire l'app a chi prende in mano il tuo dispositivo. &Egrave; una <strong>protezione di accesso, non una cifratura</strong>: non rende illeggibili i file sottostanti. Per dati molto sensibili, affiancalo al blocco schermo del telefono.</p>
+
+<h3>&#9888;&#65039; Il rovescio della medaglia</h3>
+<p>Il fatto che i dati siano solo tuoi ha un prezzo: <strong>se il dispositivo si perde, si rompe o viene ripulito, non esiste nessuno da cui recuperarli</strong>. Non c'&egrave; un "recupero password", perch&eacute; non c'&egrave; un account. Per questo il backup non &egrave; un optional: &egrave; l'unica rete di sicurezza. Trovi la spiegazione completa nella Guida.</p>
+
+<h3>&#9878;&#65039; Responsabilit&agrave;</h3>
+<p>L'utilizzo avviene sotto la piena responsabilit&agrave; dell'utente. L'autore non garantisce continuit&agrave; del servizio, compatibilit&agrave; con ogni dispositivo o recupero dei dati, e non risponde di perdite o danni derivanti dall'uso dell'app, nei limiti consentiti dalla legge applicabile.</p>
+
+<h3>&#9993;&#65039; Contatti</h3>
+<p><a href="mailto:dandreart.info@gmail.com">dandreart.info@gmail.com</a><br><a href="https://www.dandreart.info" target="_blank" rel="noopener">www.dandreart.info</a></p>
+<p class="meta">MAIR GO! 7.3 &middot; Software gratuito &middot; Dati sul dispositivo &middot; Nessun account &middot; Nessuna pubblicit&agrave;</p></section>`}
+
+function settingsView(){const L=db.settings.lists;return `${section('Impostazioni')}<div class="settings-tabs"><a href="#appearance">Aspetto</a><a href="#security">Sicurezza</a><a href="#profile">Profilo</a><a href="#lists">Liste</a><a href="#backup">Backup</a></div><div class="formgrid"><div class="card" id="appearance"><div class="cardbody"><h3>🎨 Aspetto</h3><div class="field"><label>Tema dell'app</label><select id="themeSetting">${themeOptions.map(([v,l])=>`<option value="${v}" ${db.settings.theme===v?'selected':''}>${l}</option>`).join('')}</select></div><div class="field"><label>Dimensione caratteri</label><select id="fontSetting"><option value="small" ${db.settings.fontSize==='small'?'selected':''}>Piccola</option><option value="medium" ${db.settings.fontSize==='medium'?'selected':''}>Media</option><option value="large" ${db.settings.fontSize==='large'?'selected':''}>Grande</option></select></div><label class="switchrow"><input id="animationsSetting" type="checkbox" ${db.settings.animations!==false?'checked':''}> Animazioni</label><label class="switchrow"><input id="splashSetting" type="checkbox" ${db.settings.splash!==false?'checked':''}> Mostra splash all'avvio</label><button class="btn primary" data-action="saveAppearance">Salva aspetto</button></div></div><div class="card" id="security"><div class="cardbody"><h3>🔒 Sicurezza</h3><label class="switchrow"><input id="pinEnabled" type="checkbox" ${db.settings.pinEnabled?'checked':''}> Richiedi PIN all'avvio</label><div class="field"><label>Nuovo PIN (4–6 cifre)</label><input id="newPin" type="password" inputmode="numeric" maxlength="6" placeholder="Lascia vuoto per non cambiarlo"></div><div class="field"><label>Conferma PIN</label><input id="confirmPin" type="password" inputmode="numeric" maxlength="6"></div><button class="btn primary" data-action="savePin">Salva sicurezza</button><p class="meta">Il PIN è una protezione locale di accesso, non una cifratura dei file.</p></div></div><div class="card" id="profile"><div class="cardbody"><h3>👤 Profilo artista</h3>${field('Nome artista / atelier','artist',db.settings.artist)}${area('Biografia','bio',db.settings.bio,'')}${field('Email','email',db.settings.email,'email')}${field('Telefono','phone',db.settings.phone)}<button class="btn primary" data-action="saveProfile">Salva profilo</button></div></div><div class="card"><div class="cardbody"><h3>📄 Impaginazione PDF</h3><p class="meta">Formato, margini, caratteri, colori, immagini e sezioni dei documenti generati.</p><button class="btn" data-action="pdfSettings">Configura impaginazione</button></div></div><div class="card"><div class="cardbody"><h3>🛠 Diagnostica</h3><p class="meta">Se qualcosa non funziona, apri il registro errori e invia il testo allo sviluppatore.</p><button class="btn" data-action="openDiag">Apri diagnostica</button></div></div><div class="card" id="backup"><div class="cardbody"><h3>⬇️ Backup</h3>${backupBanner()}<p>Il file <strong>.mair</strong> contiene <strong>tutto</strong>: opere con le immagini, documenti, certificati, cataloghi, clienti, vendite, agenda e impostazioni.</p><p>Premendo Esporta si apre il pannello di condivisione: scegli dove mettere il file — Google Drive, email a te stesso, WhatsApp o una cartella del telefono. <strong>Mandalo fuori dal dispositivo</strong>: se il telefono si perde o si rompe, un backup rimasto solo lì non ti aiuta. Senza backup i dati non sono recuperabili da nessuno.</p><div class="row"><button class="btn primary" data-action="exportBackup">💾 Esporta ora</button><button class="btn" data-action="importBackup">Importa</button></div><p class="meta">Ultimo backup: ${db.settings.lastBackup?new Date(db.settings.lastBackup).toLocaleString('it-IT'):'mai'}</p></div></div></div><h2 id="lists" style="margin-top:28px">Liste personalizzabili</h2><div class="grid">${Object.entries({techniques:'Tecniche',supports:'Supporti',dimensions:'Dimensioni',frames:'Cornici',statuses:'Stati',categories:'Categorie Biblioteca'}).map(([k,t])=>`<article class="card"><div class="cardbody"><h3>${t}</h3><div class="list-manager">${L[k].map((v,i)=>`<div class="list-row"><input value="${esc(v)}" data-list-key="${k}" data-list-i="${i}"><button class="btn danger" data-action="removeListItem" data-id="${k}:${i}">×</button></div>`).join('')}<button class="btn" data-action="addListItem" data-id="${k}">＋ Aggiungi voce</button><button class="btn primary" data-action="saveLists">Salva modifiche</button></div></div></article>`).join('')}</div>`}
 function openModal(title,html,onSave,saveLabel='Salva'){ $('#modalTitle').textContent=title;$('#modalBody').innerHTML=html;$('#modalSave').textContent=saveLabel;modal.showModal();document.querySelectorAll('[data-add-list]').forEach(b=>b.onclick=()=>{const key={technique:'techniques',support:'supports',dimensions:'dimensions',frame:'frames',status:'statuses',category:'categories'}[b.dataset.addList];const v=prompt('Nuova voce');if(v){db.settings.lists[key].push(v);save();const s=b.previousElementSibling;s.insertAdjacentHTML('beforeend',`<option selected>${esc(v)}</option>`)}});$('#modalSave').onclick=e=>{e.preventDefault();onSave(new FormData($('#modalForm')))}}
 async function fileData(file){return new Promise((res,rej)=>{const r=new FileReader;r.onload=()=>res(r.result);r.onerror=rej;r.readAsDataURL(file)})}async function fileText(file){try{return await file.text()}catch{return ''}}
 function artworkModal(a={}){openModal(a.id?'Modifica opera':'Nuova opera',`<div class="formgrid">${field('Titolo','title',a.title,'text','full')}${field('Anno','year',a.year)}${field('Codice opera','code',a.code||('MG-'+String(db.artworks.length+1).padStart(4,'0')))}${selectField('Tecnica','technique',db.settings.lists.techniques,a.technique)}${selectField('Supporto','support',db.settings.lists.supports,a.support)}${selectField('Dimensioni','dimensions',db.settings.lists.dimensions,a.dimensions)}${selectField('Cornice','frame',db.settings.lists.frames,a.frame)}${selectField('Stato','status',db.settings.lists.statuses,a.status||'Disponibile')}${field('Prezzo (€)','price',a.price,'number')}${field('Serie / collezione','collection',a.collection)}${field('Posizione attuale','location',a.location)}${area('Descrizione','description',a.description)}${area('Note private','notes',a.notes)}<div class="field full"><label>Immagine principale</label><input name="imageFile" type="file" accept="image/*"></div></div>`,async fd=>{const file=fd.get('imageFile');const obj={...a,id:a.id||uid(),title:fd.get('title'),year:fd.get('year'),code:fd.get('code'),technique:fd.get('technique'),support:fd.get('support'),dimensions:fd.get('dimensions'),frame:fd.get('frame'),status:fd.get('status'),price:fd.get('price'),collection:fd.get('collection'),location:fd.get('location'),description:fd.get('description'),notes:fd.get('notes'),image:file?.size?await fileData(file):a.image||'',updated:new Date().toISOString(),created:a.created||new Date().toISOString()};if(a.id)db.artworks=db.artworks.map(x=>x.id===a.id?obj:x);else db.artworks.unshift(obj);save();modal.close();render();toast('Opera salvata')})}

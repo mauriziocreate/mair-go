@@ -135,3 +135,19 @@ input,select,textarea{min-width:0;max-width:100%}
 .pm-luogo{color:var(--muted);font-size:.82rem}
 .pm-altri{color:var(--muted);font-style:italic}
 @media(max-width:560px){.pm-luogo{display:none}}
+
+/* ===== GUIDA OFFLINE ===== */
+.guide-wrap{display:flex;flex-direction:column;gap:10px}
+.guide-item{border:1px solid var(--line);border-radius:var(--radius);background:var(--panel);overflow:hidden}
+.guide-item summary{padding:14px 16px;cursor:pointer;font-size:1rem;list-style:none;display:flex;align-items:center;gap:8px}
+.guide-item summary::-webkit-details-marker{display:none}
+.guide-item summary::after{content:'+';margin-left:auto;font-size:1.3rem;color:var(--muted)}
+.guide-item[open] summary::after{content:'−'}
+.guide-item[open] summary{border-bottom:1px solid var(--line);background:color-mix(in srgb,var(--accent,#8a6a1f) 7%,var(--panel))}
+.guide-item>p,.guide-item>ul,.guide-item>ol{padding:0 16px;margin:10px 0;line-height:1.65;font-size:.94rem}
+.guide-item>ul,.guide-item>ol{padding-left:36px}
+.guide-item li{margin:5px 0}
+.guide-item code{background:var(--line);padding:2px 6px;border-radius:4px;font-size:.88em}
+.legal-card h3{margin-top:22px;padding-top:14px;border-top:1px solid var(--line)}
+.legal-card ul{line-height:1.65;padding-left:22px}
+.legal-card li{margin:5px 0}
