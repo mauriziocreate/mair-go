@@ -9,13 +9,18 @@ function diagOpen(){
   box.setAttribute('style','position:fixed;top:0;left:0;right:0;bottom:0;z-index:999999;background:#111;color:#0f0;font:12px/1.5 monospace;padding:10px;overflow:auto');
   const testo=window.__LOG__.length?window.__LOG__.join('\n\n'):'(nessun errore registrato)';
   const info='DIAGNOSTICA MAIR GO!\n'
-    +'Versione app.js: 5.9\n'
+    +'Versione app.js: 6.0\n'
     +'docViewerOpen esiste: '+(typeof docViewerOpen)+'\n'
     +'textEditorOpen esiste: '+(typeof textEditorOpen)+'\n'
     +'certDocHtml esiste: '+(typeof certDocHtml)+'\n'
     +'pdfDocHtml esiste: '+(typeof pdfDocHtml)+'\n'
     +'actions.printCert esiste: '+(typeof (window.actions&&window.actions.printCert))+'\n'
     +'navigator.share: '+(typeof navigator.share)+'\n'
+    +'Capacitor presente: '+(typeof window.Capacitor)+'\n'
+    +'Plugin Filesystem: '+(window.Capacitor&&window.Capacitor.Plugins&&window.Capacitor.Plugins.Filesystem?'SI':'NO')+'\n'
+    +'Plugin Share: '+(window.Capacitor&&window.Capacitor.Plugins&&window.Capacitor.Plugins.Share?'SI':'NO')+'\n'
+    +'jsPDF caricato: '+(window.jspdf?'SI':'NO')+'\n'
+    +'html2canvas caricato: '+(typeof html2canvas==='function'?'SI':'NO')+'\n'
     +'--------------------------------\n\n';
   const pre=document.createElement('pre');
   pre.setAttribute('style','white-space:pre-wrap;word-break:break-word;margin:0');
@@ -472,32 +477,63 @@ function docViewerOpen(title,inner,extraCss,plainText){
         resto-=ph;
         while(resto>0){pos-=ph;pdf.addPage();pdf.addImage(img,'JPEG',0,pos,iw,ih);resto-=ph;}
         const nome=safeName(title)+'.pdf';
-        let salvato=false;
-        try{pdf.save(nome);salvato=true;}catch(e){diagLog('PDF-SAVE',e&&e.message?e.message:String(e));}
-        // ripiego: se il download non e' disponibile, mostro il PDF a schermo
+        let fatto=false;
+
+        // 1) salvataggio nativo Android tramite Capacitor Filesystem
         try{
-          const uri=pdf.output('datauristring');
-          const cont=document.createElement('div');
-          cont.setAttribute('style','position:fixed;top:0;left:0;right:0;bottom:0;z-index:999999;background:#222;display:flex;flex-direction:column');
-          const bar=document.createElement('div');
-          bar.setAttribute('style','padding:10px;background:#fff;display:flex;gap:8px;flex-wrap:wrap');
-          const bx=document.createElement('button');bx.textContent='\u2190 Chiudi';
-          bx.setAttribute('style','padding:10px 16px;font:600 .95rem system-ui');
-          bx.onclick=()=>cont.remove();
-          const ba=document.createElement('a');ba.textContent='\u2b07\ufe0f Salva / Apri PDF';
-          ba.href=uri;ba.download=nome;ba.target='_blank';
-          ba.setAttribute('style','padding:10px 16px;font:600 .95rem system-ui;background:#8a6a1f;color:#fff;border-radius:8px;text-decoration:none');
-          const info=document.createElement('div');
-          info.textContent='Se il pulsante non salva, tieni premuto sul documento e scegli Salva.';
-          info.setAttribute('style','flex-basis:100%;font:12px system-ui;color:#555');
-          bar.appendChild(bx);bar.appendChild(ba);bar.appendChild(info);
-          const fr=document.createElement('iframe');
-          fr.setAttribute('style','flex:1;width:100%;border:0;background:#fff');
-          fr.src=uri;
-          cont.appendChild(bar);cont.appendChild(fr);
-          document.body.appendChild(cont);
-        }catch(e){diagLog('PDF-VIEW',e&&e.message?e.message:String(e));}
-        diagLog('PDF','generato: '+nome+' (save='+salvato+')');
+          const Cap=window.Capacitor;
+          const FS=Cap&&Cap.Plugins&&Cap.Plugins.Filesystem;
+          if(FS){
+            const b64=pdf.output('datauristring').split(',')[1];
+            const res=await FS.writeFile({path:nome,data:b64,directory:'DOCUMENTS',recursive:true});
+            diagLog('PDF-NATIVO','salvato in Documenti: '+nome);
+            fatto=true;
+            const Sh=Cap.Plugins&&Cap.Plugins.Share;
+            if(Sh&&res&&res.uri){
+              try{await Sh.share({title:nome,url:res.uri});}catch(e){}
+            }
+            alert('PDF salvato nella cartella Documenti del telefono:\n\n'+nome);
+          }
+        }catch(e){diagLog('PDF-NATIVO-ERRORE',e&&e.message?e.message:String(e));}
+
+        // 2) ripiego: download classico
+        if(!fatto){
+          try{
+            const blob=pdf.output('blob');
+            const url=URL.createObjectURL(blob);
+            const a=document.createElement('a');a.href=url;a.download=nome;
+            document.body.appendChild(a);a.click();a.remove();
+            setTimeout(()=>URL.revokeObjectURL(url),4000);
+            diagLog('PDF-DOWNLOAD','tentato download blob');
+          }catch(e){diagLog('PDF-DOWNLOAD-ERRORE',e&&e.message?e.message:String(e));}
+
+          // 3) ripiego finale: mostro il PDF a schermo con link blob
+          try{
+            const blob2=pdf.output('blob');
+            const url2=URL.createObjectURL(blob2);
+            const cont=document.createElement('div');
+            cont.setAttribute('style','position:fixed;top:0;left:0;right:0;bottom:0;z-index:999999;background:#222;display:flex;flex-direction:column');
+            const bar=document.createElement('div');
+            bar.setAttribute('style','padding:10px;background:#fff;display:flex;gap:8px;flex-wrap:wrap;align-items:center');
+            const bx=document.createElement('button');bx.textContent='\u2190 Chiudi';
+            bx.setAttribute('style','padding:10px 16px;font:600 .95rem system-ui');
+            bx.onclick=()=>{cont.remove();URL.revokeObjectURL(url2);};
+            const ba=document.createElement('a');ba.textContent='\u2b07\ufe0f Apri / Salva PDF';
+            ba.href=url2;ba.download=nome;ba.target='_blank';ba.rel='noopener';
+            ba.setAttribute('style','padding:10px 16px;font:600 .95rem system-ui;background:#8a6a1f;color:#fff;border-radius:8px;text-decoration:none');
+            const info=document.createElement('div');
+            info.textContent='Tocca il pulsante dorato per aprire il PDF con un\u2019app del telefono.';
+            info.setAttribute('style','flex-basis:100%;font:12px system-ui;color:#555');
+            bar.appendChild(bx);bar.appendChild(ba);bar.appendChild(info);
+            const fr=document.createElement('iframe');
+            fr.setAttribute('style','flex:1;width:100%;border:0;background:#fff');
+            fr.src=url2;
+            cont.appendChild(bar);cont.appendChild(fr);
+            document.body.appendChild(cont);
+            diagLog('PDF-VIEW','visualizzatore aperto');
+          }catch(e){diagLog('PDF-VIEW-ERRORE',e&&e.message?e.message:String(e));}
+        }
+        diagLog('PDF','generato: '+nome);
         toast('PDF creato');
       }catch(e){
         diagLog('PDF-ERRORE',e&&e.message?e.message:String(e));
