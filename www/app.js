@@ -9,7 +9,7 @@ function diagOpen(){
   box.setAttribute('style','position:fixed;top:0;left:0;right:0;bottom:0;z-index:999999;background:#111;color:#0f0;font:12px/1.5 monospace;padding:10px;overflow:auto');
   const testo=window.__LOG__.length?window.__LOG__.join('\n\n'):'(nessun errore registrato)';
   const info='DIAGNOSTICA MAIR GO!\n'
-    +'Versione app.js: 6.3\n'
+    +'Versione app.js: 6.4\n'
     +'docViewerOpen esiste: '+(typeof docViewerOpen)+'\n'
     +'textEditorOpen esiste: '+(typeof textEditorOpen)+'\n'
     +'certDocHtml esiste: '+(typeof certDocHtml)+'\n'
@@ -570,16 +570,39 @@ function docViewerOpen(title,inner,extraCss,plainText){
           const FS=Cap&&Cap.Plugins&&Cap.Plugins.Filesystem;
           if(FS){
             const b64=pdf.output('datauristring').split(',')[1];
-            const res=await FS.writeFile({path:nome,data:b64,directory:'DOCUMENTS',recursive:true});
+            try{
+              if(FS.checkPermissions){
+                const st=await FS.checkPermissions();
+                diagLog('PDF-PERM','stato: '+JSON.stringify(st));
+                if(st&&st.publicStorage!=='granted'&&FS.requestPermissions){
+                  const r=await FS.requestPermissions();
+                  diagLog('PDF-PERM','richiesti: '+JSON.stringify(r));
+                }
+              }
+            }catch(e){diagLog('PDF-PERM-ERRORE',e&&e.message?e.message:String(e));}
+            // provo piu' destinazioni: alcune richiedono permessi non concessi
+            const dirs=['DOCUMENTS','EXTERNAL_STORAGE','EXTERNAL','DATA','CACHE'];
+            let res=null,usata='';
+            for(const d of dirs){
+              try{
+                res=await FS.writeFile({path:nome,data:b64,directory:d,recursive:true});
+                usata=d;break;
+              }catch(err){
+                diagLog('PDF-DIR','fallita '+d+': '+(err&&err.message?err.message:err));
+              }
+            }
+            if(!res)throw new Error('Nessuna cartella scrivibile');
             fatto=true;
-            diagLog('PDF-NATIVO','salvato: '+nome);
+            diagLog('PDF-NATIVO','salvato in '+usata+': '+nome);
             if(condividi){
               const Sh=Cap.Plugins&&Cap.Plugins.Share;
               if(Sh&&res&&res.uri){try{await Sh.share({title:nome,url:res.uri});}catch(e){}}
               else{toast('Condivisione non disponibile');}
             }else{
-              toast('PDF salvato in Documenti');
-              alert('PDF salvato nella cartella Documenti del telefono:\n\n'+nome);
+              toast('PDF creato');
+              const dove=(usata==='DOCUMENTS')?'nella cartella Documenti del telefono':'nello spazio dell\u2019app';
+              const extra=(usata==='DOCUMENTS')?'':'\n\nPer averlo altrove usa il pulsante \u201cCondividi PDF\u201d e scegli dove inviarlo o salvarlo.';
+              alert('PDF salvato '+dove+':\n\n'+nome+extra);
             }
           }
         }catch(e){diagLog('PDF-NATIVO-ERRORE',e&&e.message?e.message:String(e));}
