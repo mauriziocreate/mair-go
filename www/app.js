@@ -9,7 +9,7 @@ function diagOpen(){
   box.setAttribute('style','position:fixed;top:0;left:0;right:0;bottom:0;z-index:999999;background:#111;color:#0f0;font:12px/1.5 monospace;padding:10px;overflow:auto');
   const testo=window.__LOG__.length?window.__LOG__.join('\n\n'):'(nessun errore registrato)';
   const info='DIAGNOSTICA MAIR GO!\n'
-    +'Versione app.js: 5.8\n'
+    +'Versione app.js: 5.9\n'
     +'docViewerOpen esiste: '+(typeof docViewerOpen)+'\n'
     +'textEditorOpen esiste: '+(typeof textEditorOpen)+'\n'
     +'certDocHtml esiste: '+(typeof certDocHtml)+'\n'
@@ -431,6 +431,11 @@ function docViewerOpen(title,inner,extraCss,plainText){
       +'#docviewer .dv-paper .art{display:flex;gap:18px;margin:22px 0;flex-wrap:wrap}'
       +'#docviewer .dv-paper .art img{max-width:240px;border:1px solid #ccc}'
       +'#docviewer .dv-paper .art>div{flex:1 1 220px}'
+      +'@media print{#app,header,nav,.topbar,#toast{display:none!important}'
+      +'#docviewer{position:static!important;background:#fff!important}'
+      +'#docviewer .dv-bar{display:none!important}'
+      +'#docviewer .dv-scroll{overflow:visible!important;padding:0!important}'
+      +'#docviewer .dv-paper{max-width:none!important;padding:0!important}}'
       +(extraCss||'');
     document.head.appendChild(css);
 
@@ -438,7 +443,7 @@ function docViewerOpen(title,inner,extraCss,plainText){
     const bar=document.createElement('div');bar.className='dv-bar';
     const mk=(txt,pri)=>{const b=document.createElement('button');b.textContent=txt;if(pri)b.className='pri';bar.appendChild(b);return b;};
     const bClose=mk('\u2190 Chiudi');
-    const bPrint=mk('\ud83d\udda8\ufe0f Stampa / PDF',true);
+    const bPrint=mk('\ud83d\udcc4 Salva PDF',true);
     const bText=mk('\u270d\ufe0f Testo');
     const bCopy=mk('\ud83d\udccb Copia');
     host.appendChild(bar);
@@ -451,17 +456,55 @@ function docViewerOpen(title,inner,extraCss,plainText){
 
     const closeIt=()=>{host.remove();css.remove()};
     bClose.onclick=closeIt;
-    bPrint.onclick=()=>{
+    bPrint.onclick=async()=>{
+      const originale=bPrint.textContent;
+      bPrint.textContent='\u23f3 Creo il PDF...';bPrint.disabled=true;
       try{
-        const w=window.open('','_blank');
-        if(w&&w.document){
-          w.document.write('<!DOCTYPE html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>'+(title||'Documento')+'</title><style>body{font-family:Georgia,serif;padding:18px;line-height:1.6;color:#111}img{max-width:100%}table{width:100%;border-collapse:collapse}td{padding:8px;border-bottom:1px solid #ddd}.art{display:flex;gap:16px;margin:20px 0;flex-wrap:wrap}.art img{max-width:240px}.art>div{flex:1 1 220px}</style></head><body>'+paper.innerHTML+'</body></html>');
-          w.document.close();
-          setTimeout(()=>{try{w.print()}catch(e){}},600);
-          return;
-        }
-      }catch(e){}
-      try{window.print()}catch(e){toast('Usa il menu del telefono \u2192 Stampa')}
+        if(typeof html2canvas!=='function'||!window.jspdf){throw new Error('Librerie PDF non caricate');}
+        const {jsPDF}=window.jspdf;
+        const canvas=await html2canvas(paper,{scale:2,backgroundColor:'#ffffff',useCORS:true,logging:false});
+        const img=canvas.toDataURL('image/jpeg',0.92);
+        const pdf=new jsPDF({orientation:'p',unit:'mm',format:'a4'});
+        const pw=pdf.internal.pageSize.getWidth(),ph=pdf.internal.pageSize.getHeight();
+        const iw=pw,ih=canvas.height*pw/canvas.width;
+        let resto=ih,pos=0;
+        pdf.addImage(img,'JPEG',0,0,iw,ih);
+        resto-=ph;
+        while(resto>0){pos-=ph;pdf.addPage();pdf.addImage(img,'JPEG',0,pos,iw,ih);resto-=ph;}
+        const nome=safeName(title)+'.pdf';
+        let salvato=false;
+        try{pdf.save(nome);salvato=true;}catch(e){diagLog('PDF-SAVE',e&&e.message?e.message:String(e));}
+        // ripiego: se il download non e' disponibile, mostro il PDF a schermo
+        try{
+          const uri=pdf.output('datauristring');
+          const cont=document.createElement('div');
+          cont.setAttribute('style','position:fixed;top:0;left:0;right:0;bottom:0;z-index:999999;background:#222;display:flex;flex-direction:column');
+          const bar=document.createElement('div');
+          bar.setAttribute('style','padding:10px;background:#fff;display:flex;gap:8px;flex-wrap:wrap');
+          const bx=document.createElement('button');bx.textContent='\u2190 Chiudi';
+          bx.setAttribute('style','padding:10px 16px;font:600 .95rem system-ui');
+          bx.onclick=()=>cont.remove();
+          const ba=document.createElement('a');ba.textContent='\u2b07\ufe0f Salva / Apri PDF';
+          ba.href=uri;ba.download=nome;ba.target='_blank';
+          ba.setAttribute('style','padding:10px 16px;font:600 .95rem system-ui;background:#8a6a1f;color:#fff;border-radius:8px;text-decoration:none');
+          const info=document.createElement('div');
+          info.textContent='Se il pulsante non salva, tieni premuto sul documento e scegli Salva.';
+          info.setAttribute('style','flex-basis:100%;font:12px system-ui;color:#555');
+          bar.appendChild(bx);bar.appendChild(ba);bar.appendChild(info);
+          const fr=document.createElement('iframe');
+          fr.setAttribute('style','flex:1;width:100%;border:0;background:#fff');
+          fr.src=uri;
+          cont.appendChild(bar);cont.appendChild(fr);
+          document.body.appendChild(cont);
+        }catch(e){diagLog('PDF-VIEW',e&&e.message?e.message:String(e));}
+        diagLog('PDF','generato: '+nome+' (save='+salvato+')');
+        toast('PDF creato');
+      }catch(e){
+        diagLog('PDF-ERRORE',e&&e.message?e.message:String(e));
+        alert('Impossibile creare il PDF: '+(e&&e.message?e.message:e));
+      }finally{
+        bPrint.textContent=originale;bPrint.disabled=false;
+      }
     };
     bText.onclick=()=>{textEditorOpen(title,plainText||paper.innerText)};
     bCopy.onclick=async()=>{
