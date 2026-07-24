@@ -314,48 +314,62 @@ function textEditorOpen(title,text){
 }
 
 function docViewerOpen(title,inner,extraCss,plainText){
-  const host=document.createElement('div');
-  host.id='docviewer';
-  host.innerHTML=`<div class="dv-bar">
-      <button class="btn" id="dvClose">← Chiudi</button>
-      <button class="btn primary" id="dvPrint">🖨️ Stampa / PDF</button>
-      <button class="btn" id="dvShare">📤 Condividi</button>
-      <button class="btn" id="dvCopy">📋 Copia testo</button>
-    </div>
-    <div class="dv-scroll"><div class="dv-paper">${inner}</div></div>`;
-  document.body.appendChild(host);
-  const css=document.createElement('style');
-  css.id='docviewer-css';
-  css.textContent=`#docviewer{position:fixed;inset:0;z-index:9999;background:#f2f2f2;display:flex;flex-direction:column}
-  #docviewer .dv-bar{display:flex;gap:8px;padding:10px;background:var(--panel,#fff);border-bottom:1px solid #ccc;flex-wrap:wrap;position:sticky;top:0}
-  #docviewer .dv-scroll{flex:1;overflow:auto;-webkit-overflow-scrolling:touch;padding:14px}
-  #docviewer .dv-paper{background:#fff;color:#111;max-width:900px;margin:0 auto;padding:26px;font-family:Georgia,serif;line-height:1.6;box-shadow:0 2px 14px #0002}
-  #docviewer .dv-paper img{max-width:100%;height:auto}
-  #docviewer .dv-paper table{width:100%;border-collapse:collapse;margin:14px 0}
-  #docviewer .dv-paper td{padding:9px 12px;border-bottom:1px solid #ddd}
-  #docviewer .dv-paper .art{display:flex;gap:18px;margin:22px 0;flex-wrap:wrap}
-  #docviewer .dv-paper .art img{max-width:240px;border:1px solid #ccc}
-  #docviewer .dv-paper .art>div{flex:1 1 220px}
-  ${extraCss||''}
-  @media print{body>*{display:none!important}#docviewer{position:static;display:block!important}
-    #docviewer .dv-bar{display:none!important}#docviewer .dv-scroll{overflow:visible;padding:0}
-    #docviewer .dv-paper{box-shadow:none;max-width:none;padding:0}}`;
-  document.head.appendChild(css);
-  const closeIt=()=>{host.remove();css.remove()};
-  host.querySelector('#dvClose').onclick=closeIt;
-  host.querySelector('#dvPrint').onclick=()=>{
-    try{window.print()}catch(e){toast('Usa il menu del telefono → Stampa')}
-  };
-  host.querySelector('#dvShare').onclick=async()=>{
-    try{
-      if(navigator.share){await navigator.share({title,text:plainText||title});}
-      else{await navigator.clipboard.writeText(plainText||title);toast('Testo copiato')}
-    }catch(e){}
-  };
-  host.querySelector('#dvCopy').onclick=async()=>{
-    try{await navigator.clipboard.writeText(plainText||host.querySelector('.dv-paper').innerText);toast('Testo copiato negli appunti')}
-    catch(e){toast('Copia non riuscita')}
-  };
+  try{
+    const old=document.getElementById('docviewer');if(old)old.remove();
+    const oldc=document.getElementById('docviewer-css');if(oldc)oldc.remove();
+    const css=document.createElement('style');css.id='docviewer-css';
+    css.textContent='#docviewer{position:fixed;top:0;left:0;right:0;bottom:0;z-index:99999;background:#eee;display:flex;flex-direction:column}'
+      +'#docviewer .dv-bar{display:flex;gap:8px;padding:10px;background:#fff;border-bottom:1px solid #ccc;flex-wrap:wrap}'
+      +'#docviewer .dv-bar button{font:600 .95rem system-ui;padding:10px 14px;border:1px solid #bbb;border-radius:8px;background:#fff;color:#111}'
+      +'#docviewer .dv-bar button.pri{background:#8a6a1f;color:#fff;border-color:#8a6a1f}'
+      +'#docviewer .dv-scroll{flex:1;overflow-y:auto;padding:12px}'
+      +'#docviewer .dv-paper{background:#fff;color:#111;max-width:900px;margin:0 auto;padding:22px;font-family:Georgia,serif;line-height:1.6}'
+      +'#docviewer .dv-paper img{max-width:100%;height:auto}'
+      +'#docviewer .dv-paper table{width:100%;border-collapse:collapse;margin:14px 0}'
+      +'#docviewer .dv-paper td{padding:9px 12px;border-bottom:1px solid #ddd}'
+      +'#docviewer .dv-paper .art{display:flex;gap:18px;margin:22px 0;flex-wrap:wrap}'
+      +'#docviewer .dv-paper .art img{max-width:240px;border:1px solid #ccc}'
+      +'#docviewer .dv-paper .art>div{flex:1 1 220px}'
+      +(extraCss||'');
+    document.head.appendChild(css);
+
+    const host=document.createElement('div');host.id='docviewer';
+    const bar=document.createElement('div');bar.className='dv-bar';
+    const mk=(txt,pri)=>{const b=document.createElement('button');b.textContent=txt;if(pri)b.className='pri';bar.appendChild(b);return b;};
+    const bClose=mk('\u2190 Chiudi');
+    const bPrint=mk('\ud83d\udda8\ufe0f Stampa / PDF',true);
+    const bText=mk('\u270d\ufe0f Testo');
+    const bCopy=mk('\ud83d\udccb Copia');
+    host.appendChild(bar);
+
+    const scroll=document.createElement('div');scroll.className='dv-scroll';
+    const paper=document.createElement('div');paper.className='dv-paper';
+    paper.innerHTML=inner||'<p>Documento vuoto.</p>';
+    scroll.appendChild(paper);host.appendChild(scroll);
+    document.body.appendChild(host);
+
+    const closeIt=()=>{host.remove();css.remove()};
+    bClose.onclick=closeIt;
+    bPrint.onclick=()=>{
+      try{
+        const w=window.open('','_blank');
+        if(w&&w.document){
+          w.document.write('<!DOCTYPE html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>'+(title||'Documento')+'</title><style>body{font-family:Georgia,serif;padding:18px;line-height:1.6;color:#111}img{max-width:100%}table{width:100%;border-collapse:collapse}td{padding:8px;border-bottom:1px solid #ddd}.art{display:flex;gap:16px;margin:20px 0;flex-wrap:wrap}.art img{max-width:240px}.art>div{flex:1 1 220px}</style></head><body>'+paper.innerHTML+'</body></html>');
+          w.document.close();
+          setTimeout(()=>{try{w.print()}catch(e){}},600);
+          return;
+        }
+      }catch(e){}
+      try{window.print()}catch(e){toast('Usa il menu del telefono \u2192 Stampa')}
+    };
+    bText.onclick=()=>{textEditorOpen(title,plainText||paper.innerText)};
+    bCopy.onclick=async()=>{
+      try{await navigator.clipboard.writeText(plainText||paper.innerText);toast('Testo copiato')}
+      catch(e){toast('Copia non riuscita')}
+    };
+  }catch(err){
+    alert('Errore apertura documento: '+(err&&err.message?err.message:err));
+  }
 }
 
 let previewId=null;function pdfPreviewView(){const p=db.pdfProjects.find(x=>x.id===previewId);if(!p)return empty('📄','Progetto non trovato.');const arts=(p.artworkIds||[]).map(id=>db.artworks.find(a=>a.id===id)).filter(Boolean),F=p.fields||[];return `<div class="toolbar no-print"><button class="btn" data-action="backPdf">← PDF Studio</button><button class="btn primary" data-action="printPdf">📄 Apri documento</button><button class="btn" data-action="sharePdf">✍️ Testo modificabile</button></div><article class="pdf-page" data-theme="${esc(p.theme)}"><header style="border-bottom:3px solid var(--accent);padding-bottom:28px;margin-bottom:35px"><small>MAIR GO! · ${esc(p.type)}</small><h1>${esc(p.title)}</h1><h2>${esc(p.subtitle)}</h2><p>${esc(p.intro||'')}</p></header>${arts.map(a=>`<section class="pdf-art"><div>${a.image?`<img src="${a.image}" alt="${esc(a.title)}">`:''}</div><div><h2>${esc(a.title)}</h2>${F.includes('year')?`<p><strong>Anno:</strong> ${esc(a.year)}</p>`:''}${F.includes('code')?`<p><strong>Codice:</strong> ${esc(a.code)}</p>`:''}${F.includes('technique')?`<p><strong>Tecnica:</strong> ${esc(a.technique)}${a.support?' su '+esc(a.support):''}</p>`:''}${F.includes('dimensions')?`<p><strong>Dimensioni:</strong> ${esc(a.dimensions)}</p>`:''}${F.includes('frame')?`<p><strong>Cornice:</strong> ${esc(a.frame)}</p>`:''}${F.includes('status')?`<p><strong>Stato:</strong> ${esc(a.status)}</p>`:''}${F.includes('price')&&a.price?`<p><strong>Prezzo:</strong> ${euro(a.price)}</p>`:''}${F.includes('description')?`<p>${esc(a.description)}</p>`:''}</div></section>`).join('')}<footer style="border-top:1px solid #bbb;padding-top:20px;margin-top:40px"><strong>${esc(db.settings.artist)}</strong><br>${esc(db.settings.email)} ${esc(db.settings.phone)}</footer></article>`}
