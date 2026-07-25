@@ -424,3 +424,6 @@ body{padding-bottom:calc(82px + env(safe-area-inset-bottom))}
 .hub-section{margin-top:28px}.hub-section>h3{font:700 1.25rem Georgia,serif;margin-bottom:12px}
 .attention-card{display:flex;align-items:center;gap:14px;margin-top:18px;padding:16px;border:1px solid #d29a2f66;border-radius:18px;background:#d29a2f15}.attention-card>span{font-size:1.7rem}.attention-card>div{display:grid;gap:3px;flex:1}.attention-card small{color:var(--muted)}
 @media(max-width:720px){.hub-grid,.hub-grid.compact,.quick-create-grid{grid-template-columns:1fr}.hub-tile{min-height:90px;padding:15px}.quick-create{min-height:96px}.bottomnav button{font-size:.66rem}.topbar{grid-template-columns:46px minmax(0,1fr) auto}.top-actions{display:flex;gap:6px}.exit-btn{display:none}}
+
+/* MAIR GO 10.2 */
+@media(max-width:720px){.exit-btn{display:inline-flex!important;align-items:center;justify-content:center;min-width:42px;width:42px;padding:8px;font-size:0}.exit-btn::before{content:'⏻';font-size:1.15rem}.top-actions{display:flex!important}}
