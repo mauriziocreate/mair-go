@@ -9,7 +9,7 @@ function diagOpen(){
   box.setAttribute('style','position:fixed;top:0;left:0;right:0;bottom:0;z-index:999999;background:#111;color:#0f0;font:12px/1.5 monospace;padding:10px;overflow:auto');
   const testo=window.__LOG__.length?window.__LOG__.join('\n\n'):'(nessun errore registrato)';
   const info='DIAGNOSTICA MAIR GO!\n'
-    +'Versione app.js: 7.9\n'
+    +'Versione app.js: 8.0\n'
     +'docViewerOpen esiste: '+(typeof docViewerOpen)+'\n'
     +'textEditorOpen esiste: '+(typeof textEditorOpen)+'\n'
     +'certDocHtml esiste: '+(typeof certDocHtml)+'\n'
@@ -1386,21 +1386,43 @@ function openLibrary(id){
   const type=(d.mime||'').toLowerCase();
   const nome=(d.name||'').toLowerCase();
   const contId='docReader_'+d.id;
+  const isPdf=type.includes('pdf')||nome.endsWith('.pdf');
+  const isDocx=type.includes('word')||type.includes('officedocument')||nome.endsWith('.docx')||nome.endsWith('.doc');
   let content;
-  if(type.includes('pdf')||nome.endsWith('.pdf')){
-    content='<div id="'+contId+'" class="doc-reader"><p class="meta">Carico il PDF\u2026</p></div>';
-  }else if(type.includes('word')||type.includes('officedocument')||nome.endsWith('.docx')){
+  if(isPdf){
+    content='<div id="'+contId+'" class="doc-reader"><p class="meta" style="color:#fff">Carico il PDF\u2026</p></div>';
+  }else if(isDocx){
     content='<div id="'+contId+'" class="doc-reader docx"><p class="meta">Carico il documento Word\u2026</p></div>';
   }else if(type.startsWith('image')){
-    content='<img src="'+d.data+'" alt="'+esc(d.title)+'">';
+    content='<div id="'+contId+'" class="doc-reader img"><img src="'+d.data+'" alt="'+esc(d.title)+'"></div>';
   }else if(type.startsWith('text')||d.text){
-    content='<pre>'+esc(d.text||'Anteprima non disponibile.')+'</pre>';
+    content='<div class="doc-reader docx"><div class="docx-body"><pre style="white-space:pre-wrap;font-family:Georgia,serif">'+esc(d.text||'Anteprima non disponibile.')+'</pre></div></div>';
   }else{
-    content='<div class="doc-reader"><p>Formato non visualizzabile nell\u2019app. Usa \u201cScarica\u201d per aprirlo con un\u2019altra app.</p><p class="meta">'+esc(d.name||'')+'</p></div>';
+    content='<div class="doc-reader docx"><div class="docx-body"><p>Formato non visualizzabile nell\u2019app.</p><p class="meta">'+esc(d.name||'')+'</p></div></div>';
   }
-  $('#viewerBody').innerHTML='<div class="viewer-layout"><div class="viewer-main">'+content+'</div><aside class="study"><h3>Appunti di studio</h3><textarea id="studyNotes" placeholder="Annota idee senza uscire dal documento\u2026">'+esc(d.notes||'')+'</textarea><button class="btn primary" id="saveStudy">Salva appunti</button><hr><button class="btn" id="dlDoc">\u2b07\ufe0f Scarica originale</button></aside></div>';
-  const sv=$('#saveStudy');if(sv)sv.onclick=()=>{d.notes=$('#studyNotes').value;save();toast('Appunti salvati')};
-  const dl=$('#dlDoc');if(dl)dl.onclick=()=>{try{download(dataURLtoBlob(d.data),d.name||d.title||'documento')}catch(e){toast('Download non riuscito')}};
+  // barra strumenti con zoom (per PDF, immagini e DOCX)
+  const zoomBar='<div class="reader-bar">'
+    +'<button class="btn" id="rdZoomOut">\u2212</button>'
+    +'<span id="rdZoomLbl" class="reader-zoom">100%</span>'
+    +'<button class="btn" id="rdZoomIn">+</button>'
+    +'<button class="btn" id="rdZoomReset">Adatta</button>'
+    +'<button class="btn" id="rdDownload">\u2b07\ufe0f Scarica</button>'
+  +'</div>';
+  $('#viewerBody').innerHTML=zoomBar+'<div class="viewer-full">'+content+'</div>';
+  // zoom
+  let zoom=1;
+  const box=()=>document.getElementById(contId);
+  const applica=()=>{
+    const b=box();if(!b)return;
+    b.style.setProperty('--zoom',zoom);
+    const l=document.getElementById('rdZoomLbl');if(l)l.textContent=Math.round(zoom*100)+'%';
+  };
+  const zi=document.getElementById('rdZoomIn'),zo=document.getElementById('rdZoomOut'),zr=document.getElementById('rdZoomReset');
+  if(zi)zi.onclick=()=>{zoom=Math.min(4,zoom+0.2);applica();};
+  if(zo)zo.onclick=()=>{zoom=Math.max(0.4,zoom-0.2);applica();};
+  if(zr)zr.onclick=()=>{zoom=1;applica();};
+  const dl=document.getElementById('rdDownload');
+  if(dl)dl.onclick=()=>{try{download(dataURLtoBlob(d.data),d.name||d.title||'documento')}catch(e){toast('Download non riuscito')}};
   viewer.showModal();
   // caricamento asincrono del contenuto dopo l'apertura
   setTimeout(()=>{renderDocReader(d,contId,type,nome)},60);

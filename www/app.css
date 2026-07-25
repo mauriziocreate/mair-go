@@ -211,3 +211,23 @@ input,select,textarea{min-width:0;max-width:100%}
   .viewer-shell{height:92vh}
   .viewer-main .doc-reader{max-height:none}
 }
+
+/* ===== LETTORE CON ZOOM (senza appunti) ===== */
+.reader-bar{position:sticky;top:0;z-index:3;display:flex;gap:8px;align-items:center;padding:10px;background:var(--panel);border-bottom:1px solid var(--line);flex-wrap:wrap}
+.reader-bar .btn{padding:8px 14px;min-width:44px;font-size:1.05rem}
+.reader-bar #rdDownload{margin-left:auto;font-size:.9rem}
+.reader-zoom{min-width:52px;text-align:center;font-weight:700;color:var(--muted)}
+.viewer-full{flex:1;min-height:0;overflow:auto;-webkit-overflow-scrolling:touch;background:#4d4d4d}
+.viewer-full .doc-reader{--zoom:1;padding:10px;width:100%}
+.viewer-full .doc-reader.docx{background:#fff}
+.viewer-full .doc-reader.img{background:#222;display:flex;justify-content:center}
+.viewer-full .pdf-page{display:block;margin:0 auto 12px;background:#fff;box-shadow:0 2px 12px #0007;border-radius:2px;width:calc(100% * var(--zoom));max-width:none;height:auto}
+.viewer-full .docx-body{background:#fff;color:#111;line-height:1.65;font-family:Georgia,serif;padding:calc(20px * var(--zoom));font-size:calc(1rem * var(--zoom));margin:0 auto;max-width:900px}
+.viewer-full .docx-body img{max-width:100%;height:auto}
+.viewer-full .doc-reader.img img{width:calc(100% * var(--zoom));max-width:none;height:auto;object-fit:contain}
+.viewer-shell .viewer-layout{display:flex;flex-direction:column;height:100%}
+
+/* struttura lettore a colonna piena */
+#viewerBody{display:flex;flex-direction:column;height:100%;min-height:0}
+.viewer-shell{height:min(92vh,940px);display:grid;grid-template-rows:auto 1fr;padding:16px}
+#viewerBody .viewer-full{flex:1}
