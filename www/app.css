@@ -467,3 +467,66 @@ body{padding-bottom:calc(82px + env(safe-area-inset-bottom))}
   .exit-btn{font-size:0;width:46px;padding:8px}
   .exit-btn::before{content:'⏻'!important;font-size:1.35rem}
 }
+
+
+/* MAIR GO! — pulsante uscita pulito con X centrata */
+#exitBtn.exit-btn{
+  -webkit-appearance:none;
+  appearance:none;
+  display:inline-flex !important;
+  align-items:center !important;
+  justify-content:center !important;
+  flex:0 0 42px;
+  width:42px !important;
+  min-width:42px !important;
+  max-width:42px;
+  height:42px !important;
+  min-height:42px !important;
+  padding:0 !important;
+  margin:0;
+  gap:0;
+  border:0 !important;
+  outline:0;
+  border-radius:10px;
+  background:transparent !important;
+  box-shadow:none !important;
+  color:var(--ink);
+  font-family:Arial,Helvetica,sans-serif;
+  font-size:30px !important;
+  font-weight:300;
+  line-height:1 !important;
+  letter-spacing:0;
+  text-indent:0;
+  text-align:center;
+  cursor:pointer;
+  transform:none;
+}
+#exitBtn.exit-btn::before,
+#exitBtn.exit-btn::after{content:none !important;display:none !important}
+#exitBtn.exit-btn:hover,
+#exitBtn.exit-btn:focus-visible{
+  border:0 !important;
+  background:color-mix(in srgb,#c0392b 12%,transparent) !important;
+  box-shadow:none !important;
+  color:#b42318;
+  transform:none;
+}
+#exitBtn.exit-btn:active{
+  border:0 !important;
+  background:color-mix(in srgb,#c0392b 20%,transparent) !important;
+  box-shadow:none !important;
+  color:#8f1c13;
+  transform:scale(.94);
+}
+@media(max-width:720px){
+  #exitBtn.exit-btn{
+    display:inline-flex !important;
+    flex-basis:42px;
+    width:42px !important;
+    min-width:42px !important;
+    height:42px !important;
+    min-height:42px !important;
+    padding:0 !important;
+    font-size:30px !important;
+  }
+}
