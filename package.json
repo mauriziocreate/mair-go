@@ -1,6 +1,6 @@
 {
   "name": "mair-go",
-  "version": "10.0.0",
+  "version": "10.1.0",
   "description": "MAIR GO! - Art Management System di Maurizio D'Andrea",
   "private": true,
   "scripts": {

@@ -1,0 +1,15 @@
+MAIR GO! 10.1 - BACKUP NATIVO ANDROID
+
+Crea Backup:
+Android apre il selettore di sistema "Salva in". È possibile scegliere Download,
+Documenti, una cartella locale o Google Drive. Il backup viene registrato come
+eseguito soltanto dopo il salvataggio; se si annulla, il file temporaneo è eliminato.
+
+Ripristina Backup:
+Android apre il selettore "Apri da". È possibile scegliere file da Download,
+Documenti, Google Drive e altri provider disponibili sul telefono.
+
+Formati accettati: .backup, .mair e .json.
+
+Il workflow GitHub copia automaticamente il plugin nativo nella cartella Android
+prima della compilazione dell'APK.
