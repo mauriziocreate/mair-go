@@ -1380,7 +1380,7 @@ function anniLista(sel){const y=new Date().getFullYear();const a=[''];for(let i=
 function artworkModal(a={}){openModal(a.id?'Modifica opera':'Nuova opera',`<div class="formgrid">${field('Titolo','title',a.title,'text','full')}${selectField('Anno','year',anniLista(a.year),a.year||'')}${field('Codice opera','code',a.code||('MG-'+String(db.artworks.length+1).padStart(4,'0')))}${selectField('Tecnica','technique',db.settings.lists.techniques,a.technique)}${selectField('Supporto','support',db.settings.lists.supports,a.support)}${selectField('Dimensioni','dimensions',db.settings.lists.dimensions,a.dimensions)}${selectField('Cornice','frame',db.settings.lists.frames,a.frame)}${selectField('Stato','status',db.settings.lists.statuses,a.status||'Disponibile')}${field('Prezzo (€)','price',a.price,'number')}${field('Serie / collezione','collection',a.collection)}${field('Posizione attuale','location',a.location)}${area('Descrizione','description',a.description)}${area('Note private','notes',a.notes)}<div class="field full"><label>Immagine principale</label><input name="imageFile" type="file" accept="image/*"></div></div>`,async fd=>{const file=fd.get('imageFile');const obj={...a,id:a.id||uid(),title:fd.get('title'),year:fd.get('year'),code:fd.get('code'),technique:fd.get('technique'),support:fd.get('support'),dimensions:fd.get('dimensions'),frame:fd.get('frame'),status:fd.get('status'),price:fd.get('price'),collection:fd.get('collection'),location:fd.get('location'),description:fd.get('description'),notes:fd.get('notes'),image:file?.size?await fileData(file):a.image||'',updated:new Date().toISOString(),created:a.created||new Date().toISOString()};if(a.id)db.artworks=db.artworks.map(x=>x.id===a.id?obj:x);else db.artworks.unshift(obj);save();modal.close();render();toast('Opera salvata')})}
 function libraryModal(d={}){const arts=db.artworks.map(a=>`<option value="${a.id}" ${d.artworkId===a.id?'selected':''}>${esc(a.title)}</option>`).join('');openModal(d.id?'Modifica documento':'Carica nella Biblioteca',`<div class="formgrid">${!d.id?`<div class="field full"><label>File locale</label><input name="file" type="file" accept=".pdf,.docx,.doc,.txt,image/*" required></div>`:''}${field('Titolo','title',d.title,'text','full')}${field('Autore','author',d.author)}${selectField('Categoria','category',db.settings.lists.categories,d.category||'Catalogo')}${field('Tag separati da virgola','tags',(d.tags||[]).join(', '),'text','full')}${area('Descrizione','description',d.description)}<div class="field full"><label>Opera collegata</label><select name="artworkId"><option value="">Nessuna</option>${arts}</select></div>${area('Appunti di studio','notes',d.notes)}</div>`,async fd=>{let obj={...d,id:d.id||uid(),title:fd.get('title'),author:fd.get('author'),category:fd.get('category'),tags:String(fd.get('tags')||'').split(',').map(x=>x.trim()).filter(Boolean),description:fd.get('description'),artworkId:fd.get('artworkId'),notes:fd.get('notes'),date:d.date||new Date().toISOString()};if(!d.id){const f=fd.get('file');if(!f?.size)return alert('Seleziona un file');obj.name=f.name;obj.mime=f.type||mimeFromName(f.name);obj.data=await fileData(f);if(obj.mime.startsWith('text/')||/\.txt$/i.test(f.name))obj.text=await fileText(f);if(!obj.title)obj.title=f.name.replace(/\.[^.]+$/,'')}if(d.id)db.library=db.library.map(x=>x.id===d.id?obj:x);else db.library.unshift(obj);save();modal.close();render();toast('Documento salvato')})}function mimeFromName(n){if(/\.pdf$/i.test(n))return'application/pdf';if(/\.docx?$/i.test(n))return'application/vnd.openxmlformats-officedocument.wordprocessingml.document';if(/\.(png|jpe?g|webp|gif)$/i.test(n))return'image/*';return'text/plain'}
 /* ===== LETTORE DOCUMENTI (trapiantato da LetturArt) ===== */
-const LA={pdf:null,pages:[],zoom:1,mode:'continuous',page:1,token:0,observer:null,cont:null,doc:null,resizeTimer:null};
+const LA={pdf:null,pages:[],zoom:1,mode:'continuous',page:1,token:0,observer:null,cont:null,doc:null,resizeTimer:null,lastGesture:0};
 
 function openLibrary(id){
   const d=db.library.find(x=>x.id===id);if(!d)return;
@@ -1460,11 +1460,20 @@ function laLbl(){const z=document.getElementById('laZoomLbl');if(z)z.textContent
 async function laSetZoom(next){
   if(!LA.pdf)return;
   const stage=document.getElementById('laStage');
-  const oldMax=Math.max(1,stage.scrollHeight-stage.clientHeight),ratio=stage.scrollTop/oldMax;
+  if(!stage)return;
+  const oldScrollW=Math.max(stage.scrollWidth,stage.clientWidth);
+  const oldScrollH=Math.max(stage.scrollHeight,stage.clientHeight);
+  const centerX=(stage.scrollLeft+stage.clientWidth/2)/oldScrollW;
+  const centerY=(stage.scrollTop+stage.clientHeight/2)/oldScrollH;
   LA.zoom=Math.max(.6,Math.min(3,+next.toFixed(2)));
   laLbl();
   await laRenderPdf();
-  requestAnimationFrame(()=>{stage.scrollTop=ratio*Math.max(0,stage.scrollHeight-stage.clientHeight);});
+  requestAnimationFrame(()=>{
+    const newLeft=centerX*stage.scrollWidth-stage.clientWidth/2;
+    const newTop=centerY*stage.scrollHeight-stage.clientHeight/2;
+    stage.scrollLeft=Math.max(0,Math.min(newLeft,stage.scrollWidth-stage.clientWidth));
+    stage.scrollTop=Math.max(0,Math.min(newTop,stage.scrollHeight-stage.clientHeight));
+  });
 }
 function laAvailableWidth(){
   const stage=document.getElementById('laStage');
@@ -1529,16 +1538,19 @@ function laBindSinglePageTap(){
   const page=document.querySelector('#laWrap .la-page');
   if(!page||!LA.pdf)return;
   page.setAttribute('role','button');
-  page.setAttribute('aria-label','Tocca per passare alla pagina successiva');
+  page.setAttribute('aria-label','Tocca la metà sinistra per tornare indietro o la metà destra per avanzare');
   page.onclick=async e=>{
     if(LA.mode!=='page'||!LA.pdf)return;
-    // Ignora il tap immediatamente successivo a un gesto di zoom o trascinamento.
-    if(e.detail>1)return;
-    if(LA.page<LA.pdf.numPages){
-      LA.page++;
-      await laRenderPdf();
+    // Evita cambi pagina dopo doppio tap, pinch-to-zoom o trascinamento.
+    if(e.detail>1||Date.now()-LA.lastGesture<450)return;
+    const rect=page.getBoundingClientRect();
+    const indietro=e.clientX<rect.left+rect.width/2;
+    if(indietro){
+      if(LA.page>1){LA.page--;await laRenderPdf();}
+      else toast('Prima pagina');
     }else{
-      toast('Ultima pagina');
+      if(LA.page<LA.pdf.numPages){LA.page++;await laRenderPdf();}
+      else toast('Ultima pagina');
     }
   };
 }
@@ -1568,10 +1580,11 @@ function laSetupPinch(){
   const stage=document.getElementById('laStage');if(!stage)return;
   stage.onscroll=()=>{if(LA.mode==='continuous')laUpdatePage();};
   let d0=0,z0=1;
-  stage.addEventListener('touchstart',e=>{if(e.touches.length===2){d0=Math.hypot(e.touches[0].clientX-e.touches[1].clientX,e.touches[0].clientY-e.touches[1].clientY);z0=LA.zoom;}},{passive:true});
+  stage.addEventListener('touchstart',e=>{if(e.touches.length===2){LA.lastGesture=Date.now();d0=Math.hypot(e.touches[0].clientX-e.touches[1].clientX,e.touches[0].clientY-e.touches[1].clientY);z0=LA.zoom;}},{passive:true});
   let pending=null;
   stage.addEventListener('touchmove',e=>{
     if(e.touches.length===2&&d0){
+      LA.lastGesture=Date.now();
       const d=Math.hypot(e.touches[0].clientX-e.touches[1].clientX,e.touches[0].clientY-e.touches[1].clientY);
       const z=Math.max(.6,Math.min(3,z0*(d/d0)));
       if(pending)clearTimeout(pending);
@@ -1579,6 +1592,7 @@ function laSetupPinch(){
       pending=setTimeout(()=>laSetZoom(z),120);
     }
   },{passive:true});
+  stage.addEventListener('touchend',()=>{if(d0){LA.lastGesture=Date.now();d0=0;}},{passive:true});
 }
 
 function laHandleResize(){

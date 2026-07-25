@@ -371,3 +371,33 @@ input,select,textarea{min-width:0;max-width:100%}
   .viewer-shell.reader-open .modalhead h2{font-size:1.15rem}
   .la-stage{height:100%;max-height:none}
 }
+
+
+/* ===== CORREZIONI LETTORE 9.3: TAP BIDIREZIONALE E ZOOM ORIZZONTALE ===== */
+.la-stage{
+  overflow-x:auto!important;
+  overflow-y:auto!important;
+  scroll-padding-inline:12px;
+}
+/* Il contenuto zoomato ha una larghezza reale: il bordo sinistro non finisce più fuori dall'area scorrevole. */
+#viewerBody .la-wrap,
+.viewer-shell.reader-open .la-wrap{
+  width:max-content!important;
+  min-width:100%!important;
+  max-width:none!important;
+  padding-left:12px!important;
+  padding-right:12px!important;
+  align-items:center;
+}
+.la-wrap.single .la-page{
+  margin-left:auto;
+  margin-right:auto;
+  cursor:ew-resize;
+}
+@media(max-width:720px){
+  #viewerBody .la-wrap,
+  .viewer-shell.reader-open .la-wrap{
+    padding-left:8px!important;
+    padding-right:8px!important;
+  }
+}
