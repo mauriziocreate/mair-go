@@ -29,6 +29,12 @@ jobs:
       - name: Crea il progetto Android
         run: npx cap add android
 
+      - name: Installa il selettore backup nativo
+        run: |
+          mkdir -p android/app/src/main/java/info/dandreart/mairgo
+          cp native/android/MairBackupPlugin.java android/app/src/main/java/info/dandreart/mairgo/MairBackupPlugin.java
+          cp native/android/MainActivity.java android/app/src/main/java/info/dandreart/mairgo/MainActivity.java
+
       - name: Sincronizza i file dell'app
         run: npx cap sync android
 
