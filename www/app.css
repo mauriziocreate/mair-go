@@ -185,7 +185,7 @@ input,select,textarea{min-width:0;max-width:100%}
 /* ===== LETTORE DOCUMENTI ===== */
 .doc-reader{background:#525659;padding:10px;border-radius:8px;max-height:70vh;overflow:auto;-webkit-overflow-scrolling:touch}
 .doc-reader.docx{background:#fff}
-.pdf-page{display:block;width:100%;height:auto;margin:0 auto 12px;box-shadow:0 2px 10px rgba(0,0,0,.4);background:#fff}
+
 .docx-body{background:#fff;color:#111;padding:22px;line-height:1.65;max-height:70vh;overflow:auto;font-family:Georgia,serif}
 .docx-body h1,.docx-body h2,.docx-body h3{line-height:1.3}
 .docx-body img{max-width:100%;height:auto}
@@ -204,7 +204,7 @@ input,select,textarea{min-width:0;max-width:100%}
 /* ===== FIX LETTORE MOBILE ===== */
 .viewer-main .doc-reader{background:#4d4d4d;padding:8px;width:100%;max-height:none;border-radius:0}
 .viewer-main .doc-reader.docx{background:#fff}
-.viewer-main .doc-reader .pdf-page{width:100%!important;height:auto!important;min-height:0!important;padding:0!important;margin:0 auto 12px!important;border-radius:2px;box-shadow:0 2px 10px #0006;max-width:100%}
+
 .viewer-main .docx-body{background:#fff;color:#111;padding:20px;line-height:1.65;font-family:Georgia,serif;max-height:none;overflow:visible}
 .viewer-main{place-items:stretch!important;background:#4d4d4d}
 @media(max-width:720px){
@@ -221,7 +221,7 @@ input,select,textarea{min-width:0;max-width:100%}
 .viewer-full .doc-reader{--zoom:1;padding:10px;width:100%}
 .viewer-full .doc-reader.docx{background:#fff}
 .viewer-full .doc-reader.img{background:#222;display:flex;justify-content:center}
-.viewer-full .pdf-page{display:block;margin:0 auto 12px;background:#fff;box-shadow:0 2px 12px #0007;border-radius:2px;width:calc(100% * var(--zoom));max-width:none;height:auto}
+
 .viewer-full .docx-body{background:#fff;color:#111;line-height:1.65;font-family:Georgia,serif;padding:calc(20px * var(--zoom));font-size:calc(1rem * var(--zoom));margin:0 auto;max-width:900px}
 .viewer-full .docx-body img{max-width:100%;height:auto}
 .viewer-full .doc-reader.img img{width:calc(100% * var(--zoom));max-width:none;height:auto;object-fit:contain}
@@ -236,3 +236,6 @@ input,select,textarea{min-width:0;max-width:100%}
 .viewer-full{overflow:auto}
 .viewer-full .doc-reader .pdf-page{width:auto;max-width:none;margin:0 auto 12px;display:block}
 .viewer-full .doc-reader{display:flex;flex-direction:column;align-items:center;min-width:min-content}
+
+/* PDF nitido: il canvas usa la larghezza impostata via JS in px, niente stiramento */
+.viewer-full .doc-reader canvas.pdf-page{height:auto!important;max-width:none!important;margin:0 auto 12px;display:block;background:#fff;box-shadow:0 2px 12px #0007;border-radius:2px}

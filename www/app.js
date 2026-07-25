@@ -9,7 +9,7 @@ function diagOpen(){
   box.setAttribute('style','position:fixed;top:0;left:0;right:0;bottom:0;z-index:999999;background:#111;color:#0f0;font:12px/1.5 monospace;padding:10px;overflow:auto');
   const testo=window.__LOG__.length?window.__LOG__.join('\n\n'):'(nessun errore registrato)';
   const info='DIAGNOSTICA MAIR GO!\n'
-    +'Versione app.js: 8.2\n'
+    +'Versione app.js: 8.3\n'
     +'docViewerOpen esiste: '+(typeof docViewerOpen)+'\n'
     +'textEditorOpen esiste: '+(typeof textEditorOpen)+'\n'
     +'certDocHtml esiste: '+(typeof certDocHtml)+'\n'
@@ -1480,8 +1480,6 @@ async function renderDocReader(d,contId,type,nome){
       diagLog('LETTORE','PDF '+pagine.length+'pg dpr '+dpr+' orizz '+orizz);
       // primo rendering a zoom 1.6 (leggibile su mobile)
       await window.__pdfReRender(1.6);
-      if(pdf.numPages>nMax){const p=document.createElement('p');p.className='meta';p.style.color='#fff';p.textContent='Mostrate le prime '+nMax+' pagine di '+pdf.numPages+'. Usa \u201cScarica originale\u201d per il documento completo.';box.appendChild(p);}
-      diagLog('LETTORE','PDF reso: '+pdf.numPages+' pagine, largh '+Math.round(larg));
     }else if(type.includes('word')||type.includes('officedocument')||nome.endsWith('.docx')||nome.endsWith('.doc')){
       if(!window.mammoth){box.innerHTML='<p>Libreria Word non disponibile.</p>';return;}
       const ab=await dataUrlToArrayBuffer(d.data);
