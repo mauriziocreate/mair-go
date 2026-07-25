@@ -9,7 +9,7 @@ function diagOpen(){
   box.setAttribute('style','position:fixed;top:0;left:0;right:0;bottom:0;z-index:999999;background:#111;color:#0f0;font:12px/1.5 monospace;padding:10px;overflow:auto');
   const testo=window.__LOG__.length?window.__LOG__.join('\n\n'):'(nessun errore registrato)';
   const info='DIAGNOSTICA MAIR GO!\n'
-    +'Versione app.js: 8.6\n'
+    +'Versione app.js: 9.0\n'
     +'docViewerOpen esiste: '+(typeof docViewerOpen)+'\n'
     +'textEditorOpen esiste: '+(typeof textEditorOpen)+'\n'
     +'certDocHtml esiste: '+(typeof certDocHtml)+'\n'
@@ -1379,174 +1379,218 @@ async function fileData(file){return new Promise((res,rej)=>{const r=new FileRea
 function anniLista(sel){const y=new Date().getFullYear();const a=[''];for(let i=y+1;i>=1950;i--)a.push(String(i));if(sel&&!a.includes(String(sel)))a.splice(1,0,String(sel));return a;}
 function artworkModal(a={}){openModal(a.id?'Modifica opera':'Nuova opera',`<div class="formgrid">${field('Titolo','title',a.title,'text','full')}${selectField('Anno','year',anniLista(a.year),a.year||'')}${field('Codice opera','code',a.code||('MG-'+String(db.artworks.length+1).padStart(4,'0')))}${selectField('Tecnica','technique',db.settings.lists.techniques,a.technique)}${selectField('Supporto','support',db.settings.lists.supports,a.support)}${selectField('Dimensioni','dimensions',db.settings.lists.dimensions,a.dimensions)}${selectField('Cornice','frame',db.settings.lists.frames,a.frame)}${selectField('Stato','status',db.settings.lists.statuses,a.status||'Disponibile')}${field('Prezzo (€)','price',a.price,'number')}${field('Serie / collezione','collection',a.collection)}${field('Posizione attuale','location',a.location)}${area('Descrizione','description',a.description)}${area('Note private','notes',a.notes)}<div class="field full"><label>Immagine principale</label><input name="imageFile" type="file" accept="image/*"></div></div>`,async fd=>{const file=fd.get('imageFile');const obj={...a,id:a.id||uid(),title:fd.get('title'),year:fd.get('year'),code:fd.get('code'),technique:fd.get('technique'),support:fd.get('support'),dimensions:fd.get('dimensions'),frame:fd.get('frame'),status:fd.get('status'),price:fd.get('price'),collection:fd.get('collection'),location:fd.get('location'),description:fd.get('description'),notes:fd.get('notes'),image:file?.size?await fileData(file):a.image||'',updated:new Date().toISOString(),created:a.created||new Date().toISOString()};if(a.id)db.artworks=db.artworks.map(x=>x.id===a.id?obj:x);else db.artworks.unshift(obj);save();modal.close();render();toast('Opera salvata')})}
 function libraryModal(d={}){const arts=db.artworks.map(a=>`<option value="${a.id}" ${d.artworkId===a.id?'selected':''}>${esc(a.title)}</option>`).join('');openModal(d.id?'Modifica documento':'Carica nella Biblioteca',`<div class="formgrid">${!d.id?`<div class="field full"><label>File locale</label><input name="file" type="file" accept=".pdf,.docx,.doc,.txt,image/*" required></div>`:''}${field('Titolo','title',d.title,'text','full')}${field('Autore','author',d.author)}${selectField('Categoria','category',db.settings.lists.categories,d.category||'Catalogo')}${field('Tag separati da virgola','tags',(d.tags||[]).join(', '),'text','full')}${area('Descrizione','description',d.description)}<div class="field full"><label>Opera collegata</label><select name="artworkId"><option value="">Nessuna</option>${arts}</select></div>${area('Appunti di studio','notes',d.notes)}</div>`,async fd=>{let obj={...d,id:d.id||uid(),title:fd.get('title'),author:fd.get('author'),category:fd.get('category'),tags:String(fd.get('tags')||'').split(',').map(x=>x.trim()).filter(Boolean),description:fd.get('description'),artworkId:fd.get('artworkId'),notes:fd.get('notes'),date:d.date||new Date().toISOString()};if(!d.id){const f=fd.get('file');if(!f?.size)return alert('Seleziona un file');obj.name=f.name;obj.mime=f.type||mimeFromName(f.name);obj.data=await fileData(f);if(obj.mime.startsWith('text/')||/\.txt$/i.test(f.name))obj.text=await fileText(f);if(!obj.title)obj.title=f.name.replace(/\.[^.]+$/,'')}if(d.id)db.library=db.library.map(x=>x.id===d.id?obj:x);else db.library.unshift(obj);save();modal.close();render();toast('Documento salvato')})}function mimeFromName(n){if(/\.pdf$/i.test(n))return'application/pdf';if(/\.docx?$/i.test(n))return'application/vnd.openxmlformats-officedocument.wordprocessingml.document';if(/\.(png|jpe?g|webp|gif)$/i.test(n))return'image/*';return'text/plain'}
+/* ===== LETTORE DOCUMENTI (trapiantato da LetturArt) ===== */
+const LA={pdf:null,pages:[],zoom:1.3,mode:'continuous',page:1,token:0,observer:null,cont:null,doc:null};
+
 function openLibrary(id){
   const d=db.library.find(x=>x.id===id);if(!d)return;
-  currentViewer=d;
+  currentViewer=d;LA.doc=d;
   $('#viewerTitle').textContent=d.title||d.name||'Documento';
   const type=(d.mime||'').toLowerCase();
   const nome=(d.name||'').toLowerCase();
-  const contId='docReader_'+d.id;
   const isPdf=type.includes('pdf')||nome.endsWith('.pdf');
   const isDocx=type.includes('word')||type.includes('officedocument')||nome.endsWith('.docx')||nome.endsWith('.doc');
-  let content;
+  const isImg=type.startsWith('image');
+  // barra: per PDF quella completa di LetturArt
+  let bar;
   if(isPdf){
-    content='<div id="'+contId+'" class="doc-reader"><p class="meta" style="color:#fff">Carico il PDF\u2026</p></div>';
-  }else if(isDocx){
-    content='<div id="'+contId+'" class="doc-reader docx"><p class="meta">Carico il documento Word\u2026</p></div>';
-  }else if(type.startsWith('image')){
-    content='<div id="'+contId+'" class="doc-reader img"><img src="'+d.data+'" alt="'+esc(d.title)+'"></div>';
-  }else if(type.startsWith('text')||d.text){
-    content='<div class="doc-reader docx"><div class="docx-body"><pre style="white-space:pre-wrap;font-family:Georgia,serif">'+esc(d.text||'Anteprima non disponibile.')+'</pre></div></div>';
+    bar='<div class="reader-bar la-bar">'
+      +'<button class="btn" data-la-mode="page">Pagina</button>'
+      +'<button class="btn active" data-la-mode="continuous">Continuo</button>'
+      +'<button class="btn" id="laZoomOut">\u2212</button>'
+      +'<span id="laZoomLbl" class="reader-zoom">130%</span>'
+      +'<button class="btn" id="laZoomIn">+</button>'
+      +'<button class="btn" id="laFit">Adatta</button>'
+      +'<span id="laPageLbl" class="reader-zoom">1</span>'
+      +'<button class="btn" id="laText">\ud83d\udcc4 Testo</button>'
+      +'<button class="btn" id="laDownload">\u2b07\ufe0f</button>'
+    +'</div>';
   }else{
-    content='<div class="doc-reader docx"><div class="docx-body"><p>Formato non visualizzabile nell\u2019app.</p><p class="meta">'+esc(d.name||'')+'</p></div></div>';
+    bar='<div class="reader-bar la-bar">'
+      +'<button class="btn" id="laZoomOut">\u2212</button>'
+      +'<span id="laZoomLbl" class="reader-zoom">100%</span>'
+      +'<button class="btn" id="laZoomIn">+</button>'
+      +'<button class="btn" id="laDownload">\u2b07\ufe0f Scarica</button>'
+    +'</div>';
   }
-  // barra strumenti con zoom (per PDF, immagini e DOCX)
-  const zoomBar='<div class="reader-bar">'
-    +'<button class="btn" id="rdZoomOut">\u2212</button>'
-    +'<span id="rdZoomLbl" class="reader-zoom">100%</span>'
-    +'<button class="btn" id="rdZoomIn">+</button>'
-    +'<button class="btn" id="rdZoomReset">Adatta</button>'
-    +(isPdf?'<button class="btn primary" id="rdMode">\ud83d\udcc4 Testo</button>':'')
-    +'<button class="btn" id="rdDownload">\u2b07\ufe0f Scarica</button>'
-  +'</div>';
-  $('#viewerBody').innerHTML=zoomBar+'<div class="viewer-full">'+content+'</div>';
-  // zoom
-  let zoom=isPdf?1.6:1;
-  const box=()=>document.getElementById(contId);
-  const lblUp=()=>{const l=document.getElementById('rdZoomLbl');if(l)l.textContent=Math.round(zoom*100)+'%';};
-  const applica=()=>{
-    const b=box();if(!b)return;
-    if(isPdf&&window.__pdfReRender){window.__pdfReRender(zoom);}
-    else{b.style.setProperty('--zoom',zoom);}
-    lblUp();
-  };
-  const zi=document.getElementById('rdZoomIn'),zo=document.getElementById('rdZoomOut'),zr=document.getElementById('rdZoomReset');
-  if(zi)zi.onclick=()=>{zoom=Math.min(4,+(zoom+0.25).toFixed(2));applica();};
-  if(zo)zo.onclick=()=>{zoom=Math.max(0.5,+(zoom-0.25).toFixed(2));applica();};
-  if(zr)zr.onclick=()=>{zoom=isPdf?1:1;applica();};
-  lblUp();
-  // modalita' testo per PDF (estrae il testo, leggibile a schermo pieno)
-  if(isPdf){
-    let modo='pagine';
-    const btnMode=document.getElementById('rdMode');
-    if(btnMode)btnMode.onclick=async()=>{
-      const b=box();if(!b)return;
-      if(modo==='pagine'){
-        btnMode.textContent='\ud83d\udcc4 Pagine';
-        btnMode.disabled=true;
-        b.innerHTML='<p class="meta" style="color:#fff;padding:16px">Estraggo il testo\u2026</p>';
-        try{
-          const testo=await window.__pdfEstraiTesto?.();
-          if(testo&&testo.trim()){
-            b.className='doc-reader docx';
-            b.innerHTML='<div class="docx-body pdf-text">'+testo.split(/\n\n+/).map(par=>'<p>'+esc(par).replace(/\n/g,'<br>')+'</p>').join('')+'</div>';
-          }else{
-            b.innerHTML='<div class="docx-body"><p class="meta">Questo PDF non contiene testo estraibile (potrebbe essere fatto di immagini). Usa la vista Pagine.</p></div>';
-          }
-        }catch(e){
-          diagLog('PDF-TESTO-ERRORE',e&&e.message?e.message:String(e));
-          b.innerHTML='<div class="docx-body"><p class="meta">Impossibile estrarre il testo.</p></div>';
-        }
-        // nascondo i controlli zoom in modalita' testo
-        ['rdZoomOut','rdZoomIn','rdZoomReset','rdZoomLbl'].forEach(id=>{const el=document.getElementById(id);if(el)el.style.display='none';});
-        btnMode.disabled=false;
-        modo='testo';
-      }else{
-        btnMode.textContent='\ud83d\udcc4 Testo';
-        b.className='doc-reader';
-        ['rdZoomOut','rdZoomIn','rdZoomReset','rdZoomLbl'].forEach(id=>{const el=document.getElementById(id);if(el)el.style.display='';});
-        if(window.__pdfReRender)await window.__pdfReRender(zoom);
-        modo='pagine';
-      }
-    };
-  }
-  const dl=document.getElementById('rdDownload');
-  if(dl)dl.onclick=()=>{try{download(dataURLtoBlob(d.data),d.name||d.title||'documento')}catch(e){toast('Download non riuscito')}};
+  $('#viewerBody').innerHTML=bar+'<div class="la-stage" id="laStage"><div id="laWrap" class="la-wrap"></div></div>';
   try{viewer.querySelector('.viewer-shell')?.classList.add('reader-open');}catch(e){}
+  const dl=document.getElementById('laDownload');
+  if(dl)dl.onclick=()=>{try{download(dataURLtoBlob(d.data),d.name||d.title||'documento')}catch(e){toast('Download non riuscito')}};
   viewer.showModal();
-  // caricamento asincrono del contenuto dopo l'apertura
-  setTimeout(()=>{renderDocReader(d,contId,type,nome)},60);
+
+  if(isPdf){ laStartPdf(d); }
+  else if(isDocx){ laStartDocx(d); }
+  else if(isImg){ laStartImage(d); }
+  else if(type.startsWith('text')||d.text){ document.getElementById('laWrap').innerHTML='<div class="docx-body"><pre style="white-space:pre-wrap;font-family:Georgia,serif">'+esc(d.text||'')+'</pre></div>'; }
+  else { document.getElementById('laWrap').innerHTML='<div class="docx-body"><p>Formato non visualizzabile. Usa Scarica.</p></div>'; }
 }
 
-async function dataUrlToArrayBuffer(dataUrl){
-  const resp=await fetch(dataUrl);
-  return await resp.arrayBuffer();
-}
-async function renderDocReader(d,contId,type,nome){
-  const box=document.getElementById(contId);if(!box)return;
+async function laArrayBuffer(dataUrl){const r=await fetch(dataUrl);return await r.arrayBuffer();}
+
+/* ---- PDF ---- */
+async function laStartPdf(d){
+  const wrap=document.getElementById('laWrap');
+  wrap.innerHTML='<p class="meta" style="color:#fff;padding:20px">Carico il PDF\u2026</p>';
   try{
-    if(type.includes('pdf')||nome.endsWith('.pdf')){
-      if(!window.pdfjsLib){box.innerHTML='<p>Libreria PDF non disponibile.</p>';return;}
-      try{window.pdfjsLib.GlobalWorkerOptions.workerSrc='vendor/pdf.worker.min.js';}catch(e){}
-      const ab=await dataUrlToArrayBuffer(d.data);
-      const pdf=await window.pdfjsLib.getDocument({data:ab}).promise;
-      box.innerHTML='';
-      // larghezza disponibile reale, per riempire lo schermo
-      const largBase=Math.max(320,(box.clientWidth||box.offsetWidth||360)-20);
-      const dpr=window.devicePixelRatio||1;
-      const nitidezza=Math.min(3,Math.max(1.5,dpr));
-      const nMax=Math.min(pdf.numPages,40);
-      // pre-carico le pagine e il loro orientamento
-      const pagine=[];
-      for(let n=1;n<=nMax;n++){
-        const page=await pdf.getPage(n);
-        const base=page.getViewport({scale:1});
-        const orizzontale=base.width>base.height*1.05;
-        pagine.push({page,rot:orizzontale?90:0});
-      }
-      // funzione di rendering a una certa scala-zoom, riusata dallo zoom
-      window.__pdfReRender=async(zoomLevel)=>{
-        const b=document.getElementById(contId);if(!b)return;
-        b.innerHTML='';
-        const dpr=Math.min(window.devicePixelRatio||1,2);
-        const dispW=Math.min(window.innerWidth-18,1050);
-        for(const pg of pagine){
-          const base=pg.page.getViewport({scale:1,rotation:pg.rot});
-          const fit=dispW/base.width;
-          const cssWidth=Math.round(base.width*fit*zoomLevel);
-          const viewport=pg.page.getViewport({scale:fit*zoomLevel*dpr,rotation:pg.rot});
-          const cv=document.createElement('canvas');
-          cv.width=Math.ceil(viewport.width);
-          cv.height=Math.ceil(viewport.height);
-          cv.style.width=cssWidth+'px';
-          cv.style.height='auto';
-          cv.className='pdf-page';
-          b.appendChild(cv);
-          try{await pg.page.render({canvasContext:cv.getContext('2d'),viewport}).promise;}catch(e){}
-        }
-      };
-      const orizz=pagine.filter(p=>p.rot).length;
-      diagLog('LETTORE','PDF '+pagine.length+'pg dpr '+dpr+' orizz '+orizz);
-      // primo rendering a zoom 1.6 (leggibile su mobile)
-      await window.__pdfReRender(1.6);
-    }else if(type.includes('word')||type.includes('officedocument')||nome.endsWith('.docx')||nome.endsWith('.doc')){
-      if(!window.mammoth){box.innerHTML='<p>Libreria Word non disponibile.</p>';return;}
-      const ab=await dataUrlToArrayBuffer(d.data);
-      diagLog('LETTORE','DOCX bytes: '+ab.byteLength);
-      const res=await window.mammoth.convertToHtml({arrayBuffer:ab});
-      const html=(res.value||'').trim();
-      if(html){
-        box.innerHTML='<div class="docx-body">'+html+'</div>';
-      }else{
-        // provo l'estrazione solo testo come ripiego
-        try{
-          const raw=await window.mammoth.extractRawText({arrayBuffer:ab});
-          if(raw.value&&raw.value.trim()){
-            box.innerHTML='<div class="docx-body"><pre style="white-space:pre-wrap;font-family:Georgia,serif">'+esc(raw.value)+'</pre></div>';
-          }else{
-            box.innerHTML='<div class="docx-body"><p class="meta">Il documento non contiene testo estraibile (potrebbe essere fatto di immagini). Usa \u201cScarica originale\u201d.</p></div>';
-          }
-        }catch(e2){
-          box.innerHTML='<div class="docx-body"><p class="meta">Impossibile leggere il documento. Usa \u201cScarica originale\u201d.</p></div>';
-        }
-      }
-      diagLog('LETTORE','DOCX reso, html '+html.length+' car');
-    }
+    if(!window.pdfjsLib)throw new Error('PDF.js non disponibile');
+    try{window.pdfjsLib.GlobalWorkerOptions.workerSrc='vendor/pdf.worker.min.js';}catch(e){}
+    const ab=await laArrayBuffer(d.data);
+    LA.pdf=await window.pdfjsLib.getDocument({data:ab}).promise;
+    LA.zoom=1.3;LA.mode='continuous';LA.page=1;
+    diagLog('LETTORE','PDF aperto '+LA.pdf.numPages+' pagine');
+    laBindPdfBar();
+    await laRenderPdf();
   }catch(e){
     diagLog('LETTORE-ERRORE',e&&e.message?e.message:String(e));
-    box.innerHTML='<div style="padding:16px;background:#fff;color:#111;border-radius:8px"><p>Impossibile visualizzare il documento nell\u2019app.</p><p class="meta">'+esc(e&&e.message?e.message:String(e))+'</p><p class="meta">Usa \u201cScarica originale\u201d per aprirlo con un\u2019altra app.</p></div>';
+    wrap.innerHTML='<div class="docx-body"><p>Impossibile aprire il PDF.</p><p class="meta">'+esc(e&&e.message?e.message:String(e))+'</p></div>';
   }
 }
+function laBindPdfBar(){
+  document.querySelectorAll('[data-la-mode]').forEach(b=>b.onclick=async()=>{
+    const m=b.dataset.laMode;if(m===LA.mode)return;LA.mode=m;
+    document.querySelectorAll('[data-la-mode]').forEach(x=>x.classList.toggle('active',x.dataset.laMode===m));
+    await laRenderPdf();
+  });
+  const zi=document.getElementById('laZoomIn'),zo=document.getElementById('laZoomOut'),zf=document.getElementById('laFit');
+  if(zi)zi.onclick=()=>laSetZoom(LA.zoom+0.15);
+  if(zo)zo.onclick=()=>laSetZoom(LA.zoom-0.15);
+  if(zf)zf.onclick=()=>laSetZoom(1);
+  const bt=document.getElementById('laText');
+  if(bt)bt.onclick=()=>laTogglePdfText(bt);
+  laSetupPinch();
+}
+function laLbl(){const z=document.getElementById('laZoomLbl');if(z)z.textContent=Math.round(LA.zoom*100)+'%';const p=document.getElementById('laPageLbl');if(p&&LA.pdf)p.textContent=LA.page+' / '+LA.pdf.numPages;}
+async function laSetZoom(next){
+  if(!LA.pdf)return;
+  const stage=document.getElementById('laStage');
+  const oldMax=Math.max(1,stage.scrollHeight-stage.clientHeight),ratio=stage.scrollTop/oldMax;
+  LA.zoom=Math.max(.6,Math.min(3,+next.toFixed(2)));
+  laLbl();
+  await laRenderPdf();
+  requestAnimationFrame(()=>{stage.scrollTop=ratio*Math.max(0,stage.scrollHeight-stage.clientHeight);});
+}
+async function laRenderPdfCanvas(pageNumber,wrap,token,holder){
+  const p=await LA.pdf.getPage(pageNumber);if(token!==LA.token)return;
+  const base=p.getViewport({scale:1});
+  const fit=Math.min(window.innerWidth-14,1050)/base.width;
+  const cssWidth=Math.round(base.width*fit*LA.zoom);
+  const dpr=Math.min(window.devicePixelRatio||1,2);
+  const viewport=p.getViewport({scale:fit*LA.zoom*dpr});
+  const canvas=document.createElement('canvas');
+  canvas.width=Math.ceil(viewport.width);canvas.height=Math.ceil(viewport.height);
+  canvas.style.width=cssWidth+'px';canvas.style.height='auto';
+  canvas.className='la-page';canvas.dataset.page=String(pageNumber);
+  if(holder){holder.innerHTML='';holder.appendChild(canvas);holder.classList.add('rendered');}
+  else wrap.appendChild(canvas);
+  await p.render({canvasContext:canvas.getContext('2d'),viewport}).promise;
+}
+function laSetupLazy(token){
+  LA.observer?.disconnect();
+  LA.observer=new IntersectionObserver(entries=>entries.forEach(en=>{
+    if(!en.isIntersecting||en.target.classList.contains('rendered'))return;
+    laRenderPdfCanvas(Number(en.target.dataset.page),document.getElementById('laWrap'),token,en.target);
+  }),{root:document.getElementById('laStage'),rootMargin:'900px 0px'});
+  document.querySelectorAll('#laWrap .la-slot').forEach(x=>LA.observer.observe(x));
+}
+async function laRenderPdf(){
+  if(!LA.pdf)return;
+  const token=++LA.token,wrap=document.getElementById('laWrap');
+  LA.observer?.disconnect();wrap.innerHTML='';
+  const stage=document.getElementById('laStage');if(stage)stage.scrollTop=0;
+  if(LA.mode==='page'){
+    wrap.className='la-wrap single';
+    await laRenderPdfCanvas(LA.page,wrap,token);
+  }else{
+    wrap.className='la-wrap continuous';
+    for(let i=1;i<=LA.pdf.numPages;i++){
+      const p=await LA.pdf.getPage(i),v=p.getViewport({scale:1});
+      const fit=Math.min(window.innerWidth-14,1050)/v.width;
+      const slot=document.createElement('div');slot.className='la-slot';slot.dataset.page=String(i);
+      slot.style.width=Math.round(v.width*fit*LA.zoom)+'px';
+      slot.style.height=Math.round(v.height*fit*LA.zoom)+'px';
+      slot.innerHTML='<span>Pagina '+i+'</span>';
+      wrap.appendChild(slot);
+    }
+    laSetupLazy(token);
+    requestAnimationFrame(laUpdatePage);
+  }
+  laLbl();
+}
+function laUpdatePage(){
+  const stage=document.getElementById('laStage');if(!stage||!LA.pdf)return;
+  const slots=[...document.querySelectorAll('#laWrap .la-slot, #laWrap .la-page')];
+  const sr=stage.getBoundingClientRect();
+  const cur=slots.find(c=>{const r=c.getBoundingClientRect();return r.bottom>sr.top+60&&r.top<sr.bottom-60})||slots[0];
+  if(cur){LA.page=Number(cur.dataset.page)||1;laLbl();}
+}
+async function laTogglePdfText(btn){
+  const wrap=document.getElementById('laWrap');
+  if(btn.dataset.on==='1'){ btn.dataset.on='';btn.classList.remove('active');btn.textContent='\ud83d\udcc4 Testo';await laRenderPdf();return; }
+  btn.dataset.on='1';btn.classList.add('active');btn.textContent='\ud83d\udcc4 Pagine';
+  LA.observer?.disconnect();
+  wrap.className='la-wrap';wrap.innerHTML='<p class="meta" style="color:#fff;padding:16px">Estraggo il testo\u2026</p>';
+  try{
+    let out='';
+    const n=Math.min(LA.pdf.numPages,60);
+    for(let i=1;i<=n;i++){const tc=await (await LA.pdf.getPage(i)).getTextContent();out+=tc.items.map(x=>x.str).join(' ').replace(/\s+/g,' ').trim()+'\n\n';}
+    if(out.trim()){wrap.innerHTML='<div class="docx-body pdf-text">'+out.split(/\n\n+/).map(p=>'<p>'+esc(p)+'</p>').join('')+'</div>';}
+    else{wrap.innerHTML='<div class="docx-body"><p class="meta">Nessun testo estraibile (PDF di sole immagini). Usa la vista Pagine.</p></div>';}
+  }catch(e){wrap.innerHTML='<div class="docx-body"><p class="meta">Estrazione non riuscita.</p></div>';}
+}
+function laSetupPinch(){
+  const stage=document.getElementById('laStage');if(!stage)return;
+  let d0=0,z0=1;
+  stage.addEventListener('touchstart',e=>{if(e.touches.length===2){d0=Math.hypot(e.touches[0].clientX-e.touches[1].clientX,e.touches[0].clientY-e.touches[1].clientY);z0=LA.zoom;}},{passive:true});
+  let pending=null;
+  stage.addEventListener('touchmove',e=>{
+    if(e.touches.length===2&&d0){
+      const d=Math.hypot(e.touches[0].clientX-e.touches[1].clientX,e.touches[0].clientY-e.touches[1].clientY);
+      const z=Math.max(.6,Math.min(3,z0*(d/d0)));
+      if(pending)clearTimeout(pending);
+      LA.zoom=z;laLbl();
+      pending=setTimeout(()=>laSetZoom(z),120);
+    }
+  },{passive:true});
+  stage.addEventListener('scroll',()=>{if(LA.mode==='continuous')laUpdatePage();},{passive:true});
+}
+
+/* ---- DOCX ---- */
+async function laStartDocx(d){
+  const wrap=document.getElementById('laWrap');
+  wrap.innerHTML='<p class="meta" style="padding:16px">Carico il documento\u2026</p>';
+  try{
+    if(!window.mammoth)throw new Error('Mammoth non disponibile');
+    const ab=await laArrayBuffer(d.data);
+    const res=await window.mammoth.convertToHtml({arrayBuffer:ab});
+    const html=(res.value||'').trim();
+    if(html)wrap.innerHTML='<div class="docx-body">'+html+'</div>';
+    else{const raw=await window.mammoth.extractRawText({arrayBuffer:ab});wrap.innerHTML='<div class="docx-body"><pre style="white-space:pre-wrap;font-family:Georgia,serif">'+esc(raw.value||'Documento vuoto.')+'</pre></div>';}
+    laBindDocxZoom();
+  }catch(e){
+    diagLog('LETTORE-ERRORE',e&&e.message?e.message:String(e));
+    wrap.innerHTML='<div class="docx-body"><p>Impossibile leggere il documento.</p></div>';
+  }
+}
+function laBindDocxZoom(){
+  let z=1;const body=document.querySelector('#laWrap .docx-body');
+  const zi=document.getElementById('laZoomIn'),zo=document.getElementById('laZoomOut');
+  const upd=()=>{if(body)body.style.fontSize=(z)+'em';const l=document.getElementById('laZoomLbl');if(l)l.textContent=Math.round(z*100)+'%';};
+  if(zi)zi.onclick=()=>{z=Math.min(2.4,z+0.15);upd();};
+  if(zo)zo.onclick=()=>{z=Math.max(.6,z-0.15);upd();};
+}
+/* ---- IMMAGINE ---- */
+function laStartImage(d){
+  const wrap=document.getElementById('laWrap');
+  wrap.className='la-wrap';
+  wrap.innerHTML='<img id="laImg" src="'+d.data+'" style="max-width:100%;height:auto;display:block;margin:0 auto">';
+  let z=1;const img=document.getElementById('laImg');
+  const zi=document.getElementById('laZoomIn'),zo=document.getElementById('laZoomOut');
+  const upd=()=>{if(img)img.style.width=(z*100)+'%';const l=document.getElementById('laZoomLbl');if(l)l.textContent=Math.round(z*100)+'%';};
+  if(zi)zi.onclick=()=>{z=Math.min(4,z+0.2);upd();};
+  if(zo)zo.onclick=()=>{z=Math.max(.4,z-0.2);upd();};
+}
+
 function dataURLtoBlob(u){const [h,b]=u.split(','),m=(h.match(/:(.*?);/)||[])[1]||'application/octet-stream',bin=atob(b),a=new Uint8Array(bin.length);for(let i=0;i<bin.length;i++)a[i]=bin.charCodeAt(i);return new Blob([a],{type:m})}
 function pdfProjectModal(p={}){const checks=db.artworks.map(a=>`<label class="checkcard">${a.image?`<img src="${a.image}">`:''}<div class="row spread"><strong>${esc(a.title||'Senza titolo')}</strong><input type="checkbox" name="arts" value="${a.id}" ${p.artworkIds?.includes(a.id)?'checked':''}></div></label>`).join('');openModal(p.id?'Modifica progetto PDF':'Nuovo progetto PDF',`<div class="formgrid">${field('Titolo','title',p.title||'Catalogo opere','text','full')}${field('Sottotitolo','subtitle',p.subtitle||db.settings.artist,'text','full')}<div class="field"><label>Tipo</label><select name="type">${['Stampa archivio','Catalogo esposizione','Archivio filtrato','Portfolio','Listino prezzi','Dossier galleria'].map(x=>`<option ${p.type===x?'selected':''}>${x}</option>`)}</select></div><div class="field"><label>Tema</label><select name="theme">${['Minimal','Museo','Black Gallery','Editoriale','Atelier','Black & Gold','Ocean','Forest'].map(x=>`<option ${p.theme===x?'selected':''}>${x}</option>`)}</select></div>${area('Testo introduttivo','intro',p.intro)}<div class="field full"><label>Campi visibili</label><div class="row" style="flex-wrap:wrap">${['year:Anno','technique:Tecnica','dimensions:Dimensioni','description:Descrizione','price:Prezzo','status:Stato','frame:Cornice','code:Codice'].map(x=>{const[k,l]=x.split(':');return`<label><input type="checkbox" name="fields" value="${k}" ${!p.fields||p.fields.includes(k)?'checked':''}> ${l}</label>`}).join('')}</div></div><div class="field full"><label>Opere</label><div class="checkgrid">${checks||'<p>Inserisci prima almeno un’opera.</p>'}</div></div></div>`,fd=>{const obj={...p,id:p.id||uid(),title:fd.get('title'),subtitle:fd.get('subtitle'),type:fd.get('type'),theme:fd.get('theme'),intro:fd.get('intro'),fields:fd.getAll('fields'),artworkIds:fd.getAll('arts'),created:p.created||new Date().toISOString()};if(p.id)db.pdfProjects=db.pdfProjects.map(x=>x.id===p.id?obj:x);else db.pdfProjects.unshift(obj);save();modal.close();render();toast('Progetto PDF salvato')})}
 /* ===================== CERTIFICATI ===================== */
