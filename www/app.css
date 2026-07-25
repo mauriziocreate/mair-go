@@ -231,3 +231,8 @@ input,select,textarea{min-width:0;max-width:100%}
 #viewerBody{display:flex;flex-direction:column;height:100%;min-height:0}
 .viewer-shell{height:min(92vh,940px);display:grid;grid-template-rows:auto 1fr;padding:16px}
 #viewerBody .viewer-full{flex:1}
+
+/* PDF con ri-render: il canvas ha larghezza in px, si scorre se piu' largo */
+.viewer-full{overflow:auto}
+.viewer-full .doc-reader .pdf-page{width:auto;max-width:none;margin:0 auto 12px;display:block}
+.viewer-full .doc-reader{display:flex;flex-direction:column;align-items:center;min-width:min-content}

@@ -9,7 +9,7 @@ function diagOpen(){
   box.setAttribute('style','position:fixed;top:0;left:0;right:0;bottom:0;z-index:999999;background:#111;color:#0f0;font:12px/1.5 monospace;padding:10px;overflow:auto');
   const testo=window.__LOG__.length?window.__LOG__.join('\n\n'):'(nessun errore registrato)';
   const info='DIAGNOSTICA MAIR GO!\n'
-    +'Versione app.js: 8.1\n'
+    +'Versione app.js: 8.2\n'
     +'docViewerOpen esiste: '+(typeof docViewerOpen)+'\n'
     +'textEditorOpen esiste: '+(typeof textEditorOpen)+'\n'
     +'certDocHtml esiste: '+(typeof certDocHtml)+'\n'
@@ -1410,17 +1410,20 @@ function openLibrary(id){
   +'</div>';
   $('#viewerBody').innerHTML=zoomBar+'<div class="viewer-full">'+content+'</div>';
   // zoom
-  let zoom=1;
+  let zoom=isPdf?1.6:1;
   const box=()=>document.getElementById(contId);
+  const lblUp=()=>{const l=document.getElementById('rdZoomLbl');if(l)l.textContent=Math.round(zoom*100)+'%';};
   const applica=()=>{
     const b=box();if(!b)return;
-    b.style.setProperty('--zoom',zoom);
-    const l=document.getElementById('rdZoomLbl');if(l)l.textContent=Math.round(zoom*100)+'%';
+    if(isPdf&&window.__pdfReRender){window.__pdfReRender(zoom);}
+    else{b.style.setProperty('--zoom',zoom);}
+    lblUp();
   };
   const zi=document.getElementById('rdZoomIn'),zo=document.getElementById('rdZoomOut'),zr=document.getElementById('rdZoomReset');
-  if(zi)zi.onclick=()=>{zoom=Math.min(4,zoom+0.2);applica();};
-  if(zo)zo.onclick=()=>{zoom=Math.max(0.4,zoom-0.2);applica();};
-  if(zr)zr.onclick=()=>{zoom=1;applica();};
+  if(zi)zi.onclick=()=>{zoom=Math.min(4,+(zoom+0.25).toFixed(2));applica();};
+  if(zo)zo.onclick=()=>{zoom=Math.max(0.5,+(zoom-0.25).toFixed(2));applica();};
+  if(zr)zr.onclick=()=>{zoom=isPdf?1:1;applica();};
+  lblUp();
   const dl=document.getElementById('rdDownload');
   if(dl)dl.onclick=()=>{try{download(dataURLtoBlob(d.data),d.name||d.title||'documento')}catch(e){toast('Download non riuscito')}};
   viewer.showModal();
@@ -1442,25 +1445,41 @@ async function renderDocReader(d,contId,type,nome){
       const pdf=await window.pdfjsLib.getDocument({data:ab}).promise;
       box.innerHTML='';
       // larghezza disponibile reale, per riempire lo schermo
-      const larg=Math.max(320,(box.clientWidth||box.offsetWidth||360)-20);
-      // qualita': densita' schermo x fattore extra per testo piccolo nitido
+      const largBase=Math.max(320,(box.clientWidth||box.offsetWidth||360)-20);
       const dpr=window.devicePixelRatio||1;
-      const qualita=Math.min(4,Math.max(2,dpr*2));
+      const nitidezza=Math.min(3,Math.max(1.5,dpr));
       const nMax=Math.min(pdf.numPages,40);
+      // pre-carico le pagine e il loro orientamento
+      const pagine=[];
       for(let n=1;n<=nMax;n++){
         const page=await pdf.getPage(n);
         const base=page.getViewport({scale:1});
-        const scalaCss=larg/base.width;           // dimensione visiva
-        const vp=page.getViewport({scale:scalaCss*qualita}); // render ad alta risoluzione
-        const cv=document.createElement('canvas');
-        cv.width=vp.width;cv.height=vp.height;
-        // il canvas viene mostrato alla dimensione CSS, ma contiene molti piu' pixel
-        cv.className='pdf-page';
-        box.appendChild(cv);
-        const ctx=cv.getContext('2d');
-        await page.render({canvasContext:ctx,viewport:vp}).promise;
+        const orizzontale=base.width>base.height*1.05;
+        pagine.push({page,rot:orizzontale?90:0});
       }
-      diagLog('LETTORE','PDF qualita x'+qualita.toFixed(1)+' dpr '+dpr);
+      // funzione di rendering a una certa scala-zoom, riusata dallo zoom
+      window.__pdfReRender=async(zoomLevel)=>{
+        const b=document.getElementById(contId);if(!b)return;
+        b.innerHTML='';
+        for(const pg of pagine){
+          const vpBase=pg.page.getViewport({scale:1,rotation:pg.rot});
+          // larghezza visiva = larghezza box * zoom; render a nitidezza extra
+          const largVis=largBase*zoomLevel;
+          const scala=largVis/vpBase.width;
+          const vp=pg.page.getViewport({scale:scala*nitidezza,rotation:pg.rot});
+          const cv=document.createElement('canvas');
+          cv.width=vp.width;cv.height=vp.height;
+          cv.className='pdf-page';
+          cv.style.width=Math.round(largVis)+'px';
+          cv.style.maxWidth='none';
+          b.appendChild(cv);
+          try{await pg.page.render({canvasContext:cv.getContext('2d'),viewport:vp}).promise;}catch(e){}
+        }
+      };
+      const orizz=pagine.filter(p=>p.rot).length;
+      diagLog('LETTORE','PDF '+pagine.length+'pg dpr '+dpr+' orizz '+orizz);
+      // primo rendering a zoom 1.6 (leggibile su mobile)
+      await window.__pdfReRender(1.6);
       if(pdf.numPages>nMax){const p=document.createElement('p');p.className='meta';p.style.color='#fff';p.textContent='Mostrate le prime '+nMax+' pagine di '+pdf.numPages+'. Usa \u201cScarica originale\u201d per il documento completo.';box.appendChild(p);}
       diagLog('LETTORE','PDF reso: '+pdf.numPages+' pagine, largh '+Math.round(larg));
     }else if(type.includes('word')||type.includes('officedocument')||nome.endsWith('.docx')||nome.endsWith('.doc')){
