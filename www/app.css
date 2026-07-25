@@ -200,3 +200,14 @@ input,select,textarea{min-width:0;max-width:100%}
 .dona-banner strong{display:block;font-size:1.02rem}
 .dona-banner p{margin:2px 0 0;color:var(--muted);font-size:.86rem;line-height:1.4}
 .dona-freccia{margin-left:auto;font-size:1.6rem;color:var(--muted)}
+
+/* ===== FIX LETTORE MOBILE ===== */
+.viewer-main .doc-reader{background:#4d4d4d;padding:8px;width:100%;max-height:none;border-radius:0}
+.viewer-main .doc-reader.docx{background:#fff}
+.viewer-main .doc-reader .pdf-page{width:100%!important;height:auto!important;min-height:0!important;padding:0!important;margin:0 auto 12px!important;border-radius:2px;box-shadow:0 2px 10px #0006;max-width:100%}
+.viewer-main .docx-body{background:#fff;color:#111;padding:20px;line-height:1.65;font-family:Georgia,serif;max-height:none;overflow:visible}
+.viewer-main{place-items:stretch!important;background:#4d4d4d}
+@media(max-width:720px){
+  .viewer-shell{height:92vh}
+  .viewer-main .doc-reader{max-height:none}
+}

@@ -9,7 +9,7 @@ function diagOpen(){
   box.setAttribute('style','position:fixed;top:0;left:0;right:0;bottom:0;z-index:999999;background:#111;color:#0f0;font:12px/1.5 monospace;padding:10px;overflow:auto');
   const testo=window.__LOG__.length?window.__LOG__.join('\n\n'):'(nessun errore registrato)';
   const info='DIAGNOSTICA MAIR GO!\n'
-    +'Versione app.js: 7.8\n'
+    +'Versione app.js: 7.9\n'
     +'docViewerOpen esiste: '+(typeof docViewerOpen)+'\n'
     +'textEditorOpen esiste: '+(typeof textEditorOpen)+'\n'
     +'certDocHtml esiste: '+(typeof certDocHtml)+'\n'
@@ -1406,40 +1406,61 @@ function openLibrary(id){
   setTimeout(()=>{renderDocReader(d,contId,type,nome)},60);
 }
 
+async function dataUrlToArrayBuffer(dataUrl){
+  const resp=await fetch(dataUrl);
+  return await resp.arrayBuffer();
+}
 async function renderDocReader(d,contId,type,nome){
   const box=document.getElementById(contId);if(!box)return;
   try{
     if(type.includes('pdf')||nome.endsWith('.pdf')){
       if(!window.pdfjsLib){box.innerHTML='<p>Libreria PDF non disponibile.</p>';return;}
       try{window.pdfjsLib.GlobalWorkerOptions.workerSrc='vendor/pdf.worker.min.js';}catch(e){}
-      const raw=atob(String(d.data).split(',')[1]);
-      const arr=new Uint8Array(raw.length);for(let i=0;i<raw.length;i++)arr[i]=raw.charCodeAt(i);
-      const pdf=await window.pdfjsLib.getDocument({data:arr}).promise;
+      const ab=await dataUrlToArrayBuffer(d.data);
+      const pdf=await window.pdfjsLib.getDocument({data:ab}).promise;
       box.innerHTML='';
-      const nMax=Math.min(pdf.numPages,30);
+      // larghezza disponibile reale, per riempire lo schermo
+      const larg=Math.max(320,(box.clientWidth||box.offsetWidth||360)-20);
+      const nMax=Math.min(pdf.numPages,40);
       for(let n=1;n<=nMax;n++){
         const page=await pdf.getPage(n);
-        const vp=page.getViewport({scale:1.5});
+        const base=page.getViewport({scale:1});
+        const scala=larg/base.width;
+        const vp=page.getViewport({scale:scala});
         const cv=document.createElement('canvas');
         cv.width=vp.width;cv.height=vp.height;
         cv.className='pdf-page';
         box.appendChild(cv);
         await page.render({canvasContext:cv.getContext('2d'),viewport:vp}).promise;
       }
-      if(pdf.numPages>nMax){const p=document.createElement('p');p.className='meta';p.textContent='Mostrate le prime '+nMax+' pagine di '+pdf.numPages+'. Usa \u201cScarica\u201d per il documento completo.';box.appendChild(p);}
-      diagLog('LETTORE','PDF reso: '+pdf.numPages+' pagine');
-    }else if(type.includes('word')||type.includes('officedocument')||nome.endsWith('.docx')){
+      if(pdf.numPages>nMax){const p=document.createElement('p');p.className='meta';p.style.color='#fff';p.textContent='Mostrate le prime '+nMax+' pagine di '+pdf.numPages+'. Usa \u201cScarica originale\u201d per il documento completo.';box.appendChild(p);}
+      diagLog('LETTORE','PDF reso: '+pdf.numPages+' pagine, largh '+Math.round(larg));
+    }else if(type.includes('word')||type.includes('officedocument')||nome.endsWith('.docx')||nome.endsWith('.doc')){
       if(!window.mammoth){box.innerHTML='<p>Libreria Word non disponibile.</p>';return;}
-      const raw=atob(String(d.data).split(',')[1]);
-      const arr=new ArrayBuffer(raw.length);const view=new Uint8Array(arr);
-      for(let i=0;i<raw.length;i++)view[i]=raw.charCodeAt(i);
-      const res=await window.mammoth.convertToHtml({arrayBuffer:arr});
-      box.innerHTML='<div class="docx-body">'+(res.value||'<p class="meta">Documento vuoto.</p>')+'</div>';
-      diagLog('LETTORE','DOCX convertito');
+      const ab=await dataUrlToArrayBuffer(d.data);
+      diagLog('LETTORE','DOCX bytes: '+ab.byteLength);
+      const res=await window.mammoth.convertToHtml({arrayBuffer:ab});
+      const html=(res.value||'').trim();
+      if(html){
+        box.innerHTML='<div class="docx-body">'+html+'</div>';
+      }else{
+        // provo l'estrazione solo testo come ripiego
+        try{
+          const raw=await window.mammoth.extractRawText({arrayBuffer:ab});
+          if(raw.value&&raw.value.trim()){
+            box.innerHTML='<div class="docx-body"><pre style="white-space:pre-wrap;font-family:Georgia,serif">'+esc(raw.value)+'</pre></div>';
+          }else{
+            box.innerHTML='<div class="docx-body"><p class="meta">Il documento non contiene testo estraibile (potrebbe essere fatto di immagini). Usa \u201cScarica originale\u201d.</p></div>';
+          }
+        }catch(e2){
+          box.innerHTML='<div class="docx-body"><p class="meta">Impossibile leggere il documento. Usa \u201cScarica originale\u201d.</p></div>';
+        }
+      }
+      diagLog('LETTORE','DOCX reso, html '+html.length+' car');
     }
   }catch(e){
     diagLog('LETTORE-ERRORE',e&&e.message?e.message:String(e));
-    box.innerHTML='<p>Impossibile visualizzare il documento nell\u2019app.</p><p class="meta">'+esc(e&&e.message?e.message:String(e))+'</p><p class="meta">Usa \u201cScarica originale\u201d per aprirlo con un\u2019altra app.</p>';
+    box.innerHTML='<div style="padding:16px;background:#fff;color:#111;border-radius:8px"><p>Impossibile visualizzare il documento nell\u2019app.</p><p class="meta">'+esc(e&&e.message?e.message:String(e))+'</p><p class="meta">Usa \u201cScarica originale\u201d per aprirlo con un\u2019altra app.</p></div>';
   }
 }
 function dataURLtoBlob(u){const [h,b]=u.split(','),m=(h.match(/:(.*?);/)||[])[1]||'application/octet-stream',bin=atob(b),a=new Uint8Array(bin.length);for(let i=0;i<bin.length;i++)a[i]=bin.charCodeAt(i);return new Blob([a],{type:m})}
