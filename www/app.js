@@ -9,7 +9,7 @@ function diagOpen(){
   box.setAttribute('style','position:fixed;top:0;left:0;right:0;bottom:0;z-index:999999;background:#111;color:#0f0;font:12px/1.5 monospace;padding:10px;overflow:auto');
   const testo=window.__LOG__.length?window.__LOG__.join('\n\n'):'(nessun errore registrato)';
   const info='DIAGNOSTICA MAIR GO!\n'
-    +'Versione app.js: 8.4\n'
+    +'Versione app.js: 8.5\n'
     +'docViewerOpen esiste: '+(typeof docViewerOpen)+'\n'
     +'textEditorOpen esiste: '+(typeof textEditorOpen)+'\n'
     +'certDocHtml esiste: '+(typeof certDocHtml)+'\n'
@@ -1461,23 +1461,21 @@ async function renderDocReader(d,contId,type,nome){
       window.__pdfReRender=async(zoomLevel)=>{
         const b=document.getElementById(contId);if(!b)return;
         b.innerHTML='';
+        const dpr=Math.min(window.devicePixelRatio||1,2);
+        const dispW=Math.min((b.clientWidth||window.innerWidth)-8,1050);
         for(const pg of pagine){
-          const vpBase=pg.page.getViewport({scale:1,rotation:pg.rot});
-          // larghezza visiva = larghezza box * zoom; render a nitidezza extra
-          const largVis=largBase*zoomLevel;
-          const scala=largVis/vpBase.width;
-          const vp=pg.page.getViewport({scale:scala*nitidezza,rotation:pg.rot});
+          const base=pg.page.getViewport({scale:1,rotation:pg.rot});
+          const fit=dispW/base.width;
+          const cssWidth=Math.round(base.width*fit*zoomLevel);
+          const viewport=pg.page.getViewport({scale:fit*zoomLevel*dpr,rotation:pg.rot});
           const cv=document.createElement('canvas');
-          cv.width=Math.round(vp.width);cv.height=Math.round(vp.height);
+          cv.width=Math.ceil(viewport.width);
+          cv.height=Math.ceil(viewport.height);
+          cv.style.width=cssWidth+'px';
+          cv.style.height='auto';
           cv.className='pdf-page';
-          // fisso larghezza E altezza in CSS mantenendo il rapporto reale del canvas
-          const cssW=Math.round(largVis);
-          const cssH=Math.round(cssW*(vp.height/vp.width));
-          cv.style.width=cssW+'px';
-          cv.style.height=cssH+'px';
-          cv.style.maxWidth='none';
           b.appendChild(cv);
-          try{await pg.page.render({canvasContext:cv.getContext('2d'),viewport:vp}).promise;}catch(e){}
+          try{await pg.page.render({canvasContext:cv.getContext('2d'),viewport}).promise;}catch(e){}
         }
       };
       const orizz=pagine.filter(p=>p.rot).length;
