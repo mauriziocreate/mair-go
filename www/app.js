@@ -9,7 +9,7 @@ function diagOpen(){
   box.setAttribute('style','position:fixed;top:0;left:0;right:0;bottom:0;z-index:999999;background:#111;color:#0f0;font:12px/1.5 monospace;padding:10px;overflow:auto');
   const testo=window.__LOG__.length?window.__LOG__.join('\n\n'):'(nessun errore registrato)';
   const info='DIAGNOSTICA MAIR GO!\n'
-    +'Versione app.js: 10.3 Backup compatibile\n'
+    +'Versione app.js: 12.0 Backup compatibile\n'
     +'docViewerOpen esiste: '+(typeof docViewerOpen)+'\n'
     +'textEditorOpen esiste: '+(typeof textEditorOpen)+'\n'
     +'certDocHtml esiste: '+(typeof certDocHtml)+'\n'
@@ -152,7 +152,7 @@ function clone(x){return JSON.parse(JSON.stringify(x))}function load(){try{const
 }const uid=()=>crypto.randomUUID?.()||Date.now().toString(36)+Math.random().toString(36).slice(2);const esc=s=>String(s??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));const euro=n=>n?new Intl.NumberFormat('it-IT',{style:'currency',currency:'EUR'}).format(+n):'';function toast(t){const x=$('#toast');x.textContent=t;x.classList.add('show');setTimeout(()=>x.classList.remove('show'),1800)}function download(blob,name){const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=name;a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1000)}
 const titles={home:'MAIR GO!',archive:'Archivio',new:'Crea nuovo',activity:'Attività',more:'Altro',artworks:'Opere',library:'Biblioteca Pro',pdfstudio:'PDF Studio',settings:'Impostazioni',info:'Informazioni',timeline:'Timeline',workspace:'Workspace',exhibitions:'Mostre',clients:'Clienti',sales:'Vendite',agenda:'Agenda',certificates:'Certificati',social:'Zona Social',links:'Link utili',pros:'Curatori e critici',galleries:'Gallerie',certpreview:'Certificato',guide:'Guida offline',contact:'Contatti e segnalazioni'};function updateHeader(){document.documentElement.dataset.theme=db.settings.theme;document.documentElement.dataset.accent=db.settings.accent||'oro';document.documentElement.dataset.font=db.settings.fontSize||'medium';document.documentElement.classList.toggle('reduce-motion',db.settings.animations===false);$('#pageTitle').textContent=titles[route]||'MAIR GO!';$('#pageSub').textContent=route==='home'?'Il tuo atelier digitale':db.settings.artist;document.querySelectorAll('.bottomnav button').forEach(b=>{const r=b.dataset.route;const active=r===route||(HUB_GROUPS[r]||[]).includes(route);b.classList.toggle('active',active)})}function go(r){route=r;location.hash=r;render();scrollTo(0,0)}function render(){updateHeader();app.innerHTML=(views[route]||views.home)();bind()}function bind(){document.querySelectorAll('[data-go]').forEach(x=>x.onclick=()=>go(x.dataset.go));document.querySelectorAll('[data-action]').forEach(x=>x.onclick=()=>actions[x.dataset.action]?.(x.dataset.id,x));if(route==='artworks')bindArtworkFilters();if(route==='library')bindLibraryFilters();if(route==='exhibitions')bindSimpleFilter('exSearch','exGrid',db.exhibitions,exhibitionCard);if(route==='clients')bindSimpleFilter('clientSearch','clientGrid',db.clients,clientCard);if(route==='sales')bindSimpleFilter('saleSearch','saleGrid',db.sales,saleCard);if(route==='pros')bindProFilter();if(route==='galleries')bindSimpleFilter('gallerySearch','galleryGrid',db.galleries||[],galleryCard);if(route==='links')bindLinkFilter();if(route==='certificates')bindSimpleFilter('certSearch','certGrid',db.certificates||[],certCard);if(route==='agenda')bindAgendaFilters()}
 function section(t,b=''){return `<div class="sectionhead"><h2>${t}</h2>${b}</div>`}function empty(i,t,b=''){return `<div class="empty"><div style="font-size:2.5rem">${i}</div><p>${t}</p>${b}</div>`}function img(src,alt=''){return src?`<img src="${src}" alt="${esc(alt)}">`:'✦'}function field(label,name,value='',type='text',full=''){return `<div class="field ${full}"><label>${label}</label><input name="${name}" type="${type}" value="${esc(value)}"></div>`}function area(label,name,value='',full='full'){return `<div class="field ${full}"><label>${label}</label><textarea name="${name}">${esc(value)}</textarea></div>`}function selectField(label,name,list,value='',full=''){return `<div class="field ${full}"><label>${label}</label><div class="field-inline"><select name="${name}">${list.map(v=>`<option ${v===value?'selected':''}>${esc(v)}</option>`).join('')}</select><button type="button" class="btn" data-add-list="${name}">＋</button></div></div>`}
-function artworkCard(a){return `<article class="card"><div class="cardimg">${img(a.image,a.title)}</div><div class="cardbody"><div class="row spread"><h3>${esc(a.title||'Senza titolo')}</h3><button class="star" data-action="toggleArtworkFav" data-id="${a.id}">${a.favorite?'★':'☆'}</button></div><div class="meta">${esc(a.year||'s.d.')} · ${esc(a.technique||'Tecnica non indicata')}</div><span class="badge">${esc(a.dimensions||'Dimensioni n.d.')}</span><span class="badge">${esc(a.status||'Disponibile')}</span>${a.price?`<span class="badge">${euro(a.price)}</span>`:''}<div class="row" style="margin-top:12px"><button class="btn primary" data-action="editArtwork" data-id="${a.id}">Apri</button><button class="btn danger" data-action="deleteArtwork" data-id="${a.id}">Elimina</button></div></div></article>`}
+function artworkCard(a){return `<article class="card"><div class="cardimg">${img(artThumb(a),a.title)}</div><div class="cardbody"><div class="row spread"><h3>${esc(a.title||'Senza titolo')}</h3><button class="star" data-action="toggleArtworkFav" data-id="${a.id}">${a.favorite?'★':'☆'}</button></div><div class="meta">${esc(a.year||'s.d.')} · ${esc(a.technique||'Tecnica non indicata')}</div><span class="badge">${esc(a.dimensions||'Dimensioni n.d.')}</span><span class="badge">${esc(a.status||'Disponibile')}</span>${a.price?`<span class="badge">${euro(a.price)}</span>`:''}<div class="row" style="margin-top:12px"><button class="btn primary" data-action="editArtwork" data-id="${a.id}">Apri</button><button class="btn danger" data-action="deleteArtwork" data-id="${a.id}">Elimina</button></div></div></article>`}
 function libCard(d){const ico=d.mime?.includes('pdf')?'📕':d.mime?.includes('word')||d.name?.endsWith('.docx')?'📘':d.mime?.startsWith('image')?'🖼️':'📄';return `<article class="card"><div class="cardbody"><div class="row spread"><div class="doc-type">${ico}</div><button class="star" data-action="toggleLibFav" data-id="${d.id}">${d.favorite?'★':'☆'}</button></div><h3>${esc(d.title||d.name)}</h3><div class="meta">${esc(d.author||'Autore non indicato')} · ${esc(d.category||'Altro')}</div><p>${esc(d.description||'')}</p>${(d.tags||[]).map(t=>`<span class="badge">${esc(t)}</span>`).join('')}<div class="row" style="margin-top:12px"><button class="btn primary" data-action="openLibrary" data-id="${d.id}">Leggi</button><button class="btn" data-action="editLibrary" data-id="${d.id}">Modifica</button><button class="btn danger" data-action="deleteLibrary" data-id="${d.id}">Elimina</button></div></div></article>`}
 const themeOptions=[['atelier','Atelier'],['museum','Museo chiaro'],['dark','Dark Gallery'],['blackgold','Black & Gold'],['ocean','Ocean'],['forest','Forest'],['burgundy','Burgundy'],['paper','Carta editoriale'],['violet','Viola contemporaneo']];
 function stat(label,value,icon){return `<div class="stat"><span>${icon}</span><strong>${value}</strong><small>${label}</small></div>`}
@@ -1078,7 +1078,7 @@ function proModal(p={}){
     +area('Note','notes',p.notes)
   +'</div>',async fd=>{
     const f=fd.get('photo');
-    const foto=f&&f.size?await fileData(f):(fd.get('rimuoviFoto')?'':p.photo||'');
+    let foto=p.photo||'';if(f&&f.size){try{const r=await processImage(f);foto=r.full;}catch(err){alert(err.message);return;}}else if(fd.get('rimuoviFoto')){foto='';}
     const norm=u=>{u=String(u||'').trim();return u&&!/^https?:\/\//i.test(u)?'https://'+u:u;};
     const o={...p,id:p.id||uid(),name:fd.get('name'),role:fd.get('role'),org:fd.get('org'),city:fd.get('city'),
       phone:fd.get('phone'),email:fd.get('email'),website:norm(fd.get('website')),
@@ -1141,11 +1141,11 @@ function galleryModal(g={}){
     +area('Note','notes',g.notes)
   +'</div>',async fd=>{
     const f=fd.get('image');
-    const img=f&&f.size?await fileData(f):(fd.get('rimuoviImg')?'':g.image||'');
+    let gimg=g.image||'';if(f&&f.size){try{const r=await processImage(f);gimg=r.full;}catch(err){alert(err.message);return;}}else if(fd.get('rimuoviImg')){gimg='';}
     const norm=u=>{u=String(u||'').trim();return u&&!/^https?:\/\//i.test(u)?'https://'+u:u;};
     const o={...g,id:g.id||uid(),name:fd.get('name'),type:fd.get('type'),city:fd.get('city'),address:fd.get('address'),
       manager:fd.get('manager'),managerRole:fd.get('managerRole'),phone:fd.get('phone'),email:fd.get('email'),
-      website:norm(fd.get('website')),instagram:norm(fd.get('instagram')),image:img,notes:fd.get('notes'),
+      website:norm(fd.get('website')),instagram:norm(fd.get('instagram')),image:gimg,notes:fd.get('notes'),
       updated:new Date().toISOString(),created:g.created||new Date().toISOString()};
     db.galleries=db.galleries||[];
     if(g.id)db.galleries=db.galleries.map(x=>x.id===g.id?o:x);else db.galleries.unshift(o);
@@ -1241,6 +1241,20 @@ function guideView(){return `${section('Guida offline')}
 <p>Quando premi Esporta si apre il pannello di condivisione di Android: da l&igrave; scegli dove mettere il file &mdash; Google Drive, email a te stesso, WhatsApp, oppure "Salva su file" per una cartella del telefono. <strong>Mandalo fuori dal dispositivo</strong>: un backup che resta solo nel telefono non ti salva se perdi il telefono.</p>
 <p>Per ripristinare: <em>Impostazioni &rarr; Backup &rarr; Importa</em>, scegli il file .mair e tutto torna com'era, immagini comprese.</p>
 <p>Nella schermata Backup un riquadro colorato ti avverte: <strong>verde</strong> se hai salvato di recente, <strong>giallo</strong> se sono passati 3 giorni o pi&ugrave;. Fai un backup ogni volta che aggiungi lavoro importante.</p>
+</details>
+
+<details class="guide-item"><summary><strong>&#128247; Immagini delle opere</strong></summary>
+<p>Ogni immagine caricata pu&ograve; pesare al massimo <strong>5 MB</strong>: se &egrave; pi&ugrave; grande, l'app lo segnala e non la carica.</p>
+<p>L'immagine viene conservata nella sua <strong>qualit&agrave; originale</strong>, senza compressioni che rovinano la resa. In pi&ugrave;, l'app genera automaticamente una <strong>miniatura</strong> leggera usata negli elenchi e nelle ricerche: cos&igrave; le liste scorrono veloci e l'app consuma meno memoria, mentre la foto piena resta disponibile quando serve.</p>
+<p>Gli elenchi di opere si caricano <strong>a blocchi</strong>: vedi subito le prime opere e le altre compaiono scorrendo, o con il pulsante &laquo;Carica altre&raquo;. Utile quando l'archivio diventa grande.</p>
+</details>
+
+<details class="guide-item"><summary><strong>&#128190; Backup sicuro (verifica e ripristino)</strong></summary>
+<p>Il backup salva <strong>tutte le sezioni</strong>: opere con immagini, documenti, certificati, cataloghi, clienti, vendite, mostre, gallerie, curatori, link, agenda e impostazioni.</p>
+<p><strong>Verifica prima del salvataggio:</strong> quando crei un backup, l'app controlla che il file sia completo e rileggibile <em>prima</em> di proporti dove salvarlo. Se qualcosa non va, ti avvisa e non crea un file difettoso.</p>
+<p><strong>Controllo di integrit&agrave;:</strong> ogni backup porta con s&eacute; un codice di controllo. Al ripristino l'app lo ricalcola: se il file si &egrave; danneggiato durante il salvataggio o il trasferimento, viene bloccato invece di caricare dati rovinati.</p>
+<p><strong>Ripristino sicuro:</strong> prima di sostituire i dati attuali, l'app ne crea una <strong>copia di sicurezza</strong>. Dopo il ripristino ti chiede se vuoi tenere i dati caricati o <strong>tornare a quelli di prima</strong>: cos&igrave; un ripristino sbagliato non ti fa perdere nulla.</p>
+<p><strong>Compatibilit&agrave;:</strong> vengono letti anche i vecchi backup nei formati <code>.mair</code> e <code>.json</code>.</p>
 </details>
 
 <details class="guide-item"><summary><strong>&#128241; Installazione dell'app</strong></summary>
@@ -1441,9 +1455,45 @@ function infoView(){return `${section('Informazioni')}<section class="legal-card
 
 function settingsView(){const L=db.settings.lists;return `${section('Impostazioni')}<div class="settings-tabs"><a href="#appearance">Aspetto</a><a href="#security">Sicurezza</a><a href="#profile">Profilo</a><a href="#lists">Liste</a><a href="#backup">Backup</a></div><div class="formgrid"><div class="card" id="appearance"><div class="cardbody"><h3>🎨 Aspetto</h3><div class="field"><label>Tema dell'app</label><select id="themeSetting">${themeOptions.map(([v,l])=>`<option value="${v}" ${db.settings.theme===v?'selected':''}>${l}</option>`).join('')}</select></div><div class="field"><label>Dimensione caratteri</label><select id="fontSetting"><option value="small" ${db.settings.fontSize==='small'?'selected':''}>Piccola</option><option value="medium" ${db.settings.fontSize==='medium'?'selected':''}>Media</option><option value="large" ${db.settings.fontSize==='large'?'selected':''}>Grande</option></select></div><label class="switchrow"><input id="animationsSetting" type="checkbox" ${db.settings.animations!==false?'checked':''}> Animazioni</label><label class="switchrow"><input id="splashSetting" type="checkbox" ${db.settings.splash!==false?'checked':''}> Mostra splash all'avvio</label><button class="btn primary" data-action="saveAppearance">Salva aspetto</button></div></div><div class="card" id="security"><div class="cardbody"><h3>🔒 Sicurezza</h3><label class="switchrow"><input id="pinEnabled" type="checkbox" ${db.settings.pinEnabled?'checked':''}> Richiedi PIN all'avvio</label><div class="field"><label>Nuovo PIN (4–6 cifre)</label><input id="newPin" type="password" inputmode="numeric" maxlength="6" placeholder="Lascia vuoto per non cambiarlo"></div><div class="field"><label>Conferma PIN</label><input id="confirmPin" type="password" inputmode="numeric" maxlength="6"></div><button class="btn primary" data-action="savePin">Salva sicurezza</button><p class="meta">Il PIN è una protezione locale di accesso, non una cifratura dei file.</p></div></div><div class="card" id="profile"><div class="cardbody"><h3>👤 Profilo artista</h3>${field('Nome artista / atelier','artist',db.settings.artist)}${area('Biografia','bio',db.settings.bio,'')}${field('Email','email',db.settings.email,'email')}${field('Telefono','phone',db.settings.phone)}<button class="btn primary" data-action="saveProfile">Salva profilo</button></div></div><div class="card"><div class="cardbody"><h3>📄 Impaginazione PDF</h3><p class="meta">Formato, margini, caratteri, colori, immagini e sezioni dei documenti generati.</p><button class="btn" data-action="pdfSettings">Configura impaginazione</button></div></div><div class="card"><div class="cardbody"><h3>❤️ Sostieni il progetto</h3><p class="meta">MAIR GO! è gratuita e senza pubblicità. Una donazione aiuta a mantenerla e migliorarla.</p><button class="btn primary" data-action="dona">❤️ Dona con PayPal</button></div></div><div class="card"><div class="cardbody"><h3>🚪 Chiudi applicazione</h3><p class="meta">Chiude completamente MAIR GO!. I dati restano salvati.</p><button class="btn danger" data-action="esciApp">Esci dall'app</button></div></div><div class="card"><div class="cardbody"><h3>🛠 Diagnostica</h3><p class="meta">Se qualcosa non funziona, apri il registro errori e invia il testo allo sviluppatore.</p><button class="btn" data-action="openDiag">Apri diagnostica</button></div></div><div class="card" id="backup"><div class="cardbody"><h3>💾 Backup</h3>${backupBanner()}<p>Il file <strong>.backup</strong> contiene tutto l’archivio MAIR GO!: opere e immagini, documenti, certificati, cataloghi, clienti, vendite, agenda e impostazioni.</p><p>Premi <strong>Crea Backup</strong> e scegli tu dove salvarlo, per esempio Google Drive o una cartella del telefono. Il file temporaneo usato dall’APK viene eliminato dopo la scelta, anche quando annulli la condivisione.</p><div class="row"><button class="btn primary" data-action="exportBackup">💾 Crea Backup</button><button class="btn" data-action="importBackup">↩️ Ripristina Backup</button></div><p class="meta">Compatibile anche con i vecchi file .mair e .json. Ultimo backup: ${db.settings.lastBackup?new Date(db.settings.lastBackup).toLocaleString('it-IT'):'mai'}</p></div></div></div><h2 id="lists" style="margin-top:28px">Liste personalizzabili</h2><div class="grid">${Object.entries({techniques:'Tecniche',supports:'Supporti',dimensions:'Dimensioni',frames:'Cornici',statuses:'Stati',categories:'Categorie Biblioteca'}).map(([k,t])=>`<article class="card"><div class="cardbody"><h3>${t}</h3><div class="list-manager">${L[k].map((v,i)=>`<div class="list-row"><input value="${esc(v)}" data-list-key="${k}" data-list-i="${i}"><button class="btn danger" data-action="removeListItem" data-id="${k}:${i}">×</button></div>`).join('')}<button class="btn" data-action="addListItem" data-id="${k}">＋ Aggiungi voce</button><button class="btn primary" data-action="saveLists">Salva modifiche</button></div></div></article>`).join('')}</div>`}
 function openModal(title,html,onSave,saveLabel='Salva'){ $('#modalTitle').textContent=title;$('#modalBody').innerHTML=html;$('#modalSave').textContent=saveLabel;modal.showModal();document.querySelectorAll('[data-add-list]').forEach(b=>b.onclick=()=>{const key={technique:'techniques',support:'supports',dimensions:'dimensions',frame:'frames',status:'statuses',category:'categories'}[b.dataset.addList];const v=prompt('Nuova voce');if(v){db.settings.lists[key].push(v);save();const s=b.previousElementSibling;s.insertAdjacentHTML('beforeend',`<option selected>${esc(v)}</option>`)}});$('#modalSave').onclick=e=>{e.preventDefault();onSave(new FormData($('#modalForm')))}}
+
+/* ===== GESTIONE IMMAGINI v11 (limite 5MB, originale + miniatura) ===== */
+const IMG_MAX_BYTES=5*1024*1024;      // limite 5 MB sul file caricato
+const THUMB_MAX=400;                  // lato massimo miniatura in px
+async function processImage(file){
+  // ritorna {full, thumb} oppure lancia errore se troppo grande
+  if(!file||!file.size)return null;
+  if(file.size>IMG_MAX_BYTES){
+    throw new Error('Immagine troppo grande ('+(file.size/1048576).toFixed(1)+' MB). Il limite \u00e8 5 MB.');
+  }
+  const full=await fileData(file);              // originale, senza perdita
+  let thumb=full;
+  try{ thumb=await makeThumb(full); }catch(e){ thumb=full; }
+  return {full,thumb};
+}
+function makeThumb(dataUrl){
+  return new Promise((res,rej)=>{
+    const img=new Image();
+    img.onload=()=>{
+      try{
+        let w=img.width,h=img.height;
+        if(w<=THUMB_MAX&&h<=THUMB_MAX){res(dataUrl);return;} // gia' piccola
+        if(w>=h){h=Math.round(h*THUMB_MAX/w);w=THUMB_MAX;}
+        else{w=Math.round(w*THUMB_MAX/h);h=THUMB_MAX;}
+        const cv=document.createElement('canvas');cv.width=w;cv.height=h;
+        cv.getContext('2d').drawImage(img,0,0,w,h);
+        res(cv.toDataURL('image/jpeg',0.72));
+      }catch(e){rej(e);}
+    };
+    img.onerror=rej;
+    img.src=dataUrl;
+  });
+}
+// helper: dall'oggetto opera restituisce la miniatura se c'e', sennò l'immagine piena
+function artThumb(a){return a.thumb||a.image||'';}
+
 async function fileData(file){return new Promise((res,rej)=>{const r=new FileReader;r.onload=()=>res(r.result);r.onerror=rej;r.readAsDataURL(file)})}async function fileText(file){try{return await file.text()}catch{return ''}}
 function anniLista(sel){const y=new Date().getFullYear();const a=[''];for(let i=y+1;i>=1950;i--)a.push(String(i));if(sel&&!a.includes(String(sel)))a.splice(1,0,String(sel));return a;}
-function artworkModal(a={}){openModal(a.id?'Modifica opera':'Nuova opera',`<div class="formgrid">${field('Titolo','title',a.title,'text','full')}${selectField('Anno','year',anniLista(a.year),a.year||'')}${field('Codice opera','code',a.code||('MG-'+String(db.artworks.length+1).padStart(4,'0')))}${selectField('Tecnica','technique',db.settings.lists.techniques,a.technique)}${selectField('Supporto','support',db.settings.lists.supports,a.support)}${selectField('Dimensioni','dimensions',db.settings.lists.dimensions,a.dimensions)}${selectField('Cornice','frame',db.settings.lists.frames,a.frame)}${selectField('Stato','status',db.settings.lists.statuses,a.status||'Disponibile')}${field('Prezzo (€)','price',a.price,'number')}${field('Serie / collezione','collection',a.collection)}${field('Posizione attuale','location',a.location)}${area('Descrizione','description',a.description)}${area('Note private','notes',a.notes)}<div class="field full"><label>Immagine principale</label><input name="imageFile" type="file" accept="image/*"></div></div>`,async fd=>{const file=fd.get('imageFile');const obj={...a,id:a.id||uid(),title:fd.get('title'),year:fd.get('year'),code:fd.get('code'),technique:fd.get('technique'),support:fd.get('support'),dimensions:fd.get('dimensions'),frame:fd.get('frame'),status:fd.get('status'),price:fd.get('price'),collection:fd.get('collection'),location:fd.get('location'),description:fd.get('description'),notes:fd.get('notes'),image:file?.size?await fileData(file):a.image||'',updated:new Date().toISOString(),created:a.created||new Date().toISOString()};if(a.id)db.artworks=db.artworks.map(x=>x.id===a.id?obj:x);else db.artworks.unshift(obj);save();modal.close();render();toast('Opera salvata')})}
+function artworkModal(a={}){openModal(a.id?'Modifica opera':'Nuova opera',`<div class="formgrid">${field('Titolo','title',a.title,'text','full')}${selectField('Anno','year',anniLista(a.year),a.year||'')}${field('Codice opera','code',a.code||('MG-'+String(db.artworks.length+1).padStart(4,'0')))}${selectField('Tecnica','technique',db.settings.lists.techniques,a.technique)}${selectField('Supporto','support',db.settings.lists.supports,a.support)}${selectField('Dimensioni','dimensions',db.settings.lists.dimensions,a.dimensions)}${selectField('Cornice','frame',db.settings.lists.frames,a.frame)}${selectField('Stato','status',db.settings.lists.statuses,a.status||'Disponibile')}${field('Prezzo (€)','price',a.price,'number')}${field('Serie / collezione','collection',a.collection)}${field('Posizione attuale','location',a.location)}${area('Descrizione','description',a.description)}${area('Note private','notes',a.notes)}<div class="field full"><label>Immagine principale</label><input name="imageFile" type="file" accept="image/*"></div></div>`,async fd=>{const file=fd.get('imageFile');let img=a.image||'',thumb=a.thumb||'';if(file&&file.size){try{const r=await processImage(file);img=r.full;thumb=r.thumb;}catch(err){alert(err.message||'Immagine non valida');return;}}const obj={...a,id:a.id||uid(),title:fd.get('title'),year:fd.get('year'),code:fd.get('code'),technique:fd.get('technique'),support:fd.get('support'),dimensions:fd.get('dimensions'),frame:fd.get('frame'),status:fd.get('status'),price:fd.get('price'),collection:fd.get('collection'),location:fd.get('location'),description:fd.get('description'),notes:fd.get('notes'),image:img,thumb:thumb,updated:new Date().toISOString(),created:a.created||new Date().toISOString()};if(a.id)db.artworks=db.artworks.map(x=>x.id===a.id?obj:x);else db.artworks.unshift(obj);save();modal.close();render();toast('Opera salvata')})}
 function libraryModal(d={}){const arts=db.artworks.map(a=>`<option value="${a.id}" ${d.artworkId===a.id?'selected':''}>${esc(a.title)}</option>`).join('');openModal(d.id?'Modifica documento':'Carica nella Biblioteca',`<div class="formgrid">${!d.id?`<div class="field full"><label>File locale</label><input name="file" type="file" accept=".pdf,.docx,.doc,.txt,image/*" required></div>`:''}${field('Titolo','title',d.title,'text','full')}${field('Autore','author',d.author)}${selectField('Categoria','category',db.settings.lists.categories,d.category||'Catalogo')}${field('Tag separati da virgola','tags',(d.tags||[]).join(', '),'text','full')}${area('Descrizione','description',d.description)}<div class="field full"><label>Opera collegata</label><select name="artworkId"><option value="">Nessuna</option>${arts}</select></div>${area('Appunti di studio','notes',d.notes)}</div>`,async fd=>{let obj={...d,id:d.id||uid(),title:fd.get('title'),author:fd.get('author'),category:fd.get('category'),tags:String(fd.get('tags')||'').split(',').map(x=>x.trim()).filter(Boolean),description:fd.get('description'),artworkId:fd.get('artworkId'),notes:fd.get('notes'),date:d.date||new Date().toISOString()};if(!d.id){const f=fd.get('file');if(!f?.size)return alert('Seleziona un file');obj.name=f.name;obj.mime=f.type||mimeFromName(f.name);obj.data=await fileData(f);if(obj.mime.startsWith('text/')||/\.txt$/i.test(f.name))obj.text=await fileText(f);if(!obj.title)obj.title=f.name.replace(/\.[^.]+$/,'')}if(d.id)db.library=db.library.map(x=>x.id===d.id?obj:x);else db.library.unshift(obj);save();modal.close();render();toast('Documento salvato')})}function mimeFromName(n){if(/\.pdf$/i.test(n))return'application/pdf';if(/\.docx?$/i.test(n))return'application/vnd.openxmlformats-officedocument.wordprocessingml.document';if(/\.(png|jpe?g|webp|gif)$/i.test(n))return'image/*';return'text/plain'}
 /* ===== LETTORE DOCUMENTI (trapiantato da LetturArt) ===== */
 const LA={pdf:null,pages:[],zoom:1,mode:'continuous',page:1,token:0,observer:null,cont:null,doc:null,resizeTimer:null,lastGesture:0};
@@ -2181,8 +2231,48 @@ function backupFileName(){
   const d=new Date(),pad=n=>String(n).padStart(2,'0');
   return `Backup_MAIR_GO_${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}_${pad(d.getHours())}-${pad(d.getMinutes())}.backup`;
 }
+function checksumString(str){
+  // checksum semplice ma affidabile (FNV-1a 32bit) per verificare l'integrita'
+  let h=0x811c9dc5;
+  for(let i=0;i<str.length;i++){h^=str.charCodeAt(i);h=(h*0x01000193)>>>0;}
+  return ('0000000'+h.toString(16)).slice(-8);
+}
+function contaSezioni(d){
+  const c={};['artworks','library','links','pros','galleries','collections','exhibitions','clients','sales','agenda','workspaces','pdfProjects','certificates'].forEach(k=>{c[k]=Array.isArray(d[k])?d[k].length:0;});
+  return c;
+}
 function backupPayload(){
-  return JSON.stringify({format:'MAIR_GO_BACKUP',version:10.4,createdAt:new Date().toISOString(),data:clone(db)});
+  const dati=clone(db);
+  const dataStr=JSON.stringify(dati);
+  const conteggi=contaSezioni(dati);
+  const totale=Object.values(conteggi).reduce((a,b)=>a+b,0);
+  return JSON.stringify({
+    format:'MAIR_GO_BACKUP',
+    version:12,
+    createdAt:new Date().toISOString(),
+    app:'MAIR GO!',
+    counts:conteggi,
+    totalItems:totale,
+    checksum:checksumString(dataStr),
+    data:dati
+  });
+}
+// verifica che un backup sia integro e leggibile PRIMA di usarlo
+function verificaBackup(testo){
+  const esito={ok:false,motivo:'',counts:null,totale:0};
+  let obj;
+  try{obj=JSON.parse(testo);}catch(e){esito.motivo='Il file non \u00e8 un backup valido (JSON illeggibile).';return esito;}
+  const dati=obj&&obj.data?obj.data:obj; // compatibile coi vecchi backup senza involucro
+  if(!backupLooksLikeDatabase(dati)){esito.motivo='Il file non contiene un archivio MAIR GO! riconoscibile.';return esito;}
+  // controllo checksum se presente
+  if(obj&&obj.checksum){
+    const calc=checksumString(JSON.stringify(dati));
+    if(calc!==obj.checksum){esito.motivo='Il backup risulta danneggiato (controllo integrit\u00e0 fallito).';esito.corrotto=true;return esito;}
+  }
+  esito.counts=contaSezioni(dati);
+  esito.totale=Object.values(esito.counts).reduce((a,b)=>a+b,0);
+  esito.ok=true;esito.dati=dati;
+  return esito;
 }
 function backupLooksLikeDatabase(x){
   if(!x||typeof x!=='object'||Array.isArray(x))return false;
@@ -2233,6 +2323,14 @@ function backupTextFromBase64(data){
 }
 async function creaBackupProfessionale(){
   const nome=backupFileName(),contenuto=backupPayload();
+  // VERIFICA PRIMA DEL SALVATAGGIO (Versione 12): il backup deve essere rileggibile e integro
+  const pre=verificaBackup(contenuto);
+  if(!pre.ok){
+    alert('Backup non creato: la verifica preventiva \u00e8 fallita.\n\n'+pre.motivo+'\n\nI tuoi dati non sono stati toccati.');
+    diagLog('BACKUP-VERIFICA-FALLITA',pre.motivo);
+    return false;
+  }
+  diagLog('BACKUP','verifica preventiva OK, '+pre.totale+' elementi');
   try{
     const Cap=window.Capacitor;
     const FS=Cap&&Cap.Plugins&&Cap.Plugins.Filesystem;
@@ -2326,16 +2424,42 @@ async function ripristinaBackupProfessionale(){
     if(!testo){toast('Ripristino annullato');return;}
 
     testo=String(testo).replace(/^\uFEFF/,'').trim();
-    let parsed;
-    try{parsed=JSON.parse(testo)}catch(e){throw new Error('Il contenuto non è JSON valido o il file è danneggiato.');}
-    const dati=backupExtractData(parsed);
-    const nOpere=Array.isArray(dati.artworks)?dati.artworks.length:0;
-    const nMostre=Array.isArray(dati.exhibitions)?dati.exhibitions.length:0;
-    const nClienti=Array.isArray(dati.clients)?dati.clients.length:0;
-    if(!confirm(`Ripristinare questo backup?\n\nOpere: ${nOpere}\nMostre: ${nMostre}\nClienti: ${nClienti}\n\nI dati attuali saranno sostituiti.`))return;
-    db=merge(clone(defaults),backupNormalizeLegacyData(dati));
+    // VERIFICA INTEGRITA' prima di toccare i dati (Versione 12)
+    const check=verificaBackup(testo);
+    if(!check.ok){
+      alert('Impossibile ripristinare.\n\n'+check.motivo+(check.corrotto?'\n\nIl file potrebbe essersi danneggiato durante il salvataggio o il trasferimento.':''));
+      return;
+    }
+    const dati=backupNormalizeLegacyData(check.dati);
+    const c=check.counts;
+    const riepilogo='Backup verificato e integro.\n\n'
+      +'Opere: '+c.artworks+'\nDocumenti: '+c.library+'\nCertificati: '+c.certificates
+      +'\nMostre: '+c.exhibitions+'\nClienti: '+c.clients+'\nVendite: '+c.sales
+      +'\nGallerie: '+c.galleries+'\nCuratori: '+c.pros+'\nLink: '+c.links
+      +'\n\nTotale elementi: '+check.totale
+      +'\n\nProcedo con il ripristino?\nUna copia di sicurezza dei dati attuali verr\u00e0 conservata.';
+    if(!confirm(riepilogo))return;
+    // COPIA DI SICUREZZA del database attuale, prima di sovrascrivere (ripristino sicuro)
+    try{
+      const primaDati=clone(db);
+      window.__backupPrecedente=primaDati;
+      try{localStorage.setItem('mairgo_predare_restore',JSON.stringify({at:new Date().toISOString(),data:primaDati}));}catch(e){}
+      diagLog('BACKUP','copia di sicurezza pre-ripristino creata');
+    }catch(e){diagLog('BACKUP-SAFECOPY',e&&e.message?e.message:String(e));}
+    db=merge(clone(defaults),dati);
     await writePersistentState(clone(db));save();render();
-    toast('Backup precedente ripristinato correttamente');
+    // offro l'annullamento del ripristino
+    setTimeout(()=>{
+      if(confirm('Ripristino completato con successo.\n\nVuoi mantenere i dati ripristinati?\n\nScegli \u201cAnnulla\u201d per tornare ai dati che avevi PRIMA del ripristino.')){
+        try{localStorage.removeItem('mairgo_predare_restore');}catch(e){}
+        toast('Dati ripristinati mantenuti');
+      }else{
+        try{
+          const prec=window.__backupPrecedente;
+          if(prec){db=merge(clone(defaults),prec);writePersistentState(clone(db));save();render();toast('Ripristino annullato: dati precedenti recuperati');}
+        }catch(e){alert('Impossibile annullare il ripristino.');}
+      }
+    },400);
   }catch(e){
     alert('Backup non valido o non leggibile.\n\n'+(e&&e.message?e.message:''));
     diagLog('BACKUP-IMPORT',e&&e.message?e.message:String(e));
@@ -2590,7 +2714,35 @@ function bindSimpleFilter(inputId,gridId,arr,cardFn){
 }
 function bindAgendaFilters(){const q=$('#agendaSearch'),t=$('#agendaType'),g=$('#agendaList');if(!q||!t||!g)return;const run=()=>{const s=q.value.toLowerCase();g.innerHTML=[...db.agenda].filter(x=>(!t.value||x.type===t.value)&&JSON.stringify(x).toLowerCase().includes(s)).sort((a,b)=>new Date(a.date)-new Date(b.date)).map(agendaCard).join('')||empty('⌕','Nessun evento.');document.querySelectorAll('#agendaList [data-action]').forEach(x=>x.onclick=()=>actions[x.dataset.action]?.(x.dataset.id,x))};q.oninput=t.onchange=run}
 
-function bindArtworkFilters(){const ids=['artSearch','artStatus','artYear','artTechnique','artSupport','artDimension','artFrame','artCollection','artLocation','artFavorite','artMinPrice','artMaxPrice'];const E=Object.fromEntries(ids.map(id=>[id,$('#'+id)]));const run=()=>{const q=(E.artSearch?.value||'').toLowerCase(),min=Number(E.artMinPrice?.value||0),max=Number(E.artMaxPrice?.value||Infinity);const arr=db.artworks.filter(a=>(!E.artStatus.value||a.status===E.artStatus.value)&&(!E.artYear.value||a.year===E.artYear.value)&&(!E.artTechnique.value||a.technique===E.artTechnique.value)&&(!E.artSupport.value||a.support===E.artSupport.value)&&(!E.artDimension.value||a.dimensions===E.artDimension.value)&&(!E.artFrame.value||a.frame===E.artFrame.value)&&(!E.artCollection.value||String(a.collection||'').toLowerCase().includes(E.artCollection.value.toLowerCase()))&&(!E.artLocation.value||String(a.location||'').toLowerCase().includes(E.artLocation.value.toLowerCase()))&&(!E.artFavorite.value||a.favorite)&&Number(a.price||0)>=min&&Number(a.price||0)<=max&&JSON.stringify(a).toLowerCase().includes(q));$('#artGrid').innerHTML=arr.map(artworkCard).join('')||empty('⌕','Nessuna opera trovata.');if($('#filterCount'))$('#filterCount').textContent=`${arr.length} opere visualizzate su ${db.artworks.length}`;document.querySelectorAll('#artGrid [data-action]').forEach(x=>x.onclick=()=>actions[x.dataset.action]?.(x.dataset.id,x))};ids.forEach(id=>{const x=E[id];if(x)x.oninput=x.onchange=run});run()}
+function renderProgressive(gridId,items,cardFn,perBlocco=24){
+  const g=$('#'+gridId);if(!g)return;
+  if(!items.length){g.innerHTML=empty('\u2315','Nessun elemento.');return;}
+  let mostrati=0;
+  const bindActions=()=>{document.querySelectorAll('#'+gridId+' [data-action]').forEach(x=>x.onclick=()=>actions[x.dataset.action]?.(x.dataset.id,x));};
+  const blocco=()=>{
+    const fine=Math.min(mostrati+perBlocco,items.length);
+    const html=items.slice(mostrati,fine).map(cardFn).join('');
+    const piu=document.getElementById(gridId+'_more');
+    if(piu)piu.remove();
+    g.insertAdjacentHTML('beforeend',html);
+    mostrati=fine;
+    if(mostrati<items.length){
+      g.insertAdjacentHTML('afterend','<div id="'+gridId+'_more" class="load-more"><button class="btn" id="'+gridId+'_moreBtn">Carica altre ('+(items.length-mostrati)+')</button></div>');
+      const btn=document.getElementById(gridId+'_moreBtn');
+      if(btn)btn.onclick=blocco;
+      // auto-carica allo scroll vicino
+      const sentinel=document.getElementById(gridId+'_more');
+      if('IntersectionObserver'in window&&sentinel){
+        const io=new IntersectionObserver(es=>{es.forEach(e=>{if(e.isIntersecting){io.disconnect();blocco();}});});
+        io.observe(sentinel);
+      }
+    }
+    bindActions();
+  };
+  g.innerHTML='';
+  blocco();
+}
+function bindArtworkFilters(){const ids=['artSearch','artStatus','artYear','artTechnique','artSupport','artDimension','artFrame','artCollection','artLocation','artFavorite','artMinPrice','artMaxPrice'];const E=Object.fromEntries(ids.map(id=>[id,$('#'+id)]));const run=()=>{const q=(E.artSearch?.value||'').toLowerCase(),min=Number(E.artMinPrice?.value||0),max=Number(E.artMaxPrice?.value||Infinity);const arr=db.artworks.filter(a=>(!E.artStatus.value||a.status===E.artStatus.value)&&(!E.artYear.value||a.year===E.artYear.value)&&(!E.artTechnique.value||a.technique===E.artTechnique.value)&&(!E.artSupport.value||a.support===E.artSupport.value)&&(!E.artDimension.value||a.dimensions===E.artDimension.value)&&(!E.artFrame.value||a.frame===E.artFrame.value)&&(!E.artCollection.value||String(a.collection||'').toLowerCase().includes(E.artCollection.value.toLowerCase()))&&(!E.artLocation.value||String(a.location||'').toLowerCase().includes(E.artLocation.value.toLowerCase()))&&(!E.artFavorite.value||a.favorite)&&Number(a.price||0)>=min&&Number(a.price||0)<=max&&JSON.stringify(a).toLowerCase().includes(q));if($('#filterCount'))$('#filterCount').textContent=`${arr.length} opere visualizzate su ${db.artworks.length}`;renderProgressive('artGrid',arr,artworkCard,24)};ids.forEach(id=>{const x=E[id];if(x)x.oninput=x.onchange=run});run()}
 function bindLibraryFilters(){const s=$('#libSearch'),t=$('#libType'),c=$('#libCat');const run=()=>{const q=s.value.toLowerCase();const arr=db.library.filter(d=>(!c.value||d.category===c.value)&&(!t.value||(t.value==='pdf'&&d.mime?.includes('pdf'))||(t.value==='doc'&&(d.mime?.includes('word')||d.mime?.includes('text')))||(t.value==='image'&&d.mime?.startsWith('image'))||(t.value==='fav'&&d.favorite)||(t.value==='linked'&&d.artworkId))&&JSON.stringify({...d,data:''}).toLowerCase().includes(q));$('#libGrid').innerHTML=arr.map(libCard).join('')||empty('⌕','Nessun documento trovato.');bind()};s.oninput=t.onchange=c.onchange=run}
 async function hashPin(pin){const data=new TextEncoder().encode('MAIR-GO-'+pin);const digest=await crypto.subtle.digest('SHA-256',data);return [...new Uint8Array(digest)].map(b=>b.toString(16).padStart(2,'0')).join('')}
 function showLock(){const lock=$('#lockScreen');lock.classList.remove('hidden');setTimeout(()=>$('#pinInput').focus(),100);$('#unlockBtn').onclick=async()=>{if(await hashPin($('#pinInput').value)===db.settings.pinHash){lock.classList.add('hidden');$('#pinInput').value=''}else{toast('PIN errato');$('#pinInput').select()}};$('#pinInput').onkeydown=e=>{if(e.key==='Enter')$('#unlockBtn').click()};$('#pinHelp').onclick=()=>alert('Per tutelare i dati, il PIN non può essere recuperato. È possibile ripristinare un backup precedente oppure cancellare i dati del sito dal browser.')}
