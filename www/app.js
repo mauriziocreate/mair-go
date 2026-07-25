@@ -9,7 +9,7 @@ function diagOpen(){
   box.setAttribute('style','position:fixed;top:0;left:0;right:0;bottom:0;z-index:999999;background:#111;color:#0f0;font:12px/1.5 monospace;padding:10px;overflow:auto');
   const testo=window.__LOG__.length?window.__LOG__.join('\n\n'):'(nessun errore registrato)';
   const info='DIAGNOSTICA MAIR GO!\n'
-    +'Versione app.js: 8.0\n'
+    +'Versione app.js: 8.1\n'
     +'docViewerOpen esiste: '+(typeof docViewerOpen)+'\n'
     +'textEditorOpen esiste: '+(typeof textEditorOpen)+'\n'
     +'certDocHtml esiste: '+(typeof certDocHtml)+'\n'
@@ -1443,18 +1443,24 @@ async function renderDocReader(d,contId,type,nome){
       box.innerHTML='';
       // larghezza disponibile reale, per riempire lo schermo
       const larg=Math.max(320,(box.clientWidth||box.offsetWidth||360)-20);
+      // qualita': densita' schermo x fattore extra per testo piccolo nitido
+      const dpr=window.devicePixelRatio||1;
+      const qualita=Math.min(4,Math.max(2,dpr*2));
       const nMax=Math.min(pdf.numPages,40);
       for(let n=1;n<=nMax;n++){
         const page=await pdf.getPage(n);
         const base=page.getViewport({scale:1});
-        const scala=larg/base.width;
-        const vp=page.getViewport({scale:scala});
+        const scalaCss=larg/base.width;           // dimensione visiva
+        const vp=page.getViewport({scale:scalaCss*qualita}); // render ad alta risoluzione
         const cv=document.createElement('canvas');
         cv.width=vp.width;cv.height=vp.height;
+        // il canvas viene mostrato alla dimensione CSS, ma contiene molti piu' pixel
         cv.className='pdf-page';
         box.appendChild(cv);
-        await page.render({canvasContext:cv.getContext('2d'),viewport:vp}).promise;
+        const ctx=cv.getContext('2d');
+        await page.render({canvasContext:ctx,viewport:vp}).promise;
       }
+      diagLog('LETTORE','PDF qualita x'+qualita.toFixed(1)+' dpr '+dpr);
       if(pdf.numPages>nMax){const p=document.createElement('p');p.className='meta';p.style.color='#fff';p.textContent='Mostrate le prime '+nMax+' pagine di '+pdf.numPages+'. Usa \u201cScarica originale\u201d per il documento completo.';box.appendChild(p);}
       diagLog('LETTORE','PDF reso: '+pdf.numPages+' pagine, largh '+Math.round(larg));
     }else if(type.includes('word')||type.includes('officedocument')||nome.endsWith('.docx')||nome.endsWith('.doc')){
