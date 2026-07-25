@@ -1437,7 +1437,7 @@ function infoView(){return `${section('Informazioni')}<section class="legal-card
 <p><a href="mailto:dandreart.info@gmail.com">dandreart.info@gmail.com</a><br><a href="https://www.dandreart.info" target="_blank" rel="noopener">www.dandreart.info</a></p>
 <p class="meta">MAIR GO! 7.5 &middot; Software gratuito &middot; Dati sul dispositivo &middot; Nessun account &middot; Nessuna pubblicit&agrave;</p></section>`}
 
-function settingsView(){const L=db.settings.lists;return `${section('Impostazioni')}<div class="settings-tabs"><a href="#appearance">Aspetto</a><a href="#security">Sicurezza</a><a href="#profile">Profilo</a><a href="#lists">Liste</a><a href="#backup">Backup</a></div><div class="formgrid"><div class="card" id="appearance"><div class="cardbody"><h3>🎨 Aspetto</h3><div class="field"><label>Tema dell'app</label><select id="themeSetting">${themeOptions.map(([v,l])=>`<option value="${v}" ${db.settings.theme===v?'selected':''}>${l}</option>`).join('')}</select></div><div class="field"><label>Dimensione caratteri</label><select id="fontSetting"><option value="small" ${db.settings.fontSize==='small'?'selected':''}>Piccola</option><option value="medium" ${db.settings.fontSize==='medium'?'selected':''}>Media</option><option value="large" ${db.settings.fontSize==='large'?'selected':''}>Grande</option></select></div><label class="switchrow"><input id="animationsSetting" type="checkbox" ${db.settings.animations!==false?'checked':''}> Animazioni</label><label class="switchrow"><input id="splashSetting" type="checkbox" ${db.settings.splash!==false?'checked':''}> Mostra splash all'avvio</label><button class="btn primary" data-action="saveAppearance">Salva aspetto</button></div></div><div class="card" id="security"><div class="cardbody"><h3>🔒 Sicurezza</h3><label class="switchrow"><input id="pinEnabled" type="checkbox" ${db.settings.pinEnabled?'checked':''}> Richiedi PIN all'avvio</label><div class="field"><label>Nuovo PIN (4–6 cifre)</label><input id="newPin" type="password" inputmode="numeric" maxlength="6" placeholder="Lascia vuoto per non cambiarlo"></div><div class="field"><label>Conferma PIN</label><input id="confirmPin" type="password" inputmode="numeric" maxlength="6"></div><button class="btn primary" data-action="savePin">Salva sicurezza</button><p class="meta">Il PIN è una protezione locale di accesso, non una cifratura dei file.</p></div></div><div class="card" id="profile"><div class="cardbody"><h3>👤 Profilo artista</h3>${field('Nome artista / atelier','artist',db.settings.artist)}${area('Biografia','bio',db.settings.bio,'')}${field('Email','email',db.settings.email,'email')}${field('Telefono','phone',db.settings.phone)}<button class="btn primary" data-action="saveProfile">Salva profilo</button></div></div><div class="card"><div class="cardbody"><h3>📄 Impaginazione PDF</h3><p class="meta">Formato, margini, caratteri, colori, immagini e sezioni dei documenti generati.</p><button class="btn" data-action="pdfSettings">Configura impaginazione</button></div></div><div class="card"><div class="cardbody"><h3>❤️ Sostieni il progetto</h3><p class="meta">MAIR GO! è gratuita e senza pubblicità. Una donazione aiuta a mantenerla e migliorarla.</p><button class="btn primary" data-action="dona">❤️ Dona con PayPal</button></div></div><div class="card"><div class="cardbody"><h3>🚪 Chiudi applicazione</h3><p class="meta">Chiude completamente MAIR GO!. I dati restano salvati.</p><button class="btn danger" data-action="esciApp">Esci dall'app</button></div></div><div class="card"><div class="cardbody"><h3>🛠 Diagnostica</h3><p class="meta">Se qualcosa non funziona, apri il registro errori e invia il testo allo sviluppatore.</p><button class="btn" data-action="openDiag">Apri diagnostica</button></div></div><div class="card" id="backup"><div class="cardbody"><h3>💾 Backup</h3>${backupBanner()}<p>Il file <strong>.backup</strong> contiene tutto l’archivio MAIR GO!: opere e immagini, documenti, certificati, cataloghi, clienti, vendite, agenda e impostazioni.</p><p>Premi <strong>Crea Backup</strong> e scegli tu dove salvarlo, per esempio Google Drive o una cartella del telefono. Il file temporaneo usato dall’APK viene eliminato dopo la scelta, anche quando annulli la condivisione.</p><div class="row"><button class="btn primary" data-action="exportBackup">💾 Crea Backup</button><button class="btn" data-action="importBackup">↩️ Ripristina Backup</button></div><p class="meta">Compatibile anche con i vecchi file .mair e .json. Ultimo backup: ${db.settings.lastBackup?new Date(db.settings.lastBackup).toLocaleString('it-IT'):'mai'}</p></div></div></div><h2 id="lists" style="margin-top:28px">Liste personalizzabili</h2><div class="grid">${Object.entries({techniques:'Tecniche',supports:'Supporti',dimensions:'Dimensioni',frames:'Cornici',statuses:'Stati',categories:'Categorie Biblioteca'}).map(([k,t])=>`<article class="card"><div class="cardbody"><h3>${t}</h3><div class="list-manager">${L[k].map((v,i)=>`<div class="list-row"><input value="${esc(v)}" data-list-key="${k}" data-list-i="${i}"><button class="btn danger" data-action="removeListItem" data-id="${k}:${i}">×</button></div>`).join('')}<button class="btn" data-action="addListItem" data-id="${k}">＋ Aggiungi voce</button><button class="btn primary" data-action="saveLists">Salva modifiche</button></div></div></article>`).join('')}</div>`}
+function settingsView(){const L=db.settings.lists;return `${section('Impostazioni')}<div class="settings-tabs"><a href="#appearance">Aspetto</a><a href="#security">Sicurezza</a><a href="#profile">Profilo</a><a href="#lists">Liste</a><a href="#backup">Backup</a></div><div class="formgrid"><div class="card" id="appearance"><div class="cardbody"><h3>🎨 Aspetto</h3><div class="field"><label>Tema dell'app</label><select id="themeSetting">${themeOptions.map(([v,l])=>`<option value="${v}" ${db.settings.theme===v?'selected':''}>${l}</option>`).join('')}</select></div><div class="field"><label>Dimensione caratteri</label><select id="fontSetting"><option value="small" ${db.settings.fontSize==='small'?'selected':''}>Piccola</option><option value="medium" ${db.settings.fontSize==='medium'?'selected':''}>Media</option><option value="large" ${db.settings.fontSize==='large'?'selected':''}>Grande</option></select></div><label class="switchrow"><input id="animationsSetting" type="checkbox" ${db.settings.animations!==false?'checked':''}> Animazioni</label><label class="switchrow"><input id="splashSetting" type="checkbox" ${db.settings.splash!==false?'checked':''}> Mostra splash all'avvio</label><button class="btn primary" data-action="saveAppearance">Salva aspetto</button></div></div><div class="card" id="security"><div class="cardbody"><h3>🔒 Sicurezza</h3><label class="switchrow"><input id="pinEnabled" type="checkbox" ${db.settings.pinEnabled?'checked':''}> Richiedi PIN all'avvio</label><div class="field"><label>Nuovo PIN (4–6 cifre)</label><input id="newPin" type="password" inputmode="numeric" maxlength="6" placeholder="Lascia vuoto per non cambiarlo"></div><div class="field"><label>Conferma PIN</label><input id="confirmPin" type="password" inputmode="numeric" maxlength="6"></div><button class="btn primary" data-action="savePin">Salva sicurezza</button><p class="meta">Il PIN è una protezione locale di accesso, non una cifratura dei file.</p></div></div><div class="card" id="profile"><div class="cardbody"><h3>👤 Profilo artista</h3>${field('Nome artista / atelier','artist',db.settings.artist)}${area('Biografia','bio',db.settings.bio,'')}${field('Email','email',db.settings.email,'email')}${field('Telefono','phone',db.settings.phone)}<button class="btn primary" data-action="saveProfile">Salva profilo</button></div></div><div class="card"><div class="cardbody"><h3>📄 Impaginazione PDF</h3><p class="meta">Formato, margini, caratteri, colori, immagini e sezioni dei documenti generati.</p><button class="btn" data-action="pdfSettings">Configura impaginazione</button></div></div><div class="card"><div class="cardbody"><h3>❤️ Sostieni il progetto</h3><p class="meta">MAIR GO! è gratuita e senza pubblicità. Una donazione aiuta a mantenerla e migliorarla.</p><button class="btn primary" data-action="dona">❤️ Dona con PayPal</button></div></div><div class="card"><div class="cardbody"><h3>🚪 Chiudi applicazione</h3><p class="meta">Chiude completamente MAIR GO!. I dati restano salvati.</p><button class="btn danger" data-action="esciApp">Esci dall'app</button></div></div><div class="card"><div class="cardbody"><h3>🛠 Diagnostica</h3><p class="meta">Se qualcosa non funziona, apri il registro errori e invia il testo allo sviluppatore.</p><button class="btn" data-action="openDiag">Apri diagnostica</button></div></div><div class="card" id="backup"><div class="cardbody"><h3>💾 Backup</h3>${backupBanner()}<p>Il file <strong>.backup</strong> contiene tutto l’archivio MAIR GO!: opere e immagini, documenti, certificati, cataloghi, clienti, vendite, agenda e impostazioni.</p><p>Premi <strong>Crea Backup</strong>: Android apre la schermata <strong>Salva in</strong>, dalla quale puoi scegliere Download, Documenti, una cartella o Google Drive. Con <strong>Ripristina Backup</strong> si apre invece <strong>Apri da</strong>, che permette di recuperare lo stesso file anche da Drive.</p><div class="row"><button class="btn primary" data-action="exportBackup">💾 Crea Backup</button><button class="btn" data-action="importBackup">↩️ Ripristina Backup</button></div><p class="meta">Compatibile anche con i vecchi file .mair e .json. Ultimo backup: ${db.settings.lastBackup?new Date(db.settings.lastBackup).toLocaleString('it-IT'):'mai'}</p></div></div></div><h2 id="lists" style="margin-top:28px">Liste personalizzabili</h2><div class="grid">${Object.entries({techniques:'Tecniche',supports:'Supporti',dimensions:'Dimensioni',frames:'Cornici',statuses:'Stati',categories:'Categorie Biblioteca'}).map(([k,t])=>`<article class="card"><div class="cardbody"><h3>${t}</h3><div class="list-manager">${L[k].map((v,i)=>`<div class="list-row"><input value="${esc(v)}" data-list-key="${k}" data-list-i="${i}"><button class="btn danger" data-action="removeListItem" data-id="${k}:${i}">×</button></div>`).join('')}<button class="btn" data-action="addListItem" data-id="${k}">＋ Aggiungi voce</button><button class="btn primary" data-action="saveLists">Salva modifiche</button></div></div></article>`).join('')}</div>`}
 function openModal(title,html,onSave,saveLabel='Salva'){ $('#modalTitle').textContent=title;$('#modalBody').innerHTML=html;$('#modalSave').textContent=saveLabel;modal.showModal();document.querySelectorAll('[data-add-list]').forEach(b=>b.onclick=()=>{const key={technique:'techniques',support:'supports',dimensions:'dimensions',frame:'frames',status:'statuses',category:'categories'}[b.dataset.addList];const v=prompt('Nuova voce');if(v){db.settings.lists[key].push(v);save();const s=b.previousElementSibling;s.insertAdjacentHTML('beforeend',`<option selected>${esc(v)}</option>`)}});$('#modalSave').onclick=e=>{e.preventDefault();onSave(new FormData($('#modalForm')))}}
 async function fileData(file){return new Promise((res,rej)=>{const r=new FileReader;r.onload=()=>res(r.result);r.onerror=rej;r.readAsDataURL(file)})}async function fileText(file){try{return await file.text()}catch{return ''}}
 function anniLista(sel){const y=new Date().getFullYear();const a=[''];for(let i=y+1;i>=1950;i--)a.push(String(i));if(sel&&!a.includes(String(sel)))a.splice(1,0,String(sel));return a;}
@@ -2174,29 +2174,41 @@ async function salvaFile(nome,contenuto,mime,condividi){
 
 
 
-/* ===== BACKUP PROFESSIONALE MAIR GO! 10 ===== */
+/* ===== BACKUP NATIVO MAIR GO! 10.1 ===== */
 function backupFileName(){
   const d=new Date(),pad=n=>String(n).padStart(2,'0');
   return `Backup_MAIR_GO_${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}_${pad(d.getHours())}-${pad(d.getMinutes())}.backup`;
 }
 function backupPayload(){
-  return JSON.stringify({format:'MAIR_GO_BACKUP',version:10,createdAt:new Date().toISOString(),data:db});
+  return JSON.stringify({format:'MAIR_GO_BACKUP',version:10.1,createdAt:new Date().toISOString(),data:db});
+}
+function base64Utf8(testo){
+  const bytes=new TextEncoder().encode(testo);let bin='';
+  for(let i=0;i<bytes.length;i+=0x8000)bin+=String.fromCharCode(...bytes.subarray(i,i+0x8000));
+  return btoa(bin);
+}
+function utf8Base64(base64){
+  const bin=atob(base64);const bytes=new Uint8Array(bin.length);
+  for(let i=0;i<bin.length;i++)bytes[i]=bin.charCodeAt(i);
+  return new TextDecoder().decode(bytes);
 }
 async function creaBackupProfessionale(){
   const nome=backupFileName(),contenuto=backupPayload();
   try{
-    const Cap=window.Capacitor,FS=Cap&&Cap.Plugins&&Cap.Plugins.Filesystem,Sh=Cap&&Cap.Plugins&&Cap.Plugins.Share;
-    if(FS&&Sh){
-      const b64=btoa(unescape(encodeURIComponent(contenuto)));
-      let res=null;
+    const Cap=window.Capacitor;
+    const FS=Cap&&Cap.Plugins&&Cap.Plugins.Filesystem;
+    const Native=Cap&&Cap.Plugins&&Cap.Plugins.MairBackup;
+    if(FS&&Native){
+      const tmp='mair-export-'+Date.now()+'.backup';
+      let creato=false;
       try{
-        res=await FS.writeFile({path:nome,data:b64,directory:'CACHE',recursive:true});
-        if(!res||!res.uri)throw new Error('File temporaneo non creato');
-        await Sh.share({title:nome,text:'Backup completo MAIR GO!',url:res.uri,dialogTitle:'Salva il backup'});
-        db.settings.lastBackup=new Date().toISOString();save();
-        return true;
+        const scritto=await FS.writeFile({path:tmp,data:base64Utf8(contenuto),directory:'CACHE',recursive:true});
+        creato=true;
+        const esito=await Native.saveBackup({sourceUri:scritto.uri,fileName:nome});
+        if(esito&&esito.cancelled){toast('Backup annullato');return false;}
+        db.settings.lastBackup=new Date().toISOString();save();return true;
       }finally{
-        try{await FS.deleteFile({path:nome,directory:'CACHE'});}catch(e){diagLog('BACKUP-CLEAN',e&&e.message?e.message:String(e));}
+        if(creato){try{await FS.deleteFile({path:tmp,directory:'CACHE'});}catch(e){diagLog('BACKUP-CLEAN',e&&e.message?e.message:String(e));}}
       }
     }
     if(window.showSaveFilePicker){
@@ -2211,19 +2223,37 @@ async function creaBackupProfessionale(){
     diagLog('BACKUP-ERRORE',e&&e.message?e.message:String(e));alert('Impossibile creare il backup: '+(e&&e.message?e.message:e));return false;
   }
 }
-function ripristinaBackupProfessionale(){
-  const i=document.createElement('input');i.type='file';i.accept='.backup,.mair,.json,application/json';
-  i.onchange=async()=>{
-    const f=i.files&&i.files[0];if(!f)return;
-    try{
-      const parsed=JSON.parse(await f.text());
-      const dati=parsed&&parsed.format==='MAIR_GO_BACKUP'?parsed.data:parsed;
-      if(!dati||typeof dati!=='object'||!Array.isArray(dati.artworks)||!dati.settings)throw new Error('Struttura non riconosciuta');
-      if(!confirm('Ripristinare questo backup? I dati attuali saranno sostituiti.'))return;
-      db=merge(clone(defaults),dati);await writePersistentState(clone(db));save();render();toast('Backup ripristinato');
-    }catch(e){alert('Backup non valido o danneggiato.');diagLog('BACKUP-IMPORT',e&&e.message?e.message:String(e));}
-  };
-  i.click();
+async function applicaBackupTesto(testo,nome='backup'){
+  const parsed=JSON.parse(testo);
+  const dati=parsed&&parsed.format==='MAIR_GO_BACKUP'?parsed.data:parsed;
+  if(!dati||typeof dati!=='object'||!Array.isArray(dati.artworks)||!dati.settings)throw new Error('Struttura non riconosciuta');
+  if(!confirm(`Ripristinare "${nome}"?\n\nI dati attuali saranno sostituiti.`))return false;
+  db=merge(clone(defaults),dati);
+  await writePersistentState(clone(db));save();render();toast('Backup ripristinato');return true;
+}
+async function ripristinaBackupProfessionale(){
+  try{
+    const Cap=window.Capacitor;
+    const FS=Cap&&Cap.Plugins&&Cap.Plugins.Filesystem;
+    const Native=Cap&&Cap.Plugins&&Cap.Plugins.MairBackup;
+    if(FS&&Native){
+      const scelto=await Native.openBackup();
+      if(!scelto||scelto.cancelled){toast('Ripristino annullato');return;}
+      try{
+        const letto=await FS.readFile({path:scelto.cacheName,directory:'CACHE'});
+        await applicaBackupTesto(utf8Base64(letto.data),scelto.originalName||'backup');
+      }finally{
+        try{await FS.deleteFile({path:scelto.cacheName,directory:'CACHE'});}catch(e){diagLog('BACKUP-IMPORT-CLEAN',e&&e.message?e.message:String(e));}
+      }
+      return;
+    }
+    const i=document.createElement('input');i.type='file';i.accept='.backup,.mair,.json,application/json';
+    i.onchange=async()=>{const f=i.files&&i.files[0];if(!f)return;try{await applicaBackupTesto(await f.text(),f.name)}catch(e){alert('Backup non valido o danneggiato.');diagLog('BACKUP-IMPORT',e&&e.message?e.message:String(e));}};
+    i.click();
+  }catch(e){
+    diagLog('BACKUP-IMPORT',e&&e.message?e.message:String(e));
+    alert('Impossibile aprire il backup: '+(e&&e.message?e.message:e));
+  }
 }
 
 function docViewerOpen(title,inner,extraCss,plainText){
