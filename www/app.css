@@ -167,3 +167,17 @@ input,select,textarea{min-width:0;max-width:100%}
 .link-inline{display:flex;flex-wrap:wrap;gap:10px;margin:6px 0;font-size:.88rem}
 .link-inline a{color:var(--accent,#8a6a1f);text-decoration:none}
 @media(max-width:560px){.link-row{flex-direction:column;align-items:stretch}.link-act{justify-content:flex-end}}
+
+/* pulsante esci chiaro */
+.exit-btn{padding:6px 12px;font-size:.82rem;background:transparent;border:1px solid var(--line);color:var(--muted)}
+.exit-btn:active{background:color-mix(in srgb,#c0392b 12%,transparent);border-color:#c0392b;color:#c0392b}
+
+/* ===== TIMELINE ===== */
+.timeline{display:flex;flex-direction:column;gap:18px}
+.tl-mese h3{margin:0 0 8px;font-size:.9rem;text-transform:capitalize;color:var(--accent,#8a6a1f);border-bottom:1px solid var(--line);padding-bottom:6px}
+.tl-ev{display:flex;gap:12px;align-items:center;width:100%;text-align:left;background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);padding:10px 12px;margin-bottom:6px;cursor:pointer;color:inherit}
+.tl-ev:active{background:color-mix(in srgb,var(--accent,#8a6a1f) 8%,var(--panel))}
+.tl-ico{font-size:1.3rem;flex:0 0 auto}
+.tl-txt{display:flex;flex-direction:column;min-width:0}
+.tl-txt strong{font-size:.94rem}
+.tl-txt small{color:var(--muted);font-size:.8rem}

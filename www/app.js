@@ -9,7 +9,7 @@ function diagOpen(){
   box.setAttribute('style','position:fixed;top:0;left:0;right:0;bottom:0;z-index:999999;background:#111;color:#0f0;font:12px/1.5 monospace;padding:10px;overflow:auto');
   const testo=window.__LOG__.length?window.__LOG__.join('\n\n'):'(nessun errore registrato)';
   const info='DIAGNOSTICA MAIR GO!\n'
-    +'Versione app.js: 7.6\n'
+    +'Versione app.js: 7.7\n'
     +'docViewerOpen esiste: '+(typeof docViewerOpen)+'\n'
     +'textEditorOpen esiste: '+(typeof textEditorOpen)+'\n'
     +'certDocHtml esiste: '+(typeof certDocHtml)+'\n'
@@ -269,68 +269,78 @@ async function socialCanvas(opera,cfg){
   const ctx=cv.getContext('2d');
   const stile=cfg.stile||'scuro';
   const oro='#c9a227';
-  // sfondo
   if(stile==='chiaro'){ctx.fillStyle='#f4f1ea';}
   else if(stile==='oro'){ctx.fillStyle='#0d0d0d';}
   else if(stile==='sfumato'){const g=ctx.createLinearGradient(0,0,W,H);g.addColorStop(0,'#1a1410');g.addColorStop(1,'#3a2c1c');ctx.fillStyle=g;}
   else {ctx.fillStyle='#141210';}
   ctx.fillRect(0,0,W,H);
   const testoCol=(stile==='chiaro')?'#1a1a1a':'#f5efe2';
-  // immagine opera
+  // immagine opera: una sola cornice sottile, niente doppio riquadro
   if(opera.image){
     const img=await new Promise((ris,rif)=>{const i=new Image();i.onload=()=>ris(i);i.onerror=rif;i.src=opera.image;});
-    const areaH=H*0.62, areaW=W*0.82;
+    const areaH=H*0.60, areaW=W*0.84;
     const sc=Math.min(areaW/img.width,areaH/img.height);
     const iw=img.width*sc, ih=img.height*sc;
-    const ix=(W-iw)/2, iy=H*0.10;
+    const ix=(W-iw)/2, iy=H*0.115;
     ctx.save();
-    ctx.shadowColor='rgba(0,0,0,.55)';ctx.shadowBlur=40;ctx.shadowOffsetY=12;
+    ctx.shadowColor='rgba(0,0,0,.5)';ctx.shadowBlur=38;ctx.shadowOffsetY=14;
     ctx.drawImage(img,ix,iy,iw,ih);
     ctx.restore();
-    ctx.strokeStyle=oro;ctx.lineWidth=Math.max(2,W*0.004);
-    ctx.strokeRect(ix,iy,iw,ih);
   }
-  // testi
   const cx=W/2;
-  let y=H*0.79;
+  let y=H*0.80;
   ctx.textAlign='center';
-  ctx.fillStyle=oro;
-  ctx.font='600 '+Math.round(W*0.028)+'px Georgia, serif';
-  ctx.fillText((cfg.etichetta||'OPERA').toUpperCase().split('').join(' '),cx,y);
-  y+=H*0.055;
+  const etich=(cfg.etichetta||'').trim();
+  if(etich){
+    ctx.fillStyle=oro;
+    ctx.font='600 '+Math.round(W*0.028)+'px Georgia, serif';
+    ctx.fillText(etich.toUpperCase().split('').join(' '),cx,y);
+    y+=H*0.052;
+  }
   ctx.fillStyle=testoCol;
   ctx.font='italic 700 '+Math.round(W*0.062)+'px Georgia, serif';
-  const tit=String(opera.title||'Senza titolo');
-  const maxW=W*0.86;
-  let t=tit;
+  const tit=String(cfg.titolo||opera.title||'Senza titolo');
+  let t=tit;const maxW=W*0.86;
   while(ctx.measureText(t).width>maxW&&t.length>4)t=t.slice(0,-2);
   if(t!==tit)t=t+'\u2026';
   ctx.fillText(t,cx,y);
-  y+=H*0.045;
-  ctx.fillStyle=(stile==='chiaro')?'#555':'#b9ac93';
-  ctx.font='400 '+Math.round(W*0.028)+'px Georgia, serif';
-  const dett=[opera.year,opera.technique,opera.dimensions].filter(Boolean).join('  \u00b7  ');
-  if(dett)ctx.fillText(dett.slice(0,60),cx,y);
-  // firma
-  ctx.fillStyle=oro;
-  ctx.font='700 '+Math.round(W*0.03)+'px Georgia, serif';
-  ctx.fillText(String(db.settings.artist||''),cx,H*0.945);
-  // cornice
-  ctx.strokeStyle=oro;ctx.lineWidth=Math.max(2,W*0.005);
-  ctx.strokeRect(W*0.035,H*0.03,W*0.93,H*0.94);
+  y+=H*0.046;
+  const frase=(cfg.frase||'').trim();
+  if(frase){
+    ctx.fillStyle=(stile==='chiaro')?'#555':'#b9ac93';
+    ctx.font='400 '+Math.round(W*0.028)+'px Georgia, serif';
+    // testo su piu' righe
+    const parole=frase.split(/\s+/);let riga='';const righe=[];
+    parole.forEach(pa=>{const prova=riga?riga+' '+pa:pa;if(ctx.measureText(prova).width>W*0.82){if(riga)righe.push(riga);riga=pa;}else riga=prova;});
+    if(riga)righe.push(riga);
+    righe.slice(0,3).forEach(r=>{ctx.fillText(r,cx,y);y+=H*0.04;});
+  }
+  if(cfg.mostraFirma!==false){
+    ctx.fillStyle=oro;
+    ctx.font='700 '+Math.round(W*0.03)+'px Georgia, serif';
+    ctx.fillText(String(db.settings.artist||''),cx,H*0.95);
+  }
+  if(cfg.cornice!==false){
+    ctx.strokeStyle=oro;ctx.lineWidth=Math.max(2,W*0.005);
+    ctx.strokeRect(W*0.035,H*0.03,W*0.93,H*0.94);
+  }
   return cv;
 }
 
 async function socialPostModal(opera){
-  const cfg={formato:'1080x1080',stile:'scuro',etichetta:'Opera'};
-  openModal('Post social — '+(opera.title||'Opera'),'<div class="formgrid">'
+  openModal('Post social \u2014 '+(opera.title||'Opera'),'<div class="formgrid">'
     +'<div class="field"><label>Formato</label><select name="formato">'+SOCIAL_FORMATI.map(([v,l])=>'<option value="'+v+'">'+l+'</option>').join('')+'</select></div>'
     +'<div class="field"><label>Stile</label><select name="stile">'+SOCIAL_STILI.map(([v,l])=>'<option value="'+v+'">'+l+'</option>').join('')+'</select></div>'
-    +field('Etichetta in alto','etichetta','Opera')
-    +'<p class="meta full">L\u2019immagine verr\u00e0 generata e potrai salvarla o condividerla sui social.</p>'
+    +'<div class="field"><label>Testo in alto</label><input name="etichetta" value="'+esc(opera.year||'')+'"></div>'
+    +'<div class="field"><label>Cornice decorativa</label><select name="cornice"><option value="si">S\u00ec</option><option value="no">No</option></select></div>'
+    +field('Titolo mostrato (vuoto = titolo opera)','titolo',opera.title||'','text','full')
+    +area('Testo / didascalia sotto il titolo (facoltativo)','frase',[opera.technique,opera.dimensions].filter(Boolean).join(' \u00b7 '))
+    +'<div class="field full"><label class="chkline"><input type="checkbox" name="mostraFirma" checked> Mostra la firma dell\u2019artista</label></div>'
+    +'<p class="meta full">Genera un\u2019immagine curata, pronta per i social.</p>'
   +'</div>',async fd=>{
     modal.close();
-    await socialGenera(opera,{formato:fd.get('formato'),stile:fd.get('stile'),etichetta:fd.get('etichetta')||'Opera'});
+    await socialGenera(opera,{formato:fd.get('formato'),stile:fd.get('stile'),etichetta:fd.get('etichetta'),
+      cornice:fd.get('cornice')!=='no',titolo:fd.get('titolo'),frase:fd.get('frase'),mostraFirma:!!fd.get('mostraFirma')});
   });
 }
 
@@ -1087,6 +1097,46 @@ function galleriesDocHtml(){
 }
 function galleriesPlain(){return 'GALLERIE\n\n'+(db.galleries||[]).map(g=>[g.name,g.city,g.manager,g.phone,g.email,g.website].filter(Boolean).join(' \u00b7 ')).join('\n');}
 
+function timelineEventi(){
+  const ev=[];
+  const push=(data,tipo,tit,icona,rotta)=>{if(data)ev.push({data,tipo,tit,icona,rotta});};
+  (db.artworks||[]).forEach(a=>push(a.created,'Opera','Opera: '+(a.title||'senza titolo'),'\ud83c\udfa8','artworks'));
+  (db.sales||[]).forEach(x=>{const a=db.artworks.find(o=>o.id===x.artworkId);push(x.date||x.created,'Vendita','Vendita'+(a?': '+a.title:'')+(x.total?' \u2014 '+euro(x.total):''),'\ud83d\udcb6','sales');});
+  (db.exhibitions||[]).forEach(x=>push(x.startDate||x.created,'Mostra','Mostra: '+(x.title||''),'\ud83c\udfdb\ufe0f','exhibitions'));
+  (db.certificates||[]).forEach(x=>push(x.date||x.created,'Certificato','Certificato: '+(x.title||''),'\u2726','certificates'));
+  (db.agenda||[]).forEach(x=>push(x.date,'Agenda',(x.title||'Impegno'),'\ud83d\udcc5','agenda'));
+  (db.library||[]).forEach(x=>push(x.created,'Documento','Documento: '+(x.title||x.name||''),'\ud83d\udcda','library'));
+  const soglia=db.settings.timelineFrom?new Date(db.settings.timelineFrom):null;
+  let lista=ev.filter(e=>{const d=new Date(e.data);return !isNaN(d)&&(!soglia||d>=soglia);});
+  lista.sort((a,b)=>new Date(b.data)-new Date(a.data));
+  return lista;
+}
+function timelineView(){
+  const ev=timelineEventi();
+  const perMese={};
+  ev.forEach(e=>{const d=new Date(e.data);const k=d.toLocaleDateString('it-IT',{year:'numeric',month:'long'});(perMese[k]=perMese[k]||[]).push(e);});
+  const blocchi=Object.keys(perMese).map(mese=>'<div class="tl-mese"><h3>'+esc(mese)+'</h3>'
+    +perMese[mese].map(e=>'<button class="tl-ev" data-go="'+e.rotta+'"><span class="tl-ico">'+e.icona+'</span><span class="tl-txt"><strong>'+esc(e.tit)+'</strong><small>'+new Date(e.data).toLocaleDateString('it-IT')+' \u00b7 '+esc(e.tipo)+'</small></span></button>').join('')
+    +'</div>').join('');
+  const soglia=db.settings.timelineFrom?('<p class="meta">Mostro gli eventi dal '+new Date(db.settings.timelineFrom).toLocaleDateString('it-IT')+' in poi.</p>'):'';
+  return section('Timeline','<button class="btn" data-action="timelineAzzera">\ud83e\uddf9 Azzera da data</button>')
+   +'<section class="hero"><h2>\ud83d\udd52 Timeline</h2><p>Cronologia automatica di opere, vendite, mostre, certificati, documenti e impegni.</p></section>'
+   +soglia
+   +(ev.length?'<div class="timeline">'+blocchi+'</div>':empty('\ud83d\udd52','Nessun evento da mostrare.'+(db.settings.timelineFrom?' Prova a rimuovere il filtro data.':'')));
+}
+function timelineAzzeraModal(){
+  const oggi=new Date().toISOString().slice(0,10);
+  openModal('Azzera timeline da una data','<div class="formgrid">'
+    +'<p class="meta full">La timeline mostrer\u00e0 solo gli eventi <strong>a partire</strong> dalla data scelta. Gli eventi precedenti verranno nascosti dalla cronologia (i dati NON vengono cancellati).</p>'
+    +field('Mostra eventi dal','timelineFrom',db.settings.timelineFrom||oggi,'date','full')
+    +(db.settings.timelineFrom?'<label class="chkline"><input type="checkbox" name="rimuovi"> Rimuovi il filtro e mostra tutto</label>':'')
+  +'</div>',fd=>{
+    if(fd.get('rimuovi')){delete db.settings.timelineFrom;}
+    else{const d=fd.get('timelineFrom');if(d)db.settings.timelineFrom=d;}
+    save();modal.close();go('timeline');toast('Timeline aggiornata');
+  });
+}
+
 function guideView(){return `${section('Guida offline')}
 <section class="hero"><h2>&#128214; Come usare MAIR GO!</h2><p>Guida completa a tutte le funzioni. Consultabile senza connessione.</p></section>
 
@@ -1160,7 +1210,7 @@ function guideView(){return `${section('Guida offline')}
 
 <details class="guide-item"><summary><strong>&#128241; Zona Social</strong></summary>
 <p>Trasforma le opere in materiale pronto per Instagram, Facebook e TikTok.</p>
-<p><strong>Immagine singola:</strong> genera una card curata con cornice dorata, titolo, dati tecnici e la tua firma. Quattro formati (quadrato, verticale 4:5, storia 9:16, orizzontale) e quattro stili grafici.</p>
+<p><strong>Immagine singola:</strong> genera una card curata. Puoi scegliere titolo, testo/didascalia libera, testo in alto, se mostrare la cornice e la firma. Quattro formati (quadrato, 4:5, storia 9:16, orizzontale) e quattro stili grafici.</p>
 <p><strong>Sequenza immagini:</strong> fino a 5 opere numerate, ideali per un carosello.</p>
 <p><strong>Video:</strong> monta fino a 5 opere in un filmato con titolo iniziale, transizioni miste (dissolvenza, scorrimento, zoom lento), dati di ogni opera e chiusura con i tuoi contatti. Durata regolabile da 3 a 5 secondi per opera.</p>
 <p>La creazione del video avviene in tempo reale: per 5 opere servono circa 25 secondi, durante i quali <strong>lo schermo deve restare acceso</strong> e non bisogna uscire dall'app.</p>
@@ -1210,6 +1260,11 @@ function guideView(){return `${section('Guida offline')}
 <p><strong>Clienti:</strong> rubrica di collezionisti e galleristi, con storico delle vendite.</p>
 <p><strong>Vendite:</strong> trattative e incassi, con generazione della ricevuta.</p>
 <p><strong>Workspace:</strong> progetti che raccolgono insieme opere, documenti e contatti.</p>
+</details>
+
+<details class="guide-item"><summary><strong>&#128338; Timeline</strong></summary>
+<p>Cronologia automatica di tutto: opere, vendite, mostre, certificati, documenti e impegni, ordinati per data e raggruppati per mese. Tocca un evento per andare alla sezione relativa.</p>
+<p>Con <strong>Azzera da data</strong> scegli una data di partenza: la timeline mostrer&agrave; solo gli eventi da l&igrave; in avanti. &Egrave; solo un filtro di visualizzazione &mdash; <strong>i dati non vengono cancellati</strong> &mdash; e si pu&ograve; rimuovere quando vuoi.</p>
 </details>
 
 <details class="guide-item"><summary><strong>&#127968; Personalizzare la schermata principale</strong></summary>
@@ -1295,7 +1350,8 @@ function infoView(){return `${section('Informazioni')}<section class="legal-card
 function settingsView(){const L=db.settings.lists;return `${section('Impostazioni')}<div class="settings-tabs"><a href="#appearance">Aspetto</a><a href="#security">Sicurezza</a><a href="#profile">Profilo</a><a href="#lists">Liste</a><a href="#backup">Backup</a></div><div class="formgrid"><div class="card" id="appearance"><div class="cardbody"><h3>🎨 Aspetto</h3><div class="field"><label>Tema dell'app</label><select id="themeSetting">${themeOptions.map(([v,l])=>`<option value="${v}" ${db.settings.theme===v?'selected':''}>${l}</option>`).join('')}</select></div><div class="field"><label>Dimensione caratteri</label><select id="fontSetting"><option value="small" ${db.settings.fontSize==='small'?'selected':''}>Piccola</option><option value="medium" ${db.settings.fontSize==='medium'?'selected':''}>Media</option><option value="large" ${db.settings.fontSize==='large'?'selected':''}>Grande</option></select></div><label class="switchrow"><input id="animationsSetting" type="checkbox" ${db.settings.animations!==false?'checked':''}> Animazioni</label><label class="switchrow"><input id="splashSetting" type="checkbox" ${db.settings.splash!==false?'checked':''}> Mostra splash all'avvio</label><button class="btn primary" data-action="saveAppearance">Salva aspetto</button></div></div><div class="card" id="security"><div class="cardbody"><h3>🔒 Sicurezza</h3><label class="switchrow"><input id="pinEnabled" type="checkbox" ${db.settings.pinEnabled?'checked':''}> Richiedi PIN all'avvio</label><div class="field"><label>Nuovo PIN (4–6 cifre)</label><input id="newPin" type="password" inputmode="numeric" maxlength="6" placeholder="Lascia vuoto per non cambiarlo"></div><div class="field"><label>Conferma PIN</label><input id="confirmPin" type="password" inputmode="numeric" maxlength="6"></div><button class="btn primary" data-action="savePin">Salva sicurezza</button><p class="meta">Il PIN è una protezione locale di accesso, non una cifratura dei file.</p></div></div><div class="card" id="profile"><div class="cardbody"><h3>👤 Profilo artista</h3>${field('Nome artista / atelier','artist',db.settings.artist)}${area('Biografia','bio',db.settings.bio,'')}${field('Email','email',db.settings.email,'email')}${field('Telefono','phone',db.settings.phone)}<button class="btn primary" data-action="saveProfile">Salva profilo</button></div></div><div class="card"><div class="cardbody"><h3>📄 Impaginazione PDF</h3><p class="meta">Formato, margini, caratteri, colori, immagini e sezioni dei documenti generati.</p><button class="btn" data-action="pdfSettings">Configura impaginazione</button></div></div><div class="card"><div class="cardbody"><h3>🚪 Chiudi applicazione</h3><p class="meta">Chiude completamente MAIR GO!. I dati restano salvati.</p><button class="btn danger" data-action="esciApp">Esci dall'app</button></div></div><div class="card"><div class="cardbody"><h3>🛠 Diagnostica</h3><p class="meta">Se qualcosa non funziona, apri il registro errori e invia il testo allo sviluppatore.</p><button class="btn" data-action="openDiag">Apri diagnostica</button></div></div><div class="card" id="backup"><div class="cardbody"><h3>⬇️ Backup</h3>${backupBanner()}<p>Il file <strong>.mair</strong> contiene <strong>tutto</strong>: opere con le immagini, documenti, certificati, cataloghi, clienti, vendite, agenda e impostazioni.</p><p>Premendo Esporta si apre il pannello di condivisione: scegli dove mettere il file — Google Drive, email a te stesso, WhatsApp o una cartella del telefono. <strong>Mandalo fuori dal dispositivo</strong>: se il telefono si perde o si rompe, un backup rimasto solo lì non ti aiuta. Senza backup i dati non sono recuperabili da nessuno.</p><div class="row"><button class="btn primary" data-action="exportBackup">💾 Esporta ora</button><button class="btn" data-action="importBackup">Importa</button></div><p class="meta">Ultimo backup: ${db.settings.lastBackup?new Date(db.settings.lastBackup).toLocaleString('it-IT'):'mai'}</p></div></div></div><h2 id="lists" style="margin-top:28px">Liste personalizzabili</h2><div class="grid">${Object.entries({techniques:'Tecniche',supports:'Supporti',dimensions:'Dimensioni',frames:'Cornici',statuses:'Stati',categories:'Categorie Biblioteca'}).map(([k,t])=>`<article class="card"><div class="cardbody"><h3>${t}</h3><div class="list-manager">${L[k].map((v,i)=>`<div class="list-row"><input value="${esc(v)}" data-list-key="${k}" data-list-i="${i}"><button class="btn danger" data-action="removeListItem" data-id="${k}:${i}">×</button></div>`).join('')}<button class="btn" data-action="addListItem" data-id="${k}">＋ Aggiungi voce</button><button class="btn primary" data-action="saveLists">Salva modifiche</button></div></div></article>`).join('')}</div>`}
 function openModal(title,html,onSave,saveLabel='Salva'){ $('#modalTitle').textContent=title;$('#modalBody').innerHTML=html;$('#modalSave').textContent=saveLabel;modal.showModal();document.querySelectorAll('[data-add-list]').forEach(b=>b.onclick=()=>{const key={technique:'techniques',support:'supports',dimensions:'dimensions',frame:'frames',status:'statuses',category:'categories'}[b.dataset.addList];const v=prompt('Nuova voce');if(v){db.settings.lists[key].push(v);save();const s=b.previousElementSibling;s.insertAdjacentHTML('beforeend',`<option selected>${esc(v)}</option>`)}});$('#modalSave').onclick=e=>{e.preventDefault();onSave(new FormData($('#modalForm')))}}
 async function fileData(file){return new Promise((res,rej)=>{const r=new FileReader;r.onload=()=>res(r.result);r.onerror=rej;r.readAsDataURL(file)})}async function fileText(file){try{return await file.text()}catch{return ''}}
-function artworkModal(a={}){openModal(a.id?'Modifica opera':'Nuova opera',`<div class="formgrid">${field('Titolo','title',a.title,'text','full')}${field('Anno','year',a.year)}${field('Codice opera','code',a.code||('MG-'+String(db.artworks.length+1).padStart(4,'0')))}${selectField('Tecnica','technique',db.settings.lists.techniques,a.technique)}${selectField('Supporto','support',db.settings.lists.supports,a.support)}${selectField('Dimensioni','dimensions',db.settings.lists.dimensions,a.dimensions)}${selectField('Cornice','frame',db.settings.lists.frames,a.frame)}${selectField('Stato','status',db.settings.lists.statuses,a.status||'Disponibile')}${field('Prezzo (€)','price',a.price,'number')}${field('Serie / collezione','collection',a.collection)}${field('Posizione attuale','location',a.location)}${area('Descrizione','description',a.description)}${area('Note private','notes',a.notes)}<div class="field full"><label>Immagine principale</label><input name="imageFile" type="file" accept="image/*"></div></div>`,async fd=>{const file=fd.get('imageFile');const obj={...a,id:a.id||uid(),title:fd.get('title'),year:fd.get('year'),code:fd.get('code'),technique:fd.get('technique'),support:fd.get('support'),dimensions:fd.get('dimensions'),frame:fd.get('frame'),status:fd.get('status'),price:fd.get('price'),collection:fd.get('collection'),location:fd.get('location'),description:fd.get('description'),notes:fd.get('notes'),image:file?.size?await fileData(file):a.image||'',updated:new Date().toISOString(),created:a.created||new Date().toISOString()};if(a.id)db.artworks=db.artworks.map(x=>x.id===a.id?obj:x);else db.artworks.unshift(obj);save();modal.close();render();toast('Opera salvata')})}
+function anniLista(sel){const y=new Date().getFullYear();const a=[''];for(let i=y+1;i>=1950;i--)a.push(String(i));if(sel&&!a.includes(String(sel)))a.splice(1,0,String(sel));return a;}
+function artworkModal(a={}){openModal(a.id?'Modifica opera':'Nuova opera',`<div class="formgrid">${field('Titolo','title',a.title,'text','full')}${selectField('Anno','year',anniLista(a.year),a.year||'')}${field('Codice opera','code',a.code||('MG-'+String(db.artworks.length+1).padStart(4,'0')))}${selectField('Tecnica','technique',db.settings.lists.techniques,a.technique)}${selectField('Supporto','support',db.settings.lists.supports,a.support)}${selectField('Dimensioni','dimensions',db.settings.lists.dimensions,a.dimensions)}${selectField('Cornice','frame',db.settings.lists.frames,a.frame)}${selectField('Stato','status',db.settings.lists.statuses,a.status||'Disponibile')}${field('Prezzo (€)','price',a.price,'number')}${field('Serie / collezione','collection',a.collection)}${field('Posizione attuale','location',a.location)}${area('Descrizione','description',a.description)}${area('Note private','notes',a.notes)}<div class="field full"><label>Immagine principale</label><input name="imageFile" type="file" accept="image/*"></div></div>`,async fd=>{const file=fd.get('imageFile');const obj={...a,id:a.id||uid(),title:fd.get('title'),year:fd.get('year'),code:fd.get('code'),technique:fd.get('technique'),support:fd.get('support'),dimensions:fd.get('dimensions'),frame:fd.get('frame'),status:fd.get('status'),price:fd.get('price'),collection:fd.get('collection'),location:fd.get('location'),description:fd.get('description'),notes:fd.get('notes'),image:file?.size?await fileData(file):a.image||'',updated:new Date().toISOString(),created:a.created||new Date().toISOString()};if(a.id)db.artworks=db.artworks.map(x=>x.id===a.id?obj:x);else db.artworks.unshift(obj);save();modal.close();render();toast('Opera salvata')})}
 function libraryModal(d={}){const arts=db.artworks.map(a=>`<option value="${a.id}" ${d.artworkId===a.id?'selected':''}>${esc(a.title)}</option>`).join('');openModal(d.id?'Modifica documento':'Carica nella Biblioteca',`<div class="formgrid">${!d.id?`<div class="field full"><label>File locale</label><input name="file" type="file" accept=".pdf,.docx,.doc,.txt,image/*" required></div>`:''}${field('Titolo','title',d.title,'text','full')}${field('Autore','author',d.author)}${selectField('Categoria','category',db.settings.lists.categories,d.category||'Catalogo')}${field('Tag separati da virgola','tags',(d.tags||[]).join(', '),'text','full')}${area('Descrizione','description',d.description)}<div class="field full"><label>Opera collegata</label><select name="artworkId"><option value="">Nessuna</option>${arts}</select></div>${area('Appunti di studio','notes',d.notes)}</div>`,async fd=>{let obj={...d,id:d.id||uid(),title:fd.get('title'),author:fd.get('author'),category:fd.get('category'),tags:String(fd.get('tags')||'').split(',').map(x=>x.trim()).filter(Boolean),description:fd.get('description'),artworkId:fd.get('artworkId'),notes:fd.get('notes'),date:d.date||new Date().toISOString()};if(!d.id){const f=fd.get('file');if(!f?.size)return alert('Seleziona un file');obj.name=f.name;obj.mime=f.type||mimeFromName(f.name);obj.data=await fileData(f);if(obj.mime.startsWith('text/')||/\.txt$/i.test(f.name))obj.text=await fileText(f);if(!obj.title)obj.title=f.name.replace(/\.[^.]+$/,'')}if(d.id)db.library=db.library.map(x=>x.id===d.id?obj:x);else db.library.unshift(obj);save();modal.close();render();toast('Documento salvato')})}function mimeFromName(n){if(/\.pdf$/i.test(n))return'application/pdf';if(/\.docx?$/i.test(n))return'application/vnd.openxmlformats-officedocument.wordprocessingml.document';if(/\.(png|jpe?g|webp|gif)$/i.test(n))return'image/*';return'text/plain'}
 function openLibrary(id){const d=db.library.find(x=>x.id===id);if(!d)return;currentViewer=d;$('#viewerTitle').textContent=d.title;const type=d.mime||'';let content;if(type.includes('pdf'))content=`<embed src="${d.data}" type="application/pdf">`;else if(type.startsWith('image'))content=`<img src="${d.data}" alt="${esc(d.title)}">`;else if(type.startsWith('text')||d.text)content=`<pre>${esc(d.text||'Anteprima testuale non disponibile. Usa “Scarica” per aprire il documento originale.')}</pre>`;else content=`<pre>Anteprima DOCX: il file resta completamente locale. Alcuni browser non mostrano DOCX direttamente; usa “Scarica” per aprirlo nell’app Word/LibreOffice del dispositivo.\n\nTitolo: ${esc(d.title)}\nAutore: ${esc(d.author)}\nDescrizione: ${esc(d.description)}</pre>`;$('#viewerBody').innerHTML=`<div class="viewer-layout"><div class="viewer-main">${content}</div><aside class="study"><h3>Appunti di studio</h3><textarea id="studyNotes" placeholder="Annota idee senza uscire dal documento…">${esc(d.notes||'')}</textarea><button class="btn primary" id="saveStudy">Salva appunti</button><hr><p class="meta">Categoria: ${esc(d.category)}<br>Tag: ${esc((d.tags||[]).join(', '))}<br>${d.artworkId?'Collegato a: '+esc(db.artworks.find(a=>a.id===d.artworkId)?.title||'Opera'):''}</p></aside></div>`;$('#saveStudy').onclick=()=>{d.notes=$('#studyNotes').value;save();toast('Appunti salvati')};$('#viewerDownload').onclick=()=>download(dataURLtoBlob(d.data),d.name||d.title);viewer.showModal()}
 function dataURLtoBlob(u){const [h,b]=u.split(','),m=(h.match(/:(.*?);/)||[])[1]||'application/octet-stream',bin=atob(b),a=new Uint8Array(bin.length);for(let i=0;i<bin.length;i++)a[i]=bin.charCodeAt(i);return new Blob([a],{type:m})}
@@ -1924,7 +1980,7 @@ function docViewerOpen(title,inner,extraCss,plainText){
 }
 
 let previewId=null;function pdfPreviewView(){const p=db.pdfProjects.find(x=>x.id===previewId);if(!p)return empty('📄','Progetto non trovato.');const arts=(p.artworkIds||[]).map(id=>db.artworks.find(a=>a.id===id)).filter(Boolean),F=p.fields||[];return `<div class="toolbar no-print"><button class="btn" data-action="backPdf">← PDF Studio</button><button class="btn primary" data-action="printPdf">📄 Apri documento</button><button class="btn" data-action="sharePdf">✍️ Testo modificabile</button></div><article class="pdf-page" data-theme="${esc(p.theme)}"><header style="border-bottom:3px solid var(--accent);padding-bottom:28px;margin-bottom:35px"><small>MAIR GO! · ${esc(p.type)}</small><h1>${esc(p.title)}</h1><h2>${esc(p.subtitle)}</h2><p>${esc(p.intro||'')}</p></header>${arts.map(a=>`<section class="pdf-art"><div>${a.image?`<img src="${a.image}" alt="${esc(a.title)}">`:''}</div><div><h2>${esc(a.title)}</h2>${F.includes('year')?`<p><strong>Anno:</strong> ${esc(a.year)}</p>`:''}${F.includes('code')?`<p><strong>Codice:</strong> ${esc(a.code)}</p>`:''}${F.includes('technique')?`<p><strong>Tecnica:</strong> ${esc(a.technique)}${a.support?' su '+esc(a.support):''}</p>`:''}${F.includes('dimensions')?`<p><strong>Dimensioni:</strong> ${esc(a.dimensions)}</p>`:''}${F.includes('frame')?`<p><strong>Cornice:</strong> ${esc(a.frame)}</p>`:''}${F.includes('status')?`<p><strong>Stato:</strong> ${esc(a.status)}</p>`:''}${F.includes('price')&&a.price?`<p><strong>Prezzo:</strong> ${euro(a.price)}</p>`:''}${F.includes('description')?`<p>${esc(a.description)}</p>`:''}</div></section>`).join('')}<footer style="border-top:1px solid #bbb;padding-top:20px;margin-top:40px"><strong>${esc(db.settings.artist)}</strong><br>${esc(db.settings.email)} ${esc(db.settings.phone)}</footer></article>`}
-const actions={openDiag:()=>diagOpen(),
+const actions={openDiag:()=>diagOpen(),timelineAzzera:()=>timelineAzzeraModal(),
  newLink:()=>linkModal(),editLink:id=>linkModal((db.links||[]).find(x=>x.id===id)),deleteLink:id=>del('links',id),
  manageLinkCats:()=>linkCatsModal(),
  printLinks:()=>{window.__PDFCTX__={tipo:'generico'};docViewerOpen('Link utili',linksDocHtml(),'',linksPlain())},
