@@ -2176,27 +2176,54 @@ async function salvaFile(nome,contenuto,mime,condividi){
 
 
 
-/* ===== BACKUP PROFESSIONALE MAIR GO! 10.3 ===== */
+/* ===== BACKUP COMPATIBILE MAIR GO! ===== */
 function backupFileName(){
   const d=new Date(),pad=n=>String(n).padStart(2,'0');
   return `Backup_MAIR_GO_${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}_${pad(d.getHours())}-${pad(d.getMinutes())}.backup`;
 }
 function backupPayload(){
-  return JSON.stringify({format:'MAIR_GO_BACKUP',version:10.3,createdAt:new Date().toISOString(),data:clone(db)});
+  return JSON.stringify({format:'MAIR_GO_BACKUP',version:10.4,createdAt:new Date().toISOString(),data:clone(db)});
+}
+function backupLooksLikeDatabase(x){
+  if(!x||typeof x!=='object'||Array.isArray(x))return false;
+  const keys=['artworks','library','links','pros','galleries','collections','exhibitions','clients','sales','agenda','workspaces','pdfProjects','certificates','settings'];
+  return keys.some(k=>Array.isArray(x[k]))||!!x.settings;
+}
+function backupNormalizeLegacyData(x){
+  if(!x||typeof x!=='object'||Array.isArray(x))return x;
+  const aliases={
+    opere:'artworks',biblioteca:'library',collegamenti:'links',professionisti:'pros',curatori:'pros',critici:'pros',
+    gallerie:'galleries',collezioni:'collections',mostre:'exhibitions',clienti:'clients',vendite:'sales',
+    appuntamenti:'agenda',spazi:'workspaces',documenti:'pdfProjects',cataloghi:'pdfProjects',certificati:'certificates',impostazioni:'settings'
+  };
+  const out={...x};
+  for(const [oldKey,newKey] of Object.entries(aliases)){
+    if(out[newKey]===undefined&&out[oldKey]!==undefined)out[newKey]=out[oldKey];
+  }
+  return out;
 }
 function backupExtractData(obj){
-  if(!obj||typeof obj!=='object')throw new Error('Il file non contiene dati validi.');
-  // Formato 10.x
-  if(obj.format==='MAIR_GO_BACKUP'&&obj.data&&typeof obj.data==='object')return obj.data;
-  // Formato 9.4 e precedenti: campi in italiano.
-  if(obj.tipo==='MAIR_GO_BACKUP'&&obj.dati&&typeof obj.dati==='object')return obj.dati;
-  // Alcune versioni sperimentali usavano backup/database/state come contenitore.
-  for(const k of ['backup','database','state','db']){
-    if(obj[k]&&typeof obj[k]==='object'&&Array.isArray(obj[k].artworks))return obj[k];
+  if(typeof obj==='string'){
+    const t=obj.replace(/^\uFEFF/,'').trim();
+    if(!t)throw new Error('Il file è vuoto.');
+    obj=JSON.parse(t);
   }
-  // Vecchi file .mair e .json: database salvato direttamente.
-  if(Array.isArray(obj.artworks))return obj;
-  throw new Error('Questo file non è riconosciuto come Backup di MAIR GO!.');
+  if(!obj||typeof obj!=='object')throw new Error('Il file non contiene dati validi.');
+
+  const candidates=[];
+  const add=v=>{if(v&&typeof v==='object')candidates.push(v)};
+  add(obj.data); add(obj.dati); add(obj.backup); add(obj.database); add(obj.state); add(obj.db); add(obj.archivio); add(obj.content);
+  if(obj.payload&&typeof obj.payload==='object'){add(obj.payload.data);add(obj.payload.dati);add(obj.payload)}
+  add(obj);
+
+  for(let candidate of candidates){
+    if(typeof candidate==='string'){
+      try{candidate=JSON.parse(candidate)}catch{continue}
+    }
+    candidate=backupNormalizeLegacyData(candidate);
+    if(backupLooksLikeDatabase(candidate))return candidate;
+  }
+  throw new Error('Questo file non è riconosciuto come backup di MAIR GO!.');
 }
 function backupTextFromBase64(data){
   const raw=String(data||'').includes(',')?String(data).split(',').pop():String(data||'');
@@ -2207,20 +2234,25 @@ function backupTextFromBase64(data){
 async function creaBackupProfessionale(){
   const nome=backupFileName(),contenuto=backupPayload();
   try{
-    const Cap=window.Capacitor,FS=Cap&&Cap.Plugins&&Cap.Plugins.Filesystem,Sh=Cap&&Cap.Plugins&&Cap.Plugins.Share;
-    if(FS&&Sh){
+    const Cap=window.Capacitor;
+    const FS=Cap&&Cap.Plugins&&Cap.Plugins.Filesystem;
+    const Native=Cap&&Cap.Plugins&&Cap.Plugins.MairBackup;
+
+    if(FS&&Native&&typeof Native.saveBackup==='function'){
       const b64=btoa(unescape(encodeURIComponent(contenuto)));
       let scritto=false;
       try{
         const res=await FS.writeFile({path:nome,data:b64,directory:'CACHE',recursive:true});
         scritto=true;
-        if(!res||!res.uri)throw new Error('File temporaneo non creato');
-        await Sh.share({title:nome,text:'Backup completo MAIR GO!',url:res.uri,dialogTitle:'Salva il backup'});
+        if(!res||!res.uri)throw new Error('File temporaneo non creato.');
+        const scelta=await Native.saveBackup({sourceUri:res.uri,fileName:nome});
+        if(scelta&&scelta.cancelled){toast('Backup annullato');return false;}
         db.settings.lastBackup=new Date().toISOString();save();return true;
       }finally{
         if(scritto)try{await FS.deleteFile({path:nome,directory:'CACHE'});}catch(e){diagLog('BACKUP-CLEAN',e&&e.message?e.message:String(e));}
       }
     }
+
     if(window.showSaveFilePicker){
       const h=await window.showSaveFilePicker({suggestedName:nome,types:[{description:'Backup MAIR GO!',accept:{'application/json':['.backup','.mair','.json']}}]});
       const w=await h.createWritable();await w.write(new Blob([contenuto],{type:'application/json'}));await w.close();
@@ -2229,8 +2261,24 @@ async function creaBackupProfessionale(){
     download(new Blob([contenuto],{type:'application/json'}),nome);
     db.settings.lastBackup=new Date().toISOString();save();return true;
   }catch(e){
-    if(e&&e.name==='AbortError'){toast('Backup annullato');return false;}
-    diagLog('BACKUP-ERRORE',e&&e.message?e.message:String(e));alert('Impossibile creare il backup: '+(e&&e.message?e.message:e));return false;
+    const msg=String(e&&e.message||e||'');
+    if(e&&e.name==='AbortError'||/cancel|annull|dismiss|closed/i.test(msg)){toast('Backup annullato');return false;}
+    diagLog('BACKUP-ERRORE',msg);alert('Impossibile creare il backup: '+msg);return false;
+  }
+}
+async function backupReadWithMairPlugin(){
+  const Cap=window.Capacitor;
+  const Native=Cap&&Cap.Plugins&&Cap.Plugins.MairBackup;
+  const FS=Cap&&Cap.Plugins&&Cap.Plugins.Filesystem;
+  if(!Native||typeof Native.openBackup!=='function'||!FS)return null;
+  const result=await Native.openBackup();
+  if(!result||result.cancelled)return '';
+  if(!result.cacheName)throw new Error('Il selettore non ha restituito il file scelto.');
+  try{
+    const r=await FS.readFile({path:result.cacheName,directory:'CACHE'});
+    return backupTextFromBase64(r.data);
+  }finally{
+    try{await FS.deleteFile({path:result.cacheName,directory:'CACHE'});}catch(e){diagLog('BACKUP-CLEAN',e&&e.message?e.message:String(e));}
   }
 }
 async function backupReadWithNativePicker(){
@@ -2248,7 +2296,6 @@ async function backupReadWithNativePicker(){
 function backupReadWithInput(){
   return new Promise((resolve,reject)=>{
     const i=document.createElement('input');i.type='file';
-    // */* è necessario su alcuni telefoni e su Drive per mostrare .backup e .mair.
     i.accept='.backup,.mair,.json,application/json,application/octet-stream,text/plain,*/*';
     i.style.position='fixed';i.style.left='-9999px';
     let done=false;
@@ -2261,21 +2308,32 @@ function backupReadWithInput(){
 async function ripristinaBackupProfessionale(){
   try{
     let testo=null;
-    try{testo=await backupReadWithNativePicker();}
+    try{testo=await backupReadWithMairPlugin();}
     catch(e){
       const msg=String(e&&e.message||e||'');
       if(/cancel|annull|dismiss|closed/i.test(msg)){toast('Ripristino annullato');return;}
-      diagLog('BACKUP-PICKER',msg);testo=null;
+      diagLog('BACKUP-MAIR-PICKER',msg);testo=null;
+    }
+    if(testo===null){
+      try{testo=await backupReadWithNativePicker();}
+      catch(e){
+        const msg=String(e&&e.message||e||'');
+        if(/cancel|annull|dismiss|closed/i.test(msg)){toast('Ripristino annullato');return;}
+        diagLog('BACKUP-PICKER',msg);testo=null;
+      }
     }
     if(testo===null)testo=await backupReadWithInput();
     if(!testo){toast('Ripristino annullato');return;}
-    // Rimuove l'eventuale BOM prodotto da editor o vecchie esportazioni.
+
     testo=String(testo).replace(/^\uFEFF/,'').trim();
-    const dati=backupExtractData(JSON.parse(testo));
-    if(!dati||typeof dati!=='object'||!Array.isArray(dati.artworks))throw new Error('Struttura dati non riconosciuta.');
-    const nOpere=dati.artworks.length;
-    if(!confirm(`Ripristinare questo backup?\n\nOpere presenti: ${nOpere}\n\nI dati attuali saranno sostituiti.`))return;
-    db=merge(clone(defaults),dati);
+    let parsed;
+    try{parsed=JSON.parse(testo)}catch(e){throw new Error('Il contenuto non è JSON valido o il file è danneggiato.');}
+    const dati=backupExtractData(parsed);
+    const nOpere=Array.isArray(dati.artworks)?dati.artworks.length:0;
+    const nMostre=Array.isArray(dati.exhibitions)?dati.exhibitions.length:0;
+    const nClienti=Array.isArray(dati.clients)?dati.clients.length:0;
+    if(!confirm(`Ripristinare questo backup?\n\nOpere: ${nOpere}\nMostre: ${nMostre}\nClienti: ${nClienti}\n\nI dati attuali saranno sostituiti.`))return;
+    db=merge(clone(defaults),backupNormalizeLegacyData(dati));
     await writePersistentState(clone(db));save();render();
     toast('Backup precedente ripristinato correttamente');
   }catch(e){
