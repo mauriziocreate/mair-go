@@ -9,7 +9,7 @@ function diagOpen(){
   box.setAttribute('style','position:fixed;top:0;left:0;right:0;bottom:0;z-index:999999;background:#111;color:#0f0;font:12px/1.5 monospace;padding:10px;overflow:auto');
   const testo=window.__LOG__.length?window.__LOG__.join('\n\n'):'(nessun errore registrato)';
   const info='DIAGNOSTICA MAIR GO!\n'
-    +'Versione app.js: 10.0 Backup Professional\n'
+    +'Versione app.js: 10.3 Backup compatibile\n'
     +'docViewerOpen esiste: '+(typeof docViewerOpen)+'\n'
     +'textEditorOpen esiste: '+(typeof textEditorOpen)+'\n'
     +'certDocHtml esiste: '+(typeof certDocHtml)+'\n'
@@ -813,6 +813,8 @@ function newView(){
     <button class="quick-create" data-action="newLibrary"><span>📚</span><strong>Nuovo documento</strong><small>Aggiungi PDF, DOCX, testo o immagine</small></button>
     <button class="quick-create" data-action="newPdfProject"><span>📄</span><strong>Nuovo catalogo</strong><small>Crea portfolio, dossier o listino</small></button>
     <button class="quick-create" data-action="newClient"><span>👥</span><strong>Nuovo cliente</strong><small>Collezionista, galleria o contatto</small></button>
+    <button class="quick-create" data-action="newPro"><span>👤</span><strong>Nuovo curatore / critico</strong><small>Aggiungi un contatto professionale</small></button>
+    <button class="quick-create" data-action="newExhibition"><span>🏛️</span><strong>Nuova mostra</strong><small>Registra esposizione, luogo e date</small></button>
     <button class="quick-create" data-action="newSale"><span>💶</span><strong>Nuova vendita</strong><small>Registra importi, pagamenti e ricevuta</small></button>
     <button class="quick-create" data-action="newAgenda"><span>📅</span><strong>Nuovo impegno</strong><small>Mostra, scadenza o promemoria</small></button>
     <button class="quick-create" data-action="newWorkspace"><span>🧰</span><strong>Nuovo progetto</strong><small>Raccogli materiali e attività collegate</small></button>
@@ -2174,13 +2176,33 @@ async function salvaFile(nome,contenuto,mime,condividi){
 
 
 
-/* ===== BACKUP PROFESSIONALE MAIR GO! 10 ===== */
+/* ===== BACKUP PROFESSIONALE MAIR GO! 10.3 ===== */
 function backupFileName(){
   const d=new Date(),pad=n=>String(n).padStart(2,'0');
   return `Backup_MAIR_GO_${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}_${pad(d.getHours())}-${pad(d.getMinutes())}.backup`;
 }
 function backupPayload(){
-  return JSON.stringify({format:'MAIR_GO_BACKUP',version:10,createdAt:new Date().toISOString(),data:db});
+  return JSON.stringify({format:'MAIR_GO_BACKUP',version:10.3,createdAt:new Date().toISOString(),data:clone(db)});
+}
+function backupExtractData(obj){
+  if(!obj||typeof obj!=='object')throw new Error('Il file non contiene dati validi.');
+  // Formato 10.x
+  if(obj.format==='MAIR_GO_BACKUP'&&obj.data&&typeof obj.data==='object')return obj.data;
+  // Formato 9.4 e precedenti: campi in italiano.
+  if(obj.tipo==='MAIR_GO_BACKUP'&&obj.dati&&typeof obj.dati==='object')return obj.dati;
+  // Alcune versioni sperimentali usavano backup/database/state come contenitore.
+  for(const k of ['backup','database','state','db']){
+    if(obj[k]&&typeof obj[k]==='object'&&Array.isArray(obj[k].artworks))return obj[k];
+  }
+  // Vecchi file .mair e .json: database salvato direttamente.
+  if(Array.isArray(obj.artworks))return obj;
+  throw new Error('Questo file non è riconosciuto come Backup di MAIR GO!.');
+}
+function backupTextFromBase64(data){
+  const raw=String(data||'').includes(',')?String(data).split(',').pop():String(data||'');
+  const bin=atob(raw),bytes=new Uint8Array(bin.length);
+  for(let n=0;n<bin.length;n++)bytes[n]=bin.charCodeAt(n);
+  return new TextDecoder('utf-8').decode(bytes);
 }
 async function creaBackupProfessionale(){
   const nome=backupFileName(),contenuto=backupPayload();
@@ -2188,19 +2210,19 @@ async function creaBackupProfessionale(){
     const Cap=window.Capacitor,FS=Cap&&Cap.Plugins&&Cap.Plugins.Filesystem,Sh=Cap&&Cap.Plugins&&Cap.Plugins.Share;
     if(FS&&Sh){
       const b64=btoa(unescape(encodeURIComponent(contenuto)));
-      let res=null;
+      let scritto=false;
       try{
-        res=await FS.writeFile({path:nome,data:b64,directory:'CACHE',recursive:true});
+        const res=await FS.writeFile({path:nome,data:b64,directory:'CACHE',recursive:true});
+        scritto=true;
         if(!res||!res.uri)throw new Error('File temporaneo non creato');
         await Sh.share({title:nome,text:'Backup completo MAIR GO!',url:res.uri,dialogTitle:'Salva il backup'});
-        db.settings.lastBackup=new Date().toISOString();save();
-        return true;
+        db.settings.lastBackup=new Date().toISOString();save();return true;
       }finally{
-        try{await FS.deleteFile({path:nome,directory:'CACHE'});}catch(e){diagLog('BACKUP-CLEAN',e&&e.message?e.message:String(e));}
+        if(scritto)try{await FS.deleteFile({path:nome,directory:'CACHE'});}catch(e){diagLog('BACKUP-CLEAN',e&&e.message?e.message:String(e));}
       }
     }
     if(window.showSaveFilePicker){
-      const h=await window.showSaveFilePicker({suggestedName:nome,types:[{description:'Backup MAIR GO!',accept:{'application/json':['.backup']}}]});
+      const h=await window.showSaveFilePicker({suggestedName:nome,types:[{description:'Backup MAIR GO!',accept:{'application/json':['.backup','.mair','.json']}}]});
       const w=await h.createWritable();await w.write(new Blob([contenuto],{type:'application/json'}));await w.close();
       db.settings.lastBackup=new Date().toISOString();save();return true;
     }
@@ -2211,19 +2233,55 @@ async function creaBackupProfessionale(){
     diagLog('BACKUP-ERRORE',e&&e.message?e.message:String(e));alert('Impossibile creare il backup: '+(e&&e.message?e.message:e));return false;
   }
 }
-function ripristinaBackupProfessionale(){
-  const i=document.createElement('input');i.type='file';i.accept='.backup,.mair,.json,application/json';
-  i.onchange=async()=>{
-    const f=i.files&&i.files[0];if(!f)return;
-    try{
-      const parsed=JSON.parse(await f.text());
-      const dati=parsed&&parsed.format==='MAIR_GO_BACKUP'?parsed.data:parsed;
-      if(!dati||typeof dati!=='object'||!Array.isArray(dati.artworks)||!dati.settings)throw new Error('Struttura non riconosciuta');
-      if(!confirm('Ripristinare questo backup? I dati attuali saranno sostituiti.'))return;
-      db=merge(clone(defaults),dati);await writePersistentState(clone(db));save();render();toast('Backup ripristinato');
-    }catch(e){alert('Backup non valido o danneggiato.');diagLog('BACKUP-IMPORT',e&&e.message?e.message:String(e));}
-  };
-  i.click();
+async function backupReadWithNativePicker(){
+  const Cap=window.Capacitor;
+  const FP=Cap&&Cap.Plugins&&(Cap.Plugins.FilePicker||Cap.Plugins.FileChooser);
+  if(!FP||typeof FP.pickFiles!=='function')return null;
+  const result=await FP.pickFiles({types:['application/json','application/octet-stream','text/plain','*/*'],multiple:false,readData:true});
+  const f=result&&result.files&&result.files[0];
+  if(!f)return '';
+  if(f.data)return backupTextFromBase64(f.data);
+  const FS=Cap.Plugins&&Cap.Plugins.Filesystem;
+  if(FS&&f.path){const r=await FS.readFile({path:f.path});return backupTextFromBase64(r.data);}
+  throw new Error('Il selettore non ha restituito il contenuto del backup.');
+}
+function backupReadWithInput(){
+  return new Promise((resolve,reject)=>{
+    const i=document.createElement('input');i.type='file';
+    // */* è necessario su alcuni telefoni e su Drive per mostrare .backup e .mair.
+    i.accept='.backup,.mair,.json,application/json,application/octet-stream,text/plain,*/*';
+    i.style.position='fixed';i.style.left='-9999px';
+    let done=false;
+    const close=v=>{if(done)return;done=true;i.remove();resolve(v);};
+    i.onchange=async()=>{const f=i.files&&i.files[0];if(!f){close('');return;}try{close(await f.text());}catch(e){i.remove();reject(e);}};
+    i.oncancel=()=>close('');document.body.appendChild(i);i.click();
+    window.addEventListener('focus',()=>setTimeout(()=>{if(!i.files?.length)close('');},700),{once:true});
+  });
+}
+async function ripristinaBackupProfessionale(){
+  try{
+    let testo=null;
+    try{testo=await backupReadWithNativePicker();}
+    catch(e){
+      const msg=String(e&&e.message||e||'');
+      if(/cancel|annull|dismiss|closed/i.test(msg)){toast('Ripristino annullato');return;}
+      diagLog('BACKUP-PICKER',msg);testo=null;
+    }
+    if(testo===null)testo=await backupReadWithInput();
+    if(!testo){toast('Ripristino annullato');return;}
+    // Rimuove l'eventuale BOM prodotto da editor o vecchie esportazioni.
+    testo=String(testo).replace(/^\uFEFF/,'').trim();
+    const dati=backupExtractData(JSON.parse(testo));
+    if(!dati||typeof dati!=='object'||!Array.isArray(dati.artworks))throw new Error('Struttura dati non riconosciuta.');
+    const nOpere=dati.artworks.length;
+    if(!confirm(`Ripristinare questo backup?\n\nOpere presenti: ${nOpere}\n\nI dati attuali saranno sostituiti.`))return;
+    db=merge(clone(defaults),dati);
+    await writePersistentState(clone(db));save();render();
+    toast('Backup precedente ripristinato correttamente');
+  }catch(e){
+    alert('Backup non valido o non leggibile.\n\n'+(e&&e.message?e.message:''));
+    diagLog('BACKUP-IMPORT',e&&e.message?e.message:String(e));
+  }
 }
 
 function docViewerOpen(title,inner,extraCss,plainText){
