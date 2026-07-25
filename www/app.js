@@ -9,7 +9,7 @@ function diagOpen(){
   box.setAttribute('style','position:fixed;top:0;left:0;right:0;bottom:0;z-index:999999;background:#111;color:#0f0;font:12px/1.5 monospace;padding:10px;overflow:auto');
   const testo=window.__LOG__.length?window.__LOG__.join('\n\n'):'(nessun errore registrato)';
   const info='DIAGNOSTICA MAIR GO!\n'
-    +'Versione app.js: 8.5\n'
+    +'Versione app.js: 8.6\n'
     +'docViewerOpen esiste: '+(typeof docViewerOpen)+'\n'
     +'textEditorOpen esiste: '+(typeof textEditorOpen)+'\n'
     +'certDocHtml esiste: '+(typeof certDocHtml)+'\n'
@@ -1406,6 +1406,7 @@ function openLibrary(id){
     +'<span id="rdZoomLbl" class="reader-zoom">100%</span>'
     +'<button class="btn" id="rdZoomIn">+</button>'
     +'<button class="btn" id="rdZoomReset">Adatta</button>'
+    +(isPdf?'<button class="btn primary" id="rdMode">\ud83d\udcc4 Testo</button>':'')
     +'<button class="btn" id="rdDownload">\u2b07\ufe0f Scarica</button>'
   +'</div>';
   $('#viewerBody').innerHTML=zoomBar+'<div class="viewer-full">'+content+'</div>';
@@ -1424,8 +1425,44 @@ function openLibrary(id){
   if(zo)zo.onclick=()=>{zoom=Math.max(0.5,+(zoom-0.25).toFixed(2));applica();};
   if(zr)zr.onclick=()=>{zoom=isPdf?1:1;applica();};
   lblUp();
+  // modalita' testo per PDF (estrae il testo, leggibile a schermo pieno)
+  if(isPdf){
+    let modo='pagine';
+    const btnMode=document.getElementById('rdMode');
+    if(btnMode)btnMode.onclick=async()=>{
+      const b=box();if(!b)return;
+      if(modo==='pagine'){
+        btnMode.textContent='\ud83d\udcc4 Pagine';
+        btnMode.disabled=true;
+        b.innerHTML='<p class="meta" style="color:#fff;padding:16px">Estraggo il testo\u2026</p>';
+        try{
+          const testo=await window.__pdfEstraiTesto?.();
+          if(testo&&testo.trim()){
+            b.className='doc-reader docx';
+            b.innerHTML='<div class="docx-body pdf-text">'+testo.split(/\n\n+/).map(par=>'<p>'+esc(par).replace(/\n/g,'<br>')+'</p>').join('')+'</div>';
+          }else{
+            b.innerHTML='<div class="docx-body"><p class="meta">Questo PDF non contiene testo estraibile (potrebbe essere fatto di immagini). Usa la vista Pagine.</p></div>';
+          }
+        }catch(e){
+          diagLog('PDF-TESTO-ERRORE',e&&e.message?e.message:String(e));
+          b.innerHTML='<div class="docx-body"><p class="meta">Impossibile estrarre il testo.</p></div>';
+        }
+        // nascondo i controlli zoom in modalita' testo
+        ['rdZoomOut','rdZoomIn','rdZoomReset','rdZoomLbl'].forEach(id=>{const el=document.getElementById(id);if(el)el.style.display='none';});
+        btnMode.disabled=false;
+        modo='testo';
+      }else{
+        btnMode.textContent='\ud83d\udcc4 Testo';
+        b.className='doc-reader';
+        ['rdZoomOut','rdZoomIn','rdZoomReset','rdZoomLbl'].forEach(id=>{const el=document.getElementById(id);if(el)el.style.display='';});
+        if(window.__pdfReRender)await window.__pdfReRender(zoom);
+        modo='pagine';
+      }
+    };
+  }
   const dl=document.getElementById('rdDownload');
   if(dl)dl.onclick=()=>{try{download(dataURLtoBlob(d.data),d.name||d.title||'documento')}catch(e){toast('Download non riuscito')}};
+  try{viewer.querySelector('.viewer-shell')?.classList.add('reader-open');}catch(e){}
   viewer.showModal();
   // caricamento asincrono del contenuto dopo l'apertura
   setTimeout(()=>{renderDocReader(d,contId,type,nome)},60);
@@ -1462,7 +1499,7 @@ async function renderDocReader(d,contId,type,nome){
         const b=document.getElementById(contId);if(!b)return;
         b.innerHTML='';
         const dpr=Math.min(window.devicePixelRatio||1,2);
-        const dispW=Math.min((b.clientWidth||window.innerWidth)-8,1050);
+        const dispW=Math.min(window.innerWidth-18,1050);
         for(const pg of pagine){
           const base=pg.page.getViewport({scale:1,rotation:pg.rot});
           const fit=dispW/base.width;
@@ -2219,7 +2256,7 @@ function bindLibraryFilters(){const s=$('#libSearch'),t=$('#libType'),c=$('#libC
 async function hashPin(pin){const data=new TextEncoder().encode('MAIR-GO-'+pin);const digest=await crypto.subtle.digest('SHA-256',data);return [...new Uint8Array(digest)].map(b=>b.toString(16).padStart(2,'0')).join('')}
 function showLock(){const lock=$('#lockScreen');lock.classList.remove('hidden');setTimeout(()=>$('#pinInput').focus(),100);$('#unlockBtn').onclick=async()=>{if(await hashPin($('#pinInput').value)===db.settings.pinHash){lock.classList.add('hidden');$('#pinInput').value=''}else{toast('PIN errato');$('#pinInput').select()}};$('#pinInput').onkeydown=e=>{if(e.key==='Enter')$('#unlockBtn').click()};$('#pinHelp').onclick=()=>alert('Per tutelare i dati, il PIN non può essere recuperato. È possibile ripristinare un backup precedente oppure cancellare i dati del sito dal browser.')}
 function startup(){const splash=$('#splash');if(db.settings.splash===false)splash.remove();else setTimeout(()=>splash.classList.add('splash-out'),1500);setTimeout(()=>{splash?.remove();if(db.settings.pinEnabled&&db.settings.pinHash)showLock();else primoAvvio()},1900)}
-$('#homeBtn').onclick=()=>go('home');$('#exitBtn').onclick=()=>esciApp();$('#themeBtn').onclick=()=>{const i=themeOptions.findIndex(x=>x[0]===db.settings.theme);db.settings.theme=themeOptions[(i+1)%themeOptions.length][0];save();render();toast(themeOptions[(i+1)%themeOptions.length][1])};document.querySelectorAll('.bottomnav button').forEach(b=>b.onclick=()=>go(b.dataset.route));$('#viewerClose').onclick=()=>viewer.close();window.addEventListener('hashchange',()=>{route=location.hash.slice(1)||'home';render()});let deferredInstallPrompt=null;function installAvailable(){const standalone=matchMedia('(display-mode: standalone)').matches||navigator.standalone===true;const b=$('#installBtn');if(b)b.classList.toggle('hidden',standalone||!deferredInstallPrompt)}window.addEventListener('beforeinstallprompt',e=>{e.preventDefault();deferredInstallPrompt=e;installAvailable()});window.addEventListener('appinstalled',()=>{deferredInstallPrompt=null;installAvailable();toast('MAIR GO! installata')});$('#installBtn').onclick=async()=>{if(!deferredInstallPrompt)return;deferredInstallPrompt.prompt();await deferredInstallPrompt.userChoice;deferredInstallPrompt=null;installAvailable()};async function boot(){
+$('#homeBtn').onclick=()=>go('home');$('#exitBtn').onclick=()=>esciApp();$('#themeBtn').onclick=()=>{const i=themeOptions.findIndex(x=>x[0]===db.settings.theme);db.settings.theme=themeOptions[(i+1)%themeOptions.length][0];save();render();toast(themeOptions[(i+1)%themeOptions.length][1])};document.querySelectorAll('.bottomnav button').forEach(b=>b.onclick=()=>go(b.dataset.route));$('#viewerClose').onclick=()=>{try{viewer.querySelector('.viewer-shell')?.classList.remove('reader-open');}catch(e){}viewer.close();};window.addEventListener('hashchange',()=>{route=location.hash.slice(1)||'home';render()});let deferredInstallPrompt=null;function installAvailable(){const standalone=matchMedia('(display-mode: standalone)').matches||navigator.standalone===true;const b=$('#installBtn');if(b)b.classList.toggle('hidden',standalone||!deferredInstallPrompt)}window.addEventListener('beforeinstallprompt',e=>{e.preventDefault();deferredInstallPrompt=e;installAvailable()});window.addEventListener('appinstalled',()=>{deferredInstallPrompt=null;installAvailable();toast('MAIR GO! installata')});$('#installBtn').onclick=async()=>{if(!deferredInstallPrompt)return;deferredInstallPrompt.prompt();await deferredInstallPrompt.userChoice;deferredInstallPrompt=null;installAvailable()};async function boot(){
   await initPersistence();
   if('serviceWorker'in navigator){
     try{
