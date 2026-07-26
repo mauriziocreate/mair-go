@@ -9,7 +9,7 @@ function diagOpen(){
   box.setAttribute('style','position:fixed;top:0;left:0;right:0;bottom:0;z-index:999999;background:#111;color:#0f0;font:12px/1.5 monospace;padding:10px;overflow:auto');
   const testo=window.__LOG__.length?window.__LOG__.join('\n\n'):'(nessun errore registrato)';
   const info='DIAGNOSTICA MAIR GO!\n'
-    +'Versione app.js: 16.0\n'
+    +'Versione app.js: 16.1\n'
     +'docViewerOpen esiste: '+(typeof docViewerOpen)+'\n'
     +'textEditorOpen esiste: '+(typeof textEditorOpen)+'\n'
     +'certDocHtml esiste: '+(typeof certDocHtml)+'\n'
@@ -2284,6 +2284,33 @@ function pdfImgFormat(dataUrl){
   if(t.includes('webp'))return 'WEBP';
   return 'JPEG';
 }
+// ridimensiona un'immagine per il PDF: riduce peso e memoria (evita crash con molte opere)
+function pdfImgRidotta(dataUrl,maxLato){
+  return new Promise((res)=>{
+    try{
+      const im=new Image();
+      im.onload=()=>{
+        try{
+          let w=im.width,h=im.height;
+          const lato=maxLato||1100;
+          if(w>lato||h>lato){
+            if(w>=h){h=Math.round(h*lato/w);w=lato;}
+            else{w=Math.round(w*lato/h);h=lato;}
+          }
+          const cv=document.createElement('canvas');cv.width=w;cv.height=h;
+          const cx=cv.getContext('2d');
+          cx.fillStyle='#ffffff';cx.fillRect(0,0,w,h);
+          cx.drawImage(im,0,0,w,h);
+          const out=cv.toDataURL('image/jpeg',0.82);
+          cv.width=cv.height=0; // libera subito la memoria del canvas
+          res({data:out,w,h});
+        }catch(e){res(null);}
+      };
+      im.onerror=()=>res(null);
+      im.src=dataUrl;
+    }catch(e){res(null);}
+  });
+}
 async function pdfCatalogoImpaginato(p){
   const C=pdfCfg();
   const {jsPDF}=window.jspdf;
@@ -2361,7 +2388,7 @@ async function pdfCatalogoImpaginato(p){
     // ---- OPERE (una per pagina, disegno diretto) ----
     for(let i=0;i<arts.length;i++){
       const a=arts[i];
-      if(i>0&&i%20===0){await new Promise(r=>setTimeout(r,30));diagLog('PDF','catalogo: '+i+'/'+arts.length+' opere');}
+      if(i>0&&i%10===0){await new Promise(r=>setTimeout(r,60));diagLog('PDF','catalogo: '+i+'/'+arts.length+' opere');}
       nuovaPagina();
       let y=M.mt;
       // intestazione
@@ -2375,14 +2402,14 @@ async function pdfCatalogoImpaginato(p){
       // immagine
       if(a.image){
         try{
-          const dim=await pdfImgSize(a.image);
-          if(dim&&dim.w&&dim.h){
+          const rid=await pdfImgRidotta(a.image,1100);  // riduce peso e memoria
+          if(rid&&rid.w&&rid.h){
             const maxH=(C.imgMax||70)/100*M.utileH*0.62;
             const maxW=M.utileW;
-            let w=maxW, h=w*dim.h/dim.w;
-            if(h>maxH){h=maxH;w=h*dim.w/dim.h;}
+            let w=maxW, h=w*rid.h/rid.w;
+            if(h>maxH){h=maxH;w=h*rid.w/rid.h;}
             const x=C.imgPos==='sinistra'?M.ml:(C.imgPos==='destra'?M.pw-M.mr-w:(M.pw-w)/2);
-            pdf.addImage(a.image,pdfImgFormat(a.image),x,y,w,h,undefined,'FAST');
+            pdf.addImage(rid.data,'JPEG',x,y,w,h,undefined,'FAST');
             y+=h+8;
           }
         }catch(eImg){diagLog('PDF-IMG',eImg&&eImg.message?eImg.message:String(eImg));}
@@ -3002,7 +3029,11 @@ function docViewerOpen(title,inner,extraCss,plainText){
         const ctx=window.__PDFCTX__||{};
         try{
           if(ctx.tipo==='catalogo'&&ctx.dato){
-            diagLog('PDF','impaginazione catalogo professionale');
+            const nOp=(ctx.dato.artworkIds||[]).length;
+            if(nOp>60&&!confirm('Il catalogo contiene '+nOp+' opere. La generazione pu\u00f2 richiedere circa '+Math.ceil(nOp/25)+'-'+Math.ceil(nOp/12)+' minuti e non va interrotta.\n\nProcedere?')){
+              btn.textContent=originale;bPrint.disabled=false;bShare.disabled=false;return;
+            }
+            diagLog('PDF','impaginazione catalogo '+nOp+' opere');
             pdf=await pdfCatalogoImpaginato(ctx.dato);
           }else if(ctx.tipo==='certificato'&&ctx.dato){
             diagLog('PDF','impaginazione certificato');
