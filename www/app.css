@@ -677,3 +677,15 @@ body{padding-bottom:calc(82px + env(safe-area-inset-bottom))}
 .exhibition-artworks-box .art-picker-search{border:2px solid color-mix(in srgb,var(--accent) 45%,var(--line));font-weight:700}
 #exCuratorSelect{min-height:46px}
 @media(max-width:620px){.exhibition-artworks-box{padding:10px}.field-inline{grid-template-columns:1fr}.field-inline .btn{width:100%}}
+
+
+/* MAIR GO! 1.0 - correzione mobile selezione opere nelle Mostre */
+.art-picker > .row.spread{flex-wrap:wrap;align-items:flex-start;gap:8px}
+.art-picker > .row.spread > .row{display:flex;flex-wrap:wrap;gap:8px;max-width:100%}
+.art-picker > .row.spread .btn{white-space:normal;max-width:100%}
+@media(max-width:520px){
+  .art-picker > .row.spread{display:block}
+  .art-picker > .row.spread > .row{display:grid;grid-template-columns:1fr;width:100%;margin-top:8px}
+  .art-picker > .row.spread .btn{width:100%;min-width:0}
+  .art-picker-count{display:block;width:100%;overflow-wrap:anywhere}
+}

@@ -9,7 +9,7 @@ function diagOpen(){
   box.setAttribute('style','position:fixed;top:0;left:0;right:0;bottom:0;z-index:999999;background:#111;color:#0f0;font:12px/1.5 monospace;padding:10px;overflow:auto');
   const testo=window.__LOG__.length?window.__LOG__.join('\n\n'):'(nessun errore registrato)';
   const info='DIAGNOSTICA MAIR GO!\n'
-    +'Versione app.js: 17.4 Mostre attive senza override mair15\n'
+    +'Versione app.js: 1.0\n'
     +'docViewerOpen esiste: '+(typeof docViewerOpen)+'\n'
     +'textEditorOpen esiste: '+(typeof textEditorOpen)+'\n'
     +'certDocHtml esiste: '+(typeof certDocHtml)+'\n'
@@ -1443,10 +1443,16 @@ function guideView(){return `${section('Guida offline')}
 <p><strong>Esporta agenda .ics</strong> crea un file importabile in Google Calendar, Apple Calendario o Outlook.</p>
 </details>
 
-<details class="guide-item"><summary><strong>&#127963;&#65039; Mostre, Clienti, Vendite, Workspace</strong></summary>
-<p><strong>Mostre:</strong> esposizioni con sede, date, curatore e opere collegate. Puoi caricare la <strong>locandina</strong>, che compare in cima alla scheda. Da una mostra puoi generare direttamente un catalogo.</p>
-<p><strong>Clienti:</strong> rubrica di collezionisti e galleristi, con storico delle vendite.</p>
-<p><strong>Vendite:</strong> trattative e incassi, con generazione della ricevuta.</p>
+<details class="guide-item"><summary><strong>&#127963;&#65039; Mostre</strong></summary>
+<p>La sezione Mostre permette di registrare esposizioni personali, collettive, concorsi, esposizioni temporanee e altri eventi, con titolo, date, sede, citt&agrave;, stato, descrizione, note e locandina.</p>
+<p><strong>Opere partecipanti:</strong> usa la barra di ricerca per trovare le opere per titolo, codice, anno, tecnica, supporto o dimensioni. Puoi selezionarle una alla volta, usare <strong>Seleziona visibili</strong> per scegliere tutte quelle mostrate dalla ricerca oppure <strong>Deseleziona</strong> per azzerare la scelta.</p>
+<p><strong>Curatori e critici:</strong> i contatti gi&agrave; presenti nella relativa rubrica vengono caricati automaticamente. Puoi cercarli, selezionarne pi&ugrave; di uno oppure aggiungerne uno nuovo direttamente dalla mostra. Il nuovo contatto viene salvato anche nella sezione Curatori e critici.</p>
+<p><strong>Catalogo PDF:</strong> dalla scheda della mostra puoi creare direttamente un catalogo contenente le opere selezionate.</p>
+</details>
+
+<details class="guide-item"><summary><strong>&#128101; Clienti, Vendite e Workspace</strong></summary>
+<p><strong>Clienti:</strong> rubrica di collezionisti e galleristi, con recapiti, preferenze e storico delle vendite.</p>
+<p><strong>Vendite:</strong> trattative, importi, pagamenti, consegne e generazione della ricevuta.</p>
 <p><strong>Workspace:</strong> progetti che raccolgono insieme opere, documenti e contatti.</p>
 </details>
 
@@ -1495,6 +1501,7 @@ ${area('Messaggio','contactMessage','')}
 
 function infoView(){return `${section('Informazioni')}<section class="legal-card"><div class="about-logo">M</div><h2>MAIR GO!</h2>
 <p class="lead"><strong>Art Management System creato dall'artista internazionale Maurizio D'Andrea.</strong></p>
+<p><span class="badge">Versione 1.0</span></p>
 <p>Applicazione gratuita per gestire opere, documenti, cataloghi, certificati, mostre, gallerie, curatori e critici, link utili, clienti, vendite e agenda. Distribuita senza servizio di assistenza garantito.</p>
 
 <h3>&#128274; La tua privacy, in concreto</h3>
