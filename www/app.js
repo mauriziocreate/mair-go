@@ -9,7 +9,7 @@ function diagOpen(){
   box.setAttribute('style','position:fixed;top:0;left:0;right:0;bottom:0;z-index:999999;background:#111;color:#0f0;font:12px/1.5 monospace;padding:10px;overflow:auto');
   const testo=window.__LOG__.length?window.__LOG__.join('\n\n'):'(nessun errore registrato)';
   const info='DIAGNOSTICA MAIR GO!\n'
-    +'Versione app.js: 17.0\n'
+    +'Versione app.js: 17.1\n'
     +'docViewerOpen esiste: '+(typeof docViewerOpen)+'\n'
     +'textEditorOpen esiste: '+(typeof textEditorOpen)+'\n'
     +'certDocHtml esiste: '+(typeof certDocHtml)+'\n'
@@ -2599,6 +2599,290 @@ async function condividiOSalva(uri,nome,dove){
     catch(e){diagLog('SHARE',e&&e.message?e.message:String(e));}
   }
 }
+function backupFileName(){
+  const d=new Date(),pad=n=>String(n).padStart(2,'0');
+  return `Backup_MAIR_GO_${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}_${pad(d.getHours())}-${pad(d.getMinutes())}.backup`;
+}
+function checksumString(str){
+  // checksum semplice ma affidabile (FNV-1a 32bit) per verificare l'integrita'
+  let h=0x811c9dc5;
+  for(let i=0;i<str.length;i++){h^=str.charCodeAt(i);h=(h*0x01000193)>>>0;}
+  return ('0000000'+h.toString(16)).slice(-8);
+}
+function contaSezioni(d){
+  const c={};['artworks','library','links','pros','galleries','collections','exhibitions','clients','sales','agenda','workspaces','pdfProjects','certificates'].forEach(k=>{c[k]=Array.isArray(d[k])?d[k].length:0;});
+  return c;
+}
+function backupPayload(){
+  const dati=clone(db);
+  const dataStr=JSON.stringify(dati);
+  const conteggi=contaSezioni(dati);
+  const totale=Object.values(conteggi).reduce((a,b)=>a+b,0);
+  return JSON.stringify({
+    format:'MAIR_GO_BACKUP',
+    version:12,
+    createdAt:new Date().toISOString(),
+    app:'MAIR GO!',
+    counts:conteggi,
+    totalItems:totale,
+    checksum:checksumString(dataStr),
+    data:dati
+  });
+}
+// verifica che un backup sia integro e leggibile PRIMA di usarlo
+function verificaBackup(testo){
+  const esito={ok:false,motivo:'',counts:null,totale:0};
+  let obj;
+  try{obj=JSON.parse(testo);}catch(e){esito.motivo='Il file non \u00e8 un backup valido (JSON illeggibile).';return esito;}
+  const dati=obj&&obj.data?obj.data:obj; // compatibile coi vecchi backup senza involucro
+  if(!backupLooksLikeDatabase(dati)){esito.motivo='Il file non contiene un archivio MAIR GO! riconoscibile.';return esito;}
+  // controllo checksum se presente
+  if(obj&&obj.checksum){
+    const calc=checksumString(JSON.stringify(dati));
+    if(calc!==obj.checksum){esito.motivo='Il backup risulta danneggiato (controllo integrit\u00e0 fallito).';esito.corrotto=true;return esito;}
+  }
+  esito.counts=contaSezioni(dati);
+  esito.totale=Object.values(esito.counts).reduce((a,b)=>a+b,0);
+  esito.ok=true;esito.dati=dati;
+  return esito;
+}
+function backupLooksLikeDatabase(x){
+  if(!x||typeof x!=='object'||Array.isArray(x))return false;
+  const keys=['artworks','library','links','pros','galleries','collections','exhibitions','clients','sales','agenda','workspaces','pdfProjects','certificates','settings'];
+  return keys.some(k=>Array.isArray(x[k]))||!!x.settings;
+}
+function backupNormalizeLegacyData(x){
+  if(!x||typeof x!=='object'||Array.isArray(x))return x;
+  const aliases={
+    opere:'artworks',biblioteca:'library',collegamenti:'links',professionisti:'pros',curatori:'pros',critici:'pros',
+    gallerie:'galleries',collezioni:'collections',mostre:'exhibitions',clienti:'clients',vendite:'sales',
+    appuntamenti:'agenda',spazi:'workspaces',documenti:'pdfProjects',cataloghi:'pdfProjects',certificati:'certificates',impostazioni:'settings'
+  };
+  const out={...x};
+  for(const [oldKey,newKey] of Object.entries(aliases)){
+    if(out[newKey]===undefined&&out[oldKey]!==undefined)out[newKey]=out[oldKey];
+  }
+  return out;
+}
+function backupExtractData(obj){
+  if(typeof obj==='string'){
+    const t=obj.replace(/^\uFEFF/,'').trim();
+    if(!t)throw new Error('Il file è vuoto.');
+    obj=JSON.parse(t);
+  }
+  if(!obj||typeof obj!=='object')throw new Error('Il file non contiene dati validi.');
+
+  const candidates=[];
+  const add=v=>{if(v&&typeof v==='object')candidates.push(v)};
+  add(obj.data); add(obj.dati); add(obj.backup); add(obj.database); add(obj.state); add(obj.db); add(obj.archivio); add(obj.content);
+  if(obj.payload&&typeof obj.payload==='object'){add(obj.payload.data);add(obj.payload.dati);add(obj.payload)}
+  add(obj);
+
+  for(let candidate of candidates){
+    if(typeof candidate==='string'){
+      try{candidate=JSON.parse(candidate)}catch{continue}
+    }
+    candidate=backupNormalizeLegacyData(candidate);
+    if(backupLooksLikeDatabase(candidate))return candidate;
+  }
+  throw new Error('Questo file non è riconosciuto come backup di MAIR GO!.');
+}
+function backupTextFromBase64(data){
+  const raw=String(data||'').includes(',')?String(data).split(',').pop():String(data||'');
+  const bin=atob(raw),bytes=new Uint8Array(bin.length);
+  for(let n=0;n<bin.length;n++)bytes[n]=bin.charCodeAt(n);
+  return new TextDecoder('utf-8').decode(bytes);
+}
+
+const BACKUP_PART_MAX_CHARS=12*1024*1024;
+function backupStamp(){const d=new Date(),pad=n=>String(n).padStart(2,'0');return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}_${pad(d.getHours())}-${pad(d.getMinutes())}-${pad(d.getSeconds())}`}
+function backupProgressOpen(title){openModal(title,`<div class="backup-progress"><p id="backupProgressText">Preparazione…</p><progress id="backupProgressBar" max="100" value="0" style="width:100%"></progress><p class="meta">Non chiudere MAIR GO durante l’operazione.</p></div>`,()=>{});const f=document.querySelector('#modal form');if(f){const b=f.querySelector('button[type=submit]');if(b)b.style.display='none'}}
+function backupProgress(pct,text){const b=document.querySelector('#backupProgressBar'),t=document.querySelector('#backupProgressText');if(b)b.value=Math.max(0,Math.min(100,pct));if(t)t.textContent=text;diagLog('BACKUP-MULTIPARTE',text)}
+function backupStripOriginals(value){
+  if(Array.isArray(value))return value.map(backupStripOriginals);
+  if(!value||typeof value!=='object')return value;
+  const out={};
+  for(const [k,v] of Object.entries(value)){
+    if(k==='image'||k==='photo'||k==='poster'||k==='signatureImg'||k==='full'||k==='originalImage')continue;
+    out[k]=backupStripOriginals(v);
+  }
+  return out;
+}
+async function backupWritePart(folder,fileName,text){
+  const Cap=window.Capacitor,FS=Cap&&Cap.Plugins&&Cap.Plugins.Filesystem;
+  if(FS){
+    const bytes=new TextEncoder().encode(text);let bin='';const step=0x8000;
+    for(let i=0;i<bytes.length;i+=step)bin+=String.fromCharCode(...bytes.subarray(i,i+step));
+    const b64=btoa(bin);
+    await FS.writeFile({path:`${folder}/${fileName}`,data:b64,directory:'DOCUMENTS',recursive:true});
+    let uri='';
+    try{const got=await FS.getUri({path:`${folder}/${fileName}`,directory:'DOCUMENTS'});uri=got&&got.uri||'';}catch{}
+    return {native:true,path:`Documenti/${folder}/${fileName}`,uri,name:fileName};
+  }
+  download(new Blob([text],{type:'application/json'}),fileName);
+  await new Promise(r=>setTimeout(r,180));
+  return {native:false,path:fileName};
+}
+function backupAllSections(){return ['artworks','library','links','pros','galleries','collections','exhibitions','clients','sales','agenda','workspaces','pdfProjects','certificates']}
+async function backupExportFolder(folder,writtenFiles){
+  const Cap=window.Capacitor,Native=Cap&&Cap.Plugins&&Cap.Plugins.MairBackup;
+  if(!Native||typeof Native.saveBackupFolder!=='function')return {available:false};
+  const files=(writtenFiles||[]).filter(x=>x&&x.uri).map(x=>({name:x.name,uri:x.uri}));
+  if(!files.length)return {available:false};
+  const r=await Native.saveBackupFolder({folderName:folder,files});
+  return {available:true,cancelled:!!(r&&r.cancelled),folderUri:r&&r.folderUri||''};
+}
+async function creaBackupRapido(){
+  backupProgressOpen('Backup rapido');
+  try{
+    backupProgress(10,'Preparazione dati e miniature…');
+    const data={};
+    for(const k of backupAllSections())data[k]=backupStripOriginals(db[k]||[]);
+    data.settings=backupStripOriginals(db.settings||{});
+    const payload={format:'MAIR_GO_BACKUP_QUICK',version:16,createdAt:new Date().toISOString(),note:'Dati e miniature; immagini originali escluse',counts:contaSezioni(data),data};
+    backupProgress(55,'Creazione file rapido…');
+    const text=JSON.stringify(payload);
+    const folder=`MAIR_GO_Backup_Rapido_${backupStamp()}`;
+    const written=[await backupWritePart(folder,'backup_rapido.mair',text)];
+    backupProgress(78,'Scegli la cartella in cui rendere visibile il backup…');
+    const exported=await backupExportFolder(folder,written);
+    backupProgress(100,'Backup rapido completato in Documenti/'+folder);
+    db.settings.lastBackup=new Date().toISOString();save();
+    setTimeout(()=>{try{modal.close()}catch{};alert(exported.available?(exported.cancelled?'Backup creato, ma esportazione annullata. Il file resta nell’area privata dell’app. Ripeti il backup e scegli una cartella visibile.':'Backup rapido salvato nella cartella che hai scelto.\n\nNome cartella: '+folder+'\n\nNon contiene le immagini originali.'):'Backup rapido creato nell’area privata dell’app. Per renderlo visibile serve aggiornare anche il plugin Android incluso nel pacchetto.')},400);
+    return true;
+  }catch(e){diagLog('BACKUP-RAPIDO-ERRORE',e.message||String(e));try{modal.close()}catch{};alert('Backup rapido non riuscito: '+(e.message||e));return false}
+}
+async function creaBackupMultiparte(){
+  const folder=`MAIR_GO_Backup_Completo_${backupStamp()}`;
+  backupProgressOpen('Backup completo multiparte');
+  const files=[];let partNo=0,totalRecords=backupAllSections().reduce((n,k)=>n+(Array.isArray(db[k])?db[k].length:0),0),done=0;
+  try{
+    const writeRecords=async(section,records)=>{
+      let chunk=[];let chars=0;
+      const flush=async()=>{
+        if(!chunk.length)return;
+        partNo++;const name=`parte_${String(partNo).padStart(4,'0')}_${section}.mairpart`;
+        const body={format:'MAIR_GO_BACKUP_PART',version:16,section,part:partNo,records:chunk};
+        const text=JSON.stringify(body);
+        const written=await backupWritePart(folder,name,text);
+        files.push({name,section,records:chunk.length,checksum:checksumString(text),chars:text.length,uri:written.uri||''});
+        chunk=[];chars=0;
+      };
+      for(const rec of records){
+        const row=JSON.stringify(rec);
+        if(chunk.length&&chars+row.length>BACKUP_PART_MAX_CHARS)await flush();
+        chunk.push(rec);chars+=row.length+1;done++;
+        backupProgress(Math.round((done/Math.max(1,totalRecords))*92),`${section}: ${done}/${totalRecords} elementi · parte ${partNo+1}`);
+        if(done%5===0)await new Promise(r=>setTimeout(r,0));
+      }
+      await flush();
+    };
+    for(const k of backupAllSections())await writeRecords(k,Array.isArray(db[k])?db[k]:[]);
+    await writeRecords('settings',[db.settings||{}]);
+    const manifest={format:'MAIR_GO_BACKUP_MULTIPART',version:16,createdAt:new Date().toISOString(),app:'MAIR GO!',targetArtworks:1000,partMaxChars:BACKUP_PART_MAX_CHARS,counts:contaSezioni(db),files:files.map(({uri,...f})=>f)};
+    const manifestText=JSON.stringify(manifest,null,2);
+    const manifestWritten=await backupWritePart(folder,'manifest.mairindex',manifestText);
+    backupProgress(95,'Scegli una cartella visibile del telefono, Drive o memoria esterna…');
+    const exported=await backupExportFolder(folder,[...files.map(f=>({name:f.name,uri:f.uri})),manifestWritten]);
+    backupProgress(100,`Completato: ${files.length} parti + manifest`);
+    db.settings.lastBackup=new Date().toISOString();save();
+    setTimeout(()=>{try{modal.close()}catch{};alert(exported.available?(exported.cancelled?`Backup creato, ma non esportato.\n\nÈ rimasto nell’area privata dell’app e può non comparire in Documenti. Ripeti il backup e completa la scelta della cartella.`:`Backup completo salvato nella cartella scelta.\n\nNome cartella: ${folder}\nFile: ${files.length} parti + manifest.mairindex\n\nConserva l’intera cartella.`):`Backup creato nell’area privata dell’app.\n\nPer scegliere una cartella visibile devi aggiornare anche MairBackupPlugin.java e ricompilare l’APK.`)},500);
+    return true;
+  }catch(e){diagLog('BACKUP-MULTIPARTE-ERRORE',e.message||String(e));try{modal.close()}catch{};alert('Backup multiparte non riuscito: '+(e.message||e));return false}
+}
+function backupReadFilesInput(){return new Promise((resolve,reject)=>{const i=document.createElement('input');i.type='file';i.multiple=true;i.accept='.mairindex,.mairpart,application/json,application/octet-stream,*/*';i.onchange=()=>i.files&&i.files.length?resolve([...i.files]):reject(new Error('Nessun file selezionato'));i.click()})}
+function backupNativePlugin(){const Cap=window.Capacitor;return Cap&&Cap.Plugins&&Cap.Plugins.MairBackup}
+async function backupOpenMultipartSource(){
+  const Native=backupNativePlugin();
+  if(Native&&typeof Native.openBackupFolder==='function'&&typeof Native.readBackupPart==='function'){
+    const chosen=await Native.openBackupFolder();
+    if(chosen&&chosen.cancelled)throw new Error('Selezione della cartella annullata.');
+    const names=Array.isArray(chosen&&chosen.files)?chosen.files:[];
+    if(!names.length)throw new Error('La cartella scelta è vuota. Apri la cartella MAIR_GO_Backup_Completo_… che contiene manifest.mairindex e le parti .mairpart.');
+    return {
+      names,
+      readText:async name=>{const r=await Native.readBackupPart({folderUri:chosen.folderUri,name});return String(r&&r.text||'')},
+      native:true
+    };
+  }
+  const files=await backupReadFilesInput(),map=new Map(files.map(f=>[f.name,f]));
+  return {names:[...map.keys()],readText:async name=>{const f=map.get(name);if(!f)throw new Error('File non trovato: '+name);return await f.text()},native:false};
+}
+async function ripristinaBackupMultiparte(){
+  try{
+    const source=await backupOpenMultipartSource();
+    const manifestName=source.names.find(n=>{const x=String(n).toLowerCase().trim();return x.endsWith('.mairindex')||x.includes('.mairindex.')||x==='manifest.json'||(x.startsWith('manifest')&&x.endsWith('.json'))});
+    if(!manifestName)throw new Error('Manifest non riconosciuto nella cartella scelta. Sono accettati manifest.mairindex, manifest.mairindex.json e manifest.json.');
+    const manifestText=await source.readText(manifestName);
+    const manifest=JSON.parse(manifestText);
+    if(manifest.format!=='MAIR_GO_BACKUP_MULTIPART')throw new Error('Il file .mairindex non è un manifest MAIR GO valido.');
+    const namesLower=new Map(source.names.map(n=>[String(n).toLowerCase(),n]));
+    const missing=(manifest.files||[]).filter(x=>!namesLower.has(String(x.name).toLowerCase()));
+    if(missing.length)throw new Error(`Mancano ${missing.length} parti del backup. Prima parte mancante: ${missing[0].name}. Conserva e seleziona l’intera cartella.`);
+    if(!confirm(`Ripristinare ${manifest.files.length} parti?\n\nI dati attuali saranno sostituiti.`))return false;
+    backupProgressOpen('Ripristino multiparte');
+    const fresh={};for(const k of backupAllSections())fresh[k]=[];
+    for(let n=0;n<manifest.files.length;n++){
+      const info=manifest.files[n],realName=namesLower.get(String(info.name).toLowerCase());
+      backupProgress(Math.round((n/Math.max(1,manifest.files.length))*100),`Lettura parte ${n+1}/${manifest.files.length}: ${info.name}`);
+      const text=await source.readText(realName);
+      if(checksumString(text)!==info.checksum)throw new Error('Parte danneggiata o incompleta: '+info.name);
+      const part=JSON.parse(text);
+      if(part.section==='settings')fresh.settings=(part.records&&part.records[0])||{};
+      else{if(!fresh[part.section])fresh[part.section]=[];fresh[part.section].push(...(part.records||[]));}
+      backupProgress(Math.round(((n+1)/manifest.files.length)*100),`Caricata parte ${n+1}/${manifest.files.length}`);
+      await new Promise(r=>setTimeout(r,0));
+    }
+    db=merge(clone(defaults),{...fresh,settings:fresh.settings||{}});await writePersistentState(clone(db));save();
+    setTimeout(()=>{try{modal.close()}catch{};alert('Ripristino multiparte completato.');render()},400);
+    return true;
+  }catch(e){diagLog('RIPRISTINO-MULTIPARTE-ERRORE',e.message||String(e));try{modal.close()}catch{};alert('Ripristino multiparte non riuscito: '+(e.message||e));return false}
+}
+function backupChoiceModal(){openModal('Backup MAIR GO',`<div class="grid"><article class="card"><div class="cardbody"><h3>⚡ Backup rapido</h3><p>Dati e miniature. Più leggero, ma non contiene gli originali.</p><button type="button" class="btn" id="doQuickBackup">Crea backup rapido</button></div></article><article class="card"><div class="cardbody"><h3>🧩 Backup completo multiparte</h3><p>Include tutte le immagini originali. Progettato per 1000 opere senza creare un unico file enorme.</p><button type="button" class="btn primary" id="doFullBackup">Crea backup completo</button></div></article></div>`,()=>{});setTimeout(()=>{const q=document.querySelector('#doQuickBackup'),f=document.querySelector('#doFullBackup');if(q)q.onclick=()=>{modal.close();creaBackupRapido()};if(f)f.onclick=()=>{modal.close();creaBackupMultiparte()};const sb=document.querySelector('#modal button[type=submit]');if(sb)sb.style.display='none'},0)}
+
+async function creaBackupProfessionale(){
+  const nome=backupFileName(),contenuto=backupPayload();
+  // VERIFICA PRIMA DEL SALVATAGGIO (Versione 12): il backup deve essere rileggibile e integro
+  const pre=verificaBackup(contenuto);
+  if(!pre.ok){
+    alert('Backup non creato: la verifica preventiva \u00e8 fallita.\n\n'+pre.motivo+'\n\nI tuoi dati non sono stati toccati.');
+    diagLog('BACKUP-VERIFICA-FALLITA',pre.motivo);
+    return false;
+  }
+  diagLog('BACKUP','verifica preventiva OK, '+pre.totale+' elementi');
+  try{
+    const Cap=window.Capacitor;
+    const FS=Cap&&Cap.Plugins&&Cap.Plugins.Filesystem;
+    const Native=Cap&&Cap.Plugins&&Cap.Plugins.MairBackup;
+
+    if(FS&&Native&&typeof Native.saveBackup==='function'){
+      const b64=btoa(unescape(encodeURIComponent(contenuto)));
+      let scritto=false;
+      try{
+        const res=await FS.writeFile({path:nome,data:b64,directory:'CACHE',recursive:true});
+        scritto=true;
+        if(!res||!res.uri)throw new Error('File temporaneo non creato.');
+        const scelta=await Native.saveBackup({sourceUri:res.uri,fileName:nome});
+        if(scelta&&scelta.cancelled){toast('Backup annullato');return false;}
+        db.settings.lastBackup=new Date().toISOString();save();return true;
+      }finally{
+        if(scritto)try{await FS.deleteFile({path:nome,directory:'CACHE'});}catch(e){diagLog('BACKUP-CLEAN',e&&e.message?e.message:String(e));}
+      }
+    }
+
+    if(window.showSaveFilePicker){
+      const h=await window.showSaveFilePicker({suggestedName:nome,types:[{description:'Backup MAIR GO!',accept:{'application/json':['.backup','.mair','.json']}}]});
+      const w=await h.createWritable();await w.write(new Blob([contenuto],{type:'application/json'}));await w.close();
+      db.settings.lastBackup=new Date().toISOString();save();return true;
+    }
+    download(new Blob([contenuto],{type:'application/json'}),nome);
+    db.settings.lastBackup=new Date().toISOString();save();return true;
+  }catch(e){
+    const msg=String(e&&e.message||e||'');
+    if(e&&e.name==='AbortError'||/cancel|annull|dismiss|closed/i.test(msg)){toast('Backup annullato');return false;}
+    diagLog('BACKUP-ERRORE',msg);alert('Impossibile creare il backup: '+msg);return false;
+  }
+}
 async function backupReadWithMairPlugin(){
   const Cap=window.Capacitor;
   const Native=Cap&&Cap.Plugins&&Cap.Plugins.MairBackup;
@@ -2700,6 +2984,7 @@ async function ripristinaBackupProfessionale(){
     diagLog('BACKUP-IMPORT',e&&e.message?e.message:String(e));
   }
 }
+
 
 function docViewerOpen(title,inner,extraCss,plainText){
   try{
