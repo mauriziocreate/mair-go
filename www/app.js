@@ -9,7 +9,7 @@ function diagOpen(){
   box.setAttribute('style','position:fixed;top:0;left:0;right:0;bottom:0;z-index:999999;background:#111;color:#0f0;font:12px/1.5 monospace;padding:10px;overflow:auto');
   const testo=window.__LOG__.length?window.__LOG__.join('\n\n'):'(nessun errore registrato)';
   const info='DIAGNOSTICA MAIR GO!\n'
-    +'Versione app.js: 1.0\n'
+    +'Versione app.js: 15.0\n'
     +'docViewerOpen esiste: '+(typeof docViewerOpen)+'\n'
     +'textEditorOpen esiste: '+(typeof textEditorOpen)+'\n'
     +'certDocHtml esiste: '+(typeof certDocHtml)+'\n'
@@ -21,6 +21,7 @@ function diagOpen(){
     +'Plugin Share: '+(window.Capacitor&&window.Capacitor.Plugins&&window.Capacitor.Plugins.Share?'SI':'NO')+'\n'
     +'jsPDF caricato: '+(window.jspdf?'SI':'NO')+'\n'
     +'html2canvas caricato: '+(typeof html2canvas==='function'?'SI':'NO')+'\n'
+    +'JSZip (export): '+(typeof JSZip!=='undefined'?'SI':'NO')+'\n'
     +'MediaRecorder: '+(typeof window.MediaRecorder)+'\n'
     +'Formato video: '+(typeof videoMimeSupportato==='function'?(videoMimeSupportato()||'NESSUNO'):'?')+'\n'
     +'PDF.js: '+(window.pdfjsLib?'SI':'NO')+'\n'
@@ -854,7 +855,7 @@ function moreView(){
   </div></div>
   <div class="hub-section"><h3>App e sicurezza</h3><div class="hub-grid compact">
     ${hubTile('settings','⚙️','Impostazioni e Backup','Aspetto, profilo, PIN, liste, backup e ripristino.',null)}
-    ${hubTile('archiveTools','🛡️','Archivio 13–14','Excel, ZIP completo, catalogo HTML, importazione e controllo integrità.',null)}
+    ${hubTile('archiveTools','📊','Esportazione dati/Excel','Excel con immagini, ZIP completo, catalogo HTML, importazione e controllo archivio.',null)}
     ${hubTile('guide','📖','Guida offline','Istruzioni per usare ogni funzione.',null)}
     ${hubTile('info','ℹ️','Informazioni','Versione, privacy e note dell’app.',null)}
     ${hubTile('contact','✉️','Assistenza','Segnalazioni e richieste.',null)}
@@ -2423,6 +2424,37 @@ function pdfSettingsModal(){
 }
 
 /* ===== SALVATAGGIO FILE COMPATIBILE ANDROID ===== */
+async function salvaFileBlob(nome,blob,mime){
+  // salva un file BINARIO (Excel, ZIP) in modo compatibile con Android WebView
+  try{
+    const Cap=window.Capacitor;
+    const FS=Cap&&Cap.Plugins&&Cap.Plugins.Filesystem;
+    if(FS){
+      // converto il blob in base64
+      const b64=await new Promise((ris,rif)=>{const r=new FileReader();r.onload=()=>ris(String(r.result).split(',')[1]);r.onerror=rif;r.readAsDataURL(blob);});
+      const dirs=['EXTERNAL','DATA','DOCUMENTS','CACHE'];
+      let res=null,usata='';
+      for(const d of dirs){
+        try{res=await FS.writeFile({path:nome,data:b64,directory:d,recursive:true});usata=d;break;}
+        catch(e){diagLog('FILEBLOB-DIR','fallita '+d+': '+(e&&e.message?e.message:e));}
+      }
+      if(res){
+        diagLog('FILEBLOB','salvato in '+usata+': '+nome);
+        const Sh=Cap.Plugins&&Cap.Plugins.Share;
+        if(Sh&&res.uri){
+          try{await Sh.share({title:nome,text:nome,url:res.uri,dialogTitle:'Salva o invia '+nome});return true;}
+          catch(e){diagLog('FILEBLOB-SHARE',e&&e.message?e.message:String(e));}
+        }
+        alert('File creato: '+nome);
+        return true;
+      }
+    }
+  }catch(e){diagLog('FILEBLOB-ERRORE',e&&e.message?e.message:String(e));}
+  // ripiego browser
+  try{const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=nome;a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1000);return true;}
+  catch(e){diagLog('FILEBLOB-DL',e&&e.message?e.message:String(e));alert('Impossibile salvare il file.');return false;}
+}
+
 async function salvaFile(nome,contenuto,mime,condividi){
   try{
     const Cap=window.Capacitor;
@@ -3061,11 +3093,11 @@ async function mairMakeXlsx(){
   return zip.generateAsync({type:'blob',compression:'DEFLATE',compressionOptions:{level:6}});
 }
 function mairCatalogHtml(){const cards=(db.artworks||[]).map((a,i)=>`<article><div class="img">${a.image?`<img src="${a.image}" alt="${mairXml(a.title)}">`:'<span>Nessuna immagine</span>'}</div><h2>${mairXml(a.title||'Senza titolo')}</h2><p><b>${mairXml(a.code||'')}</b> ${mairXml(a.year||'')}</p><p>${mairXml([a.technique,a.support,a.dimensions].filter(Boolean).join(' · '))}</p><p>${mairXml(a.status||'')}</p></article>`).join('');return `<!doctype html><html lang="it"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width"><title>Catalogo MAIR GO!</title><style>body{font-family:Arial,sans-serif;margin:0;background:#f4f2ee;color:#222}header{padding:32px;text-align:center;background:#222;color:#fff}.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:20px;padding:24px}article{background:white;border-radius:14px;padding:14px;box-shadow:0 4px 18px #0002}.img{height:240px;display:grid;place-items:center;background:#eee;border-radius:10px;overflow:hidden}.img img{width:100%;height:100%;object-fit:contain}h2{font-size:20px;margin-bottom:6px}p{margin:6px 0;color:#555}</style></head><body><header><h1>Archivio opere</h1><p>${mairXml(db.settings.artist||'MAIR GO!')} · ${new Date().toLocaleDateString('it-IT')}</p></header><main class="grid">${cards}</main></body></html>`}
-async function mairExportExcel(){toast('Preparazione Excel…');const blob=await mairMakeXlsx();download(blob,`Archivio_MAIR_GO_${new Date().toISOString().slice(0,10)}.xlsx`);toast('Excel creato')}
-async function mairExportHtml(){download(new Blob([mairCatalogHtml()],{type:'text/html;charset=utf-8'}),`Catalogo_MAIR_GO_${new Date().toISOString().slice(0,10)}.html`);toast('Catalogo HTML creato')}
-async function mairExportComplete(){if(typeof JSZip==='undefined')return alert('Libreria ZIP non disponibile.');toast('Creazione archivio completo…');const zip=new JSZip();zip.file('Archivio_MAIR_GO.xlsx',await mairMakeXlsx());zip.file('Catalogo_MAIR_GO.html',mairCatalogHtml());zip.file('LEGGIMI.txt','Archivio completo MAIR GO!\nContiene Excel, catalogo HTML e immagini originali.\nCreato il '+new Date().toLocaleString('it-IT'));
+async function mairExportExcel(){try{toast('Preparazione Excel…');const blob=await mairMakeXlsx();const ok=await salvaFileBlob(`Archivio_MAIR_GO_${new Date().toISOString().slice(0,10)}.xlsx`,blob,'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');if(ok)toast('Excel creato');}catch(e){diagLog('EXPORT-EXCEL',e&&e.message?e.message:String(e));alert('Esportazione Excel non riuscita: '+(e&&e.message?e.message:e));}}
+async function mairExportHtml(){try{const blob=new Blob([mairCatalogHtml()],{type:'text/html;charset=utf-8'});const ok=await salvaFileBlob(`Catalogo_MAIR_GO_${new Date().toISOString().slice(0,10)}.html`,blob,'text/html');if(ok)toast('Catalogo HTML creato');}catch(e){diagLog('EXPORT-HTML',e&&e.message?e.message:String(e));alert('Esportazione HTML non riuscita: '+(e&&e.message?e.message:e));}}
+async function mairExportComplete(){if(typeof JSZip==='undefined')return alert('Libreria ZIP non disponibile.');try{toast('Creazione archivio completo…');const zip=new JSZip();zip.file('Archivio_MAIR_GO.xlsx',await mairMakeXlsx());zip.file('Catalogo_MAIR_GO.html',mairCatalogHtml());zip.file('LEGGIMI.txt','Archivio completo MAIR GO!\nContiene Excel, catalogo HTML e immagini originali.\nCreato il '+new Date().toLocaleString('it-IT'));
   (db.artworks||[]).forEach((a,i)=>{const p=mairDataUrlParts(a.image);if(p)zip.folder('Immagini').file(`${String(i+1).padStart(4,'0')}_${mairFileSafe(a.code||a.title||'opera')}.${p.ext}`,p.b64,{base64:true})});
-  const blob=await zip.generateAsync({type:'blob',compression:'DEFLATE',compressionOptions:{level:6}},m=>{if(Math.round(m.percent)%20===0)toast('Archivio '+Math.round(m.percent)+'%')});download(blob,`Archivio_Completo_MAIR_GO_${new Date().toISOString().slice(0,10)}.zip`);toast('Archivio completo creato')}
+  const blob=await zip.generateAsync({type:'blob',compression:'DEFLATE',compressionOptions:{level:6}},m=>{if(Math.round(m.percent)%20===0)toast('Archivio '+Math.round(m.percent)+'%')});const ok=await salvaFileBlob(`Archivio_Completo_MAIR_GO_${new Date().toISOString().slice(0,10)}.zip`,blob,'application/zip');if(ok)toast('Archivio completo creato')}catch(e){diagLog('EXPORT-ZIP',e&&e.message?e.message:String(e));alert('Archivio completo non riuscito: '+(e&&e.message?e.message:e));}}
 function mairDuplicateKey(x,fields){return fields.map(k=>String(x[k]||'').trim().toLowerCase()).join('|')}
 function mairIntegrity(){const issues=[];const add=(level,type,msg,id='')=>issues.push({level,type,msg,id});
   const seenIds=new Map();MAIR_EXPORT_SECTIONS.forEach(([k,label])=>(db[k]||[]).forEach(x=>{if(!x.id)add('errore',label,'Record senza ID');else if(seenIds.has(x.id))add('errore','ID duplicato',`${label}: ID già usato in ${seenIds.get(x.id)}`,x.id);else seenIds.set(x.id,label)}));
@@ -3073,13 +3105,13 @@ function mairIntegrity(){const issues=[];const add=(level,type,msg,id='')=>issue
   const checks=[['sales','Vendita','artworkId','artworks'],['sales','Vendita','clientId','clients'],['certificates','Certificato','artworkId','artworks'],['certificates','Certificato','clientId','clients']];checks.forEach(([s,l,f,target])=>(db[s]||[]).forEach(x=>{if(x[f]&&!(db[target]||[]).some(y=>y.id===x[f]))add('errore','Collegamento mancante',`${l}: ${f} non trovato`,x.id)}));
   [['artworks',['title','year','dimensions']],['clients',['name','email']],['pros',['name','email']],['galleries',['name','email']]].forEach(([s,fs])=>{const map=new Map();(db[s]||[]).forEach(x=>{const k=mairDuplicateKey(x,fs);if(k.replace(/\|/g,'')){if(map.has(k))add('avviso','Possibile duplicato',`${s}: ${x.title||x.name||x.id}`,x.id);else map.set(k,x.id)}})});return issues}
 function mairStats(){const values=(db.sales||[]).map(s=>Number(s.total||s.amount||0)).filter(Number.isFinite);return {opere:(db.artworks||[]).length,conImmagine:(db.artworks||[]).filter(a=>a.image).length,disponibili:(db.artworks||[]).filter(a=>String(a.status).toLowerCase()==='disponibile').length,vendute:(db.artworks||[]).filter(a=>String(a.status).toLowerCase()==='venduto').length,clienti:(db.clients||[]).length,mostre:(db.exhibitions||[]).length,professionisti:(db.pros||[]).length,gallerie:(db.galleries||[]).length,certificati:(db.certificates||[]).length,vendite:(db.sales||[]).length,valoreVendite:values.reduce((a,b)=>a+b,0)}}
-function archiveToolsView(){const st=mairStats(),issues=mairIntegrity();return `${section('Archivio 13–14')}<p class="section-intro">Esporta, importa e controlla il tuo archivio senza appesantire l’uso quotidiano.</p><div class="stats">${stat('Opere',st.opere,'🎨')}${stat('Clienti',st.clienti,'👥')}${stat('Vendite',st.vendite,'💶')}${stat('Problemi',issues.length,'🛡️')}</div><div class="grid"><article class="card"><div class="cardbody"><h3>📊 Esportazione Excel</h3><p>Sette fogli separati. Nel foglio Opere sono incorporate le miniature.</p><button class="btn primary" data-action="exportExcel13">Esporta Excel</button></div></article><article class="card"><div class="cardbody"><h3>📦 Archivio completo</h3><p>ZIP con Excel, immagini originali, catalogo HTML e istruzioni.</p><button class="btn primary" data-action="exportComplete13">Esporta tutto</button></div></article><article class="card"><div class="cardbody"><h3>🌐 Catalogo HTML</h3><p>Catalogo autonomo, consultabile offline con qualunque browser.</p><button class="btn" data-action="exportHtml13">Esporta HTML</button></div></article><article class="card"><div class="cardbody"><h3>↩️ Importazione Excel</h3><p>Importa i fogli esportati da MAIR GO. Prima viene mostrata un’anteprima.</p><button class="btn" data-action="importExcel14">Importa Excel</button></div></article></div><h2>Controllo integrità</h2><div class="row"><button class="btn primary" data-action="refreshIntegrity14">Ricontrolla</button></div><div class="integrity-list">${issues.length?issues.map(i=>`<div class="integrity-item ${i.level}"><strong>${esc(i.type)}</strong><span>${esc(i.msg)}</span></div>`).join(''):'<div class="integrity-ok">✓ Nessun problema rilevato</div>'}</div><h2>Statistiche</h2><div class="stats">${stat('Con immagine',st.conImmagine,'🖼️')}${stat('Disponibili',st.disponibili,'✓')}${stat('Vendute',st.vendute,'●')}${stat('Mostre',st.mostre,'🏛️')}${stat('Certificati',st.certificati,'✦')}${stat('Valore vendite',euro(st.valoreVendite),'€')}</div>`}
+function archiveToolsView(){const st=mairStats(),issues=mairIntegrity();return `${section('Esportazione dati/Excel')}<p class="section-intro">Esporta, importa e controlla il tuo archivio senza appesantire l’uso quotidiano.</p><div class="stats">${stat('Opere',st.opere,'🎨')}${stat('Clienti',st.clienti,'👥')}${stat('Vendite',st.vendite,'💶')}${stat('Problemi',issues.length,'🛡️')}</div><div class="grid"><article class="card"><div class="cardbody"><h3>📊 Esportazione Excel</h3><p>Sette fogli separati. Nel foglio Opere sono incorporate le miniature.</p><button class="btn primary" data-action="exportExcel13">Esporta Excel</button></div></article><article class="card"><div class="cardbody"><h3>📦 Archivio completo</h3><p>ZIP con Excel, immagini originali, catalogo HTML e istruzioni.</p><button class="btn primary" data-action="exportComplete13">Esporta tutto</button></div></article><article class="card"><div class="cardbody"><h3>🌐 Catalogo HTML</h3><p>Catalogo autonomo, consultabile offline con qualunque browser.</p><button class="btn" data-action="exportHtml13">Esporta HTML</button></div></article><article class="card"><div class="cardbody"><h3>↩️ Importazione Excel</h3><p>Importa i fogli esportati da MAIR GO. Prima viene mostrata un’anteprima.</p><button class="btn" data-action="importExcel14">Importa Excel</button></div></article></div><h2>Controllo integrità</h2><div class="row"><button class="btn primary" data-action="refreshIntegrity14">Ricontrolla</button></div><div class="integrity-list">${issues.length?issues.map(i=>`<div class="integrity-item ${i.level}"><strong>${esc(i.type)}</strong><span>${esc(i.msg)}</span></div>`).join(''):'<div class="integrity-ok">✓ Nessun problema rilevato</div>'}</div><h2>Statistiche</h2><div class="stats">${stat('Con immagine',st.conImmagine,'🖼️')}${stat('Disponibili',st.disponibili,'✓')}${stat('Vendute',st.vendute,'●')}${stat('Mostre',st.mostre,'🏛️')}${stat('Certificati',st.certificati,'✦')}${stat('Valore vendite',euro(st.valoreVendite),'€')}</div>`}
 function mairText(n){return (n?.textContent||'').trim()}
 async function mairParseXlsx(file){if(typeof JSZip==='undefined')throw new Error('Libreria ZIP non disponibile.');const zip=await JSZip.loadAsync(await file.arrayBuffer()),wbXml=await zip.file('xl/workbook.xml')?.async('text');if(!wbXml)throw new Error('File Excel non riconosciuto.');const parser=new DOMParser(),wb=parser.parseFromString(wbXml,'application/xml'),names=[...wb.querySelectorAll('sheet')].map(x=>x.getAttribute('name'));let shared=[];const sf=zip.file('xl/sharedStrings.xml');if(sf){const sx=parser.parseFromString(await sf.async('text'),'application/xml');shared=[...sx.querySelectorAll('si')].map(si=>[...si.querySelectorAll('t')].map(mairText).join(''))}
  const out={};for(let i=0;i<names.length;i++){const f=zip.file(`xl/worksheets/sheet${i+1}.xml`);if(!f)continue;const sx=parser.parseFromString(await f.async('text'),'application/xml'),rows=[...sx.querySelectorAll('sheetData row')].map(r=>[...r.querySelectorAll('c')].map(c=>{const type=c.getAttribute('t'),v=mairText(c.querySelector('v')),t=[...c.querySelectorAll('is t')].map(mairText).join('');return type==='s'?shared[Number(v)]||'':type==='inlineStr'?t:v}));if(!rows.length)continue;const headers=rows[0].map(x=>String(x).trim()),records=rows.slice(1).map(vals=>Object.fromEntries(headers.map((h,j)=>[h,vals[j]??'']))).filter(x=>Object.values(x).some(Boolean));const match=MAIR_EXPORT_SECTIONS.find(([,l])=>l.toLowerCase()===names[i].toLowerCase());if(match){if(match[0]==='artworks')records.forEach(r=>delete r.Foto);out[match[0]]=records}}
  return out}
 async function mairImportExcel(){const input=document.createElement('input');input.type='file';input.accept='.xlsx,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet';input.onchange=async()=>{const f=input.files?.[0];if(!f)return;try{const parsed=await mairParseXlsx(f),summary=Object.entries(parsed).map(([k,v])=>`${k}: ${v.length}`).join('\n');if(!summary)throw new Error('Nessun foglio MAIR GO riconosciuto.');if(!confirm(`Dati trovati:\n${summary}\n\nI record con lo stesso ID saranno aggiornati; gli altri aggiunti. Continuare?`))return;Object.entries(parsed).forEach(([k,rows])=>{const old=db[k]||[],map=new Map(old.map(x=>[x.id,x]));rows.forEach(r=>{r.id=r.id||uid();map.set(r.id,{...(map.get(r.id)||{}),...r})});db[k]=[...map.values()]});save();render();toast('Importazione completata')}catch(e){alert('Importazione non riuscita: '+(e.message||e))}};input.click()}
-views.archiveTools=()=>archiveToolsView();titles.archiveTools='Archivio 13–14';
+views.archiveTools=()=>archiveToolsView();titles.archiveTools='Esportazione dati/Excel';
 
 const actions={exportExcel13:()=>mairExportExcel(),exportComplete13:()=>mairExportComplete(),exportHtml13:()=>mairExportHtml(),importExcel14:()=>mairImportExcel(),refreshIntegrity14:()=>render(),openDiag:()=>diagOpen(),dona:()=>donaModal(),timelineAzzera:()=>timelineAzzeraModal(),
  newLink:()=>linkModal(),editLink:id=>linkModal((db.links||[]).find(x=>x.id===id)),deleteLink:id=>del('links',id),
