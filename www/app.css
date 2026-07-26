@@ -534,3 +534,6 @@ body{padding-bottom:calc(82px + env(safe-area-inset-bottom))}
 /* ===== CARICAMENTO PROGRESSIVO v11 ===== */
 .load-more{display:flex;justify-content:center;padding:16px 0 24px}
 .load-more .btn{min-width:200px}
+
+/* MAIR GO! 13-14 */
+.integrity-list{display:grid;gap:10px;margin:16px 0 28px}.integrity-item{display:flex;flex-direction:column;gap:3px;padding:12px 14px;border-radius:12px;border:1px solid var(--line);background:var(--card)}.integrity-item.errore{border-left:5px solid #b42318}.integrity-item.avviso{border-left:5px solid #b7791f}.integrity-ok{padding:18px;border-radius:12px;background:rgba(34,139,94,.12);font-weight:700}.integrity-item span{font-size:.92em;opacity:.78}
