@@ -86,7 +86,7 @@ public class MairBackupPlugin extends Plugin {
                 String name = safeName(item.optString("name", "parte_" + (i + 1) + ".mairpart"));
                 String sourceUri = item.optString("uri", "");
                 if (sourceUri.isEmpty()) throw new Exception("Origine mancante per " + name);
-                String mime = name.endsWith(".mairindex") ? "application/json" : "application/octet-stream";
+                String mime = "application/octet-stream"; // evita che Android/Drive rinomini manifest.mairindex in manifest.mairindex.json
                 Uri outUri = DocumentsContract.createDocument(getContext().getContentResolver(), folderUri, mime, name);
                 if (outUri == null) throw new Exception("Impossibile creare " + name);
                 try (InputStream in = openSource(sourceUri); OutputStream out = getContext().getContentResolver().openOutputStream(outUri, "w")) {
