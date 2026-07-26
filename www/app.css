@@ -648,3 +648,25 @@ body{padding-bottom:calc(82px + env(safe-area-inset-bottom))}
   #artGrid .cardbody>.row:last-child{padding-top:15px;padding-bottom:15px}
   .hub-tile,.quick-create{min-height:88px;height:88px;padding:12px 13px}
 }
+
+/* MAIR GO 15.9 — selezione opere più chiara */
+.art-picker{display:grid;gap:10px}
+.art-picker-search{position:sticky;top:0;z-index:2;background:var(--surface,#fff)}
+.art-picker-count{padding:2px 4px}
+.art-picker-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(145px,1fr));gap:10px;max-height:52vh;overflow:auto;padding:2px}
+.art-pick-card{display:grid;grid-template-columns:26px 58px 1fr;align-items:center;gap:8px;min-height:76px;padding:8px;border:1px solid var(--line);border-radius:14px;background:linear-gradient(145deg,var(--card,#fff),color-mix(in srgb,var(--accent,#a96527) 8%,var(--card,#fff)));cursor:pointer}
+.art-pick-card:has(input:checked){outline:2px solid var(--accent);background:linear-gradient(145deg,color-mix(in srgb,var(--accent) 15%,var(--card,#fff)),var(--card,#fff))}
+.art-pick-card[hidden]{display:none}
+.art-pick-card>input{width:20px;height:20px}
+.art-pick-thumb{width:58px;height:58px;border-radius:10px;overflow:hidden;display:grid;place-items:center;background:var(--soft,#eee)}
+.art-pick-thumb img{width:100%;height:100%;object-fit:cover;display:block}
+.art-pick-text{min-width:0;display:grid;gap:4px}
+.art-pick-text strong,.art-pick-text small{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.art-pick-text small{color:var(--muted);font-size:.78rem}
+.bulk-artwork-row{display:grid;grid-template-columns:auto minmax(120px,1fr) minmax(130px,1fr);gap:10px;align-items:center;padding:10px;border:1px solid var(--line);border-radius:12px}
+.bulk-artwork-row.invalid{opacity:.72;background:color-mix(in srgb,#b3261e 7%,var(--card,#fff));border-color:color-mix(in srgb,#b3261e 35%,var(--line))}
+.bulk-include{display:grid;justify-items:center;gap:3px;font-size:.72rem}
+.bulk-include input{width:20px;height:20px}
+.bulk-file-info{min-width:0;display:grid;gap:3px}
+.bulk-file-info strong,.bulk-file-info small{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+@media(max-width:620px){.art-picker-grid{grid-template-columns:1fr}.bulk-artwork-row{grid-template-columns:auto 1fr}.bulk-artwork-row>[data-bulk-title]{grid-column:1/-1}}
