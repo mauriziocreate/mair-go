@@ -1459,7 +1459,7 @@ function openModal(title,html,onSave,saveLabel='Salva'){ $('#modalTitle').textCo
 
 /* ===== GESTIONE IMMAGINI v11 (limite 5MB, originale + miniatura) ===== */
 const IMG_MAX_BYTES=5*1024*1024;      // limite 5 MB sul file caricato
-const THUMB_MAX=400;                  // lato massimo miniatura in px
+const THUMB_MAX=900;                  // lato massimo miniatura in px
 async function processImage(file){
   // ritorna {full, thumb} oppure lancia errore se troppo grande
   if(!file||!file.size)return null;
@@ -1482,7 +1482,7 @@ function makeThumb(dataUrl){
         else{w=Math.round(w*THUMB_MAX/h);h=THUMB_MAX;}
         const cv=document.createElement('canvas');cv.width=w;cv.height=h;
         cv.getContext('2d').drawImage(img,0,0,w,h);
-        res(cv.toDataURL('image/jpeg',0.72));
+        res(cv.toDataURL('image/jpeg',0.90));
       }catch(e){rej(e);}
     };
     img.onerror=rej;
@@ -2675,7 +2675,7 @@ async function mairMakeXlsx(){
     }
     const maxCell=mairCol(headers.length-1)+Math.max(1,rows.length+1);
     const sheet=`<?xml version="1.0" encoding="UTF-8" standalone="yes"?><worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships"><dimension ref="A1:${maxCell}"/><sheetViews><sheetView workbookViewId="0"><pane ySplit="1" topLeftCell="A2" activePane="bottomLeft" state="frozen"/></sheetView></sheetViews><cols>${cols}</cols><sheetData>${xmlRows.join('')}</sheetData><autoFilter ref="A1:${mairCol(headers.length-1)}1"/>${drawingTag}</worksheet>`;
-    sheetDefs.push({key,label,xml:sheet,hasDrawing:!!drawingTag});
+    sheetDefs.push({key,label,xml,hasDrawing:!!drawingTag});
   });
   zip.file('[Content_Types].xml',`<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types"><Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/><Default Extension="xml" ContentType="application/xml"/><Default Extension="png" ContentType="image/png"/><Default Extension="jpg" ContentType="image/jpeg"/><Default Extension="webp" ContentType="image/webp"/><Override PartName="/xl/workbook.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet.main+xml"/><Override PartName="/xl/styles.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.styles+xml"/>${sheetDefs.map((_,i)=>`<Override PartName="/xl/worksheets/sheet${i+1}.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml"/>`).join('')}${drawings.map((_,i)=>`<Override PartName="/xl/drawings/drawing${i+1}.xml" ContentType="application/vnd.openxmlformats-officedocument.drawing+xml"/>`).join('')}</Types>`);
   zip.folder('_rels').file('.rels','<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="xl/workbook.xml"/></Relationships>');

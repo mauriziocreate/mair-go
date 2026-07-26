@@ -536,3 +536,4 @@ body{padding-bottom:calc(82px + env(safe-area-inset-bottom))}
 .load-more .btn{min-width:200px}
 /* MAIR GO 15 */
 .toolbar{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin:0 0 18px}.toolbar .search{flex:1;min-width:220px}.stats-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(145px,1fr));gap:12px;margin:16px 0}.stat{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:18px;text-align:center}.stat strong{display:block;font-size:1.45rem;margin-bottom:5px}.stat span{font-size:.85rem;color:var(--muted)}
+.ex-doc-list{display:flex;flex-wrap:wrap;gap:8px;margin:10px 0}.ex-doc-existing{display:grid;gap:8px;margin-top:10px}.ex-doc-existing .record{align-items:center;gap:10px}.ex-doc-existing input{width:auto}.checkcard img{image-rendering:auto}
