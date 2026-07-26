@@ -2617,8 +2617,8 @@ async function backupOpenMultipartSource(){
 async function ripristinaBackupMultiparte(){
   try{
     const source=await backupOpenMultipartSource();
-    const manifestName=source.names.find(n=>String(n).toLowerCase().endsWith('.mairindex'));
-    if(!manifestName)throw new Error('Nella cartella scelta manca manifest.mairindex. Seleziona direttamente la cartella del backup completo, non la cartella Documenti generale.');
+    const manifestName=source.names.find(n=>{const x=String(n).toLowerCase().trim();return x.endsWith('.mairindex')||x.includes('.mairindex.')||x==='manifest.json'||(x.startsWith('manifest')&&x.endsWith('.json'))});
+    if(!manifestName)throw new Error('Manifest non riconosciuto nella cartella scelta. Sono accettati manifest.mairindex, manifest.mairindex.json e manifest.json.');
     const manifestText=await source.readText(manifestName);
     const manifest=JSON.parse(manifestText);
     if(manifest.format!=='MAIR_GO_BACKUP_MULTIPART')throw new Error('Il file .mairindex non è un manifest MAIR GO valido.');
