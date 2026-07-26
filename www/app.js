@@ -843,6 +843,7 @@ function moreView(){
   </div></div>
   <div class="hub-section"><h3>App e sicurezza</h3><div class="hub-grid compact">
     ${hubTile('settings','⚙️','Impostazioni e Backup','Aspetto, profilo, PIN, liste, backup e ripristino.',null)}
+    ${hubTile('archiveTools','🛡️','Archivio 13–14','Excel, ZIP completo, catalogo HTML, importazione e controllo integrità.',null)}
     ${hubTile('guide','📖','Guida offline','Istruzioni per usare ogni funzione.',null)}
     ${hubTile('info','ℹ️','Informazioni','Versione, privacy e note dell’app.',null)}
     ${hubTile('contact','✉️','Assistenza','Segnalazioni e richieste.',null)}
@@ -2539,10 +2540,10 @@ function docViewerOpen(title,inner,extraCss,plainText){
           const canvas=await html2canvas(paper,{scale:2,backgroundColor:'#ffffff',useCORS:true,logging:false});
           const img=canvas.toDataURL('image/jpeg',0.92);
           const iw=M.utileW, ih=canvas.height*iw/canvas.width;
-          let resto=ih, pos=PDF_MARG.top;
-          pdf.addImage(img,'JPEG',PDF_MARG.left,pos,iw,ih);
+          let resto=ih, pos=M.mt;
+          pdf.addImage(img,'JPEG',M.ml,pos,iw,ih);
           resto-=M.utileH;
-          while(resto>0){pos-=M.utileH;pdf.addPage();pdf.addImage(img,'JPEG',PDF_MARG.left,pos,iw,ih);resto-=M.utileH;}
+          while(resto>0){pos-=M.utileH;pdf.addPage();pdf.addImage(img,'JPEG',M.ml,pos,iw,ih);resto-=M.utileH;}
         }
         const nome=safeName(title)+'.pdf';
         let fatto=false;
