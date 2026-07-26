@@ -9,7 +9,7 @@ function diagOpen(){
   box.setAttribute('style','position:fixed;top:0;left:0;right:0;bottom:0;z-index:999999;background:#111;color:#0f0;font:12px/1.5 monospace;padding:10px;overflow:auto');
   const testo=window.__LOG__.length?window.__LOG__.join('\n\n'):'(nessun errore registrato)';
   const info='DIAGNOSTICA MAIR GO!\n'
-    +'Versione app.js: 15.0\n'
+    +'Versione app.js: 16.0\n'
     +'docViewerOpen esiste: '+(typeof docViewerOpen)+'\n'
     +'textEditorOpen esiste: '+(typeof textEditorOpen)+'\n'
     +'certDocHtml esiste: '+(typeof certDocHtml)+'\n'
@@ -2270,100 +2270,175 @@ function pdfPiePagina(pdf,num,tot,testo,C){
 }
 
 // genera il PDF impaginato di un progetto catalogo
+// dimensioni reali di un'immagine (per proporzioni nel PDF)
+function pdfImgSize(dataUrl){
+  return new Promise((res)=>{
+    try{const im=new Image();im.onload=()=>res({w:im.width,h:im.height});im.onerror=()=>res(null);im.src=dataUrl;}
+    catch(e){res(null);}
+  });
+}
+function pdfImgFormat(dataUrl){
+  const m=String(dataUrl||'').match(/^data:image\/([a-z+]+)/i);
+  const t=(m?m[1]:'jpeg').toLowerCase();
+  if(t.includes('png'))return 'PNG';
+  if(t.includes('webp'))return 'WEBP';
+  return 'JPEG';
+}
 async function pdfCatalogoImpaginato(p){
   const C=pdfCfg();
   const {jsPDF}=window.jspdf;
   const pdf=new jsPDF({orientation:C.orientamento,unit:'mm',format:C.formato});
   const M=pdfMisure(pdf,C);
-  const st=pdfStage(C);
   const arts=(p.artworkIds||[]).map(id=>db.artworks.find(a=>a.id===id)).filter(Boolean);
   const F=p.fields||[];
-  const autore=esc(db.settings.artist||'');
+  const autore=db.settings.artist||'';
   const col=C.colore||'#8a6a1f';
-  const T=(n)=>Math.round(C.titolo*n);
+  const rgb=(hex=>{const h=hex.replace('#','');return [parseInt(h.slice(0,2),16)||138,parseInt(h.slice(2,4),16)||106,parseInt(h.slice(4,6),16)||31];})(col);
+  const fontName=C.font==='helvetica'?'helvetica':(C.font==='courier'?'courier':'times');
   let prima=true;
-  const nuovaPagina=()=>{if(prima){prima=false;}else{pdf.addPage();}};
+  const nuovaPagina=()=>{if(prima)prima=false;else pdf.addPage();};
+  // scrive testo con a-capo automatico, ritorna la nuova y
+  const testo=(str,x,y,opt={})=>{
+    if(!str)return y;
+    const size=opt.size||11, lh=opt.lh||size*0.42;
+    pdf.setFont(fontName,opt.style||'normal');
+    pdf.setFontSize(size);
+    if(opt.color)pdf.setTextColor(opt.color[0],opt.color[1],opt.color[2]);else pdf.setTextColor(30,30,30);
+    const larg=opt.w||M.utileW;
+    const righe=pdf.splitTextToSize(String(str),larg);
+    for(const r of righe){
+      if(y>M.ph-M.mb){pdf.addPage();y=M.mt;}
+      pdf.text(r,x,y,{align:opt.align||'left'});
+      y+=lh;
+    }
+    return y;
+  };
+  const linea=(y)=>{pdf.setDrawColor(rgb[0],rgb[1],rgb[2]);pdf.setLineWidth(0.4);pdf.line(M.ml,y,M.pw-M.mr,y);return y+1;};
+
   try{
     // ---- COPERTINA ----
     if(C.copertina){
       nuovaPagina();
-      const sub=(p.subtitle&&p.subtitle.trim()&&p.subtitle.trim()!==autore)?'<h2 style="font-size:'+T(0.82)+'px;font-weight:400;font-style:italic;margin:0 0 18px">'+esc(p.subtitle)+'</h2>':'';
-      st.innerHTML='<div style="padding:40px 30px;text-align:center;min-height:900px;display:flex;flex-direction:column;justify-content:center">'
-        +'<div style="border:3px solid '+col+';padding:56px 30px">'
-        +'<div style="letter-spacing:.28em;text-transform:uppercase;font-size:'+T(0.5)+'px;color:'+col+';font-weight:700">'+esc(p.type||'Catalogo')+'</div>'
-        +'<h1 style="font-size:'+T(1.7)+'px;margin:26px 0 12px;line-height:1.2">'+esc(p.title||'')+'</h1>'
-        +sub
-        +'<div style="width:70px;height:2px;background:'+col+';margin:26px auto"></div>'
-        +'<div style="font-size:'+T(0.8)+'px;font-weight:700">'+autore+'</div>'
-        +'<div style="font-size:'+T(0.55)+'px;color:#555;margin-top:8px">'+arts.length+(arts.length===1?' opera':' opere')+'</div>'
-        +'</div></div>';
-      await pdfBloccoInPagina(pdf,st,{C,maxH:M.utileH});
+      let y=M.ph*0.32;
+      pdf.setDrawColor(rgb[0],rgb[1],rgb[2]);pdf.setLineWidth(1.2);
+      pdf.rect(M.ml+6,y-4,M.utileW-12,M.ph*0.42);
+      y+=14;
+      y=testo((p.type||'Catalogo').toUpperCase(),M.pw/2,y,{size:12,style:'bold',align:'center',color:rgb,lh:10});
+      y+=6;
+      y=testo(p.title||'',M.pw/2,y,{size:26,style:'bold',align:'center',lh:12,w:M.utileW-24});
+      if(p.subtitle&&p.subtitle.trim()&&p.subtitle.trim()!==autore){
+        y+=2;y=testo(p.subtitle,M.pw/2,y,{size:14,style:'italic',align:'center',lh:8,w:M.utileW-24});
+      }
+      y+=8;y=testo(autore,M.pw/2,y,{size:15,style:'bold',align:'center',lh:8});
+      y+=2;testo(arts.length+(arts.length===1?' opera':' opere'),M.pw/2,y,{size:10,align:'center',color:[110,110,110]});
     }
     // ---- INTRODUZIONE ----
     if(C.intro&&p.intro&&p.intro.trim()){
       nuovaPagina();
-      st.innerHTML='<div style="padding:6px">'
-        +'<h2 style="font-size:'+T(1)+'px;border-bottom:2px solid '+col+';padding-bottom:8px;margin:0 0 18px;color:'+col+'">Introduzione</h2>'
-        +'<div style="text-align:justify;white-space:pre-wrap">'+esc(p.intro)+'</div></div>';
-      await pdfBloccoInPagina(pdf,st,{C,maxH:M.utileH});
+      let y=M.mt;
+      y=testo('Introduzione',M.ml,y,{size:16,style:'bold',color:rgb,lh:9});
+      y=linea(y+1)+5;
+      testo(p.intro,M.ml,y,{size:11,lh:6});
     }
     // ---- INDICE ----
     if(C.indice&&arts.length>1){
       nuovaPagina();
-      st.innerHTML='<div style="padding:6px">'
-        +'<h2 style="font-size:'+T(1)+'px;border-bottom:2px solid '+col+';padding-bottom:8px;margin:0 0 18px;color:'+col+'">Indice delle opere</h2>'
-        +'<table style="width:100%;border-collapse:collapse">'
-        +arts.map((a,i)=>'<tr><td style="padding:8px 4px;border-bottom:1px solid #e2e2e2;width:38px;color:'+col+';font-weight:700">'+(i+1)+'</td>'
-          +'<td style="padding:8px 4px;border-bottom:1px solid #e2e2e2">'+esc(a.title||'Senza titolo')+(a.year?' <span style="color:#777">('+esc(a.year)+')</span>':'')+'</td></tr>').join('')
-        +'</table></div>';
-      await pdfBloccoInPagina(pdf,st,{C,maxH:M.utileH});
+      let y=M.mt;
+      y=testo('Indice delle opere',M.ml,y,{size:16,style:'bold',color:rgb,lh:9});
+      y=linea(y+1)+6;
+      pdf.setFont(fontName,'normal');pdf.setFontSize(10);pdf.setTextColor(40,40,40);
+      for(let i=0;i<arts.length;i++){
+        if(y>M.ph-M.mb){pdf.addPage();y=M.mt;}
+        const a=arts[i];
+        pdf.setTextColor(rgb[0],rgb[1],rgb[2]);pdf.setFont(fontName,'bold');
+        pdf.text(String(i+1),M.ml,y);
+        pdf.setTextColor(40,40,40);pdf.setFont(fontName,'normal');
+        const t=(a.title||'Senza titolo')+(a.year?'  ('+a.year+')':'');
+        pdf.text(pdf.splitTextToSize(t,M.utileW-14)[0],M.ml+10,y);
+        y+=6;
+      }
     }
-    // ---- OPERE ----
-    const riga=(lab,val)=>val?'<tr><td style="padding:6px 8px;border-bottom:1px solid #e6e6e6;font-weight:700;width:36%;color:'+col+'">'+lab+'</td><td style="padding:6px 8px;border-bottom:1px solid #e6e6e6">'+esc(val)+'</td></tr>':'';
-    const allinea=C.imgPos==='sinistra'?'flex-start':(C.imgPos==='destra'?'flex-end':'center');
+    // ---- OPERE (una per pagina, disegno diretto) ----
     for(let i=0;i<arts.length;i++){
       const a=arts[i];
+      if(i>0&&i%20===0){await new Promise(r=>setTimeout(r,30));diagLog('PDF','catalogo: '+i+'/'+arts.length+' opere');}
       nuovaPagina();
-      const dati=(F.includes('year')?riga('Anno',a.year):'')
-        +(F.includes('code')?riga('Codice',a.code):'')
-        +(F.includes('technique')?riga('Tecnica',a.technique?(a.technique+(a.support?' su '+a.support:'')):''):'')
-        +(F.includes('dimensions')?riga('Dimensioni',a.dimensions):'')
-        +(F.includes('frame')?riga('Cornice',a.frame):'')
-        +(F.includes('status')?riga('Stato',a.status):'')
-        +((F.includes('price')&&a.price)?riga('Prezzo',euro(a.price)):'');
-      const testa=C.intestazione?'<div style="display:flex;justify-content:space-between;align-items:baseline;border-bottom:1px solid #ddd;padding-bottom:6px;margin-bottom:16px">'
-        +'<span style="font-size:'+T(0.46)+'px;letter-spacing:.16em;text-transform:uppercase;color:'+col+';font-weight:700">Opera '+(i+1)+' di '+arts.length+'</span>'
-        +'<span style="font-size:'+T(0.46)+'px;color:#888">'+esc(p.title||'')+'</span></div>':'';
-      const altezzaImg=Math.round(9*(C.imgMax||70));
-      st.innerHTML='<div style="padding:6px;'+(C.riempi?'min-height:940px;display:flex;flex-direction:column;':'')+'">'
-        +testa
-        +(a.image?'<div style="text-align:'+(C.imgPos==='centro'?'center':C.imgPos)+';margin-bottom:18px;display:flex;justify-content:'+allinea+'"><img src="'+a.image+'" style="max-width:100%;max-height:'+altezzaImg+'px;object-fit:contain;border:1px solid #ccc"></div>':'')
-        +'<h2 style="font-size:'+T(1)+'px;font-style:italic;text-align:center;margin:0 0 4px">'+esc(a.title||'Senza titolo')+'</h2>'
-        +(a.year?'<div style="text-align:center;color:#777;margin-bottom:16px">'+esc(a.year)+'</div>':'<div style="margin-bottom:12px"></div>')
-        +(dati?'<table style="width:100%;border-collapse:collapse;margin-bottom:14px">'+dati+'</table>':'')
-        +((F.includes('description')&&a.description)?'<div style="text-align:justify;color:#333;border-top:1px solid #eee;padding-top:12px;white-space:pre-wrap">'+esc(a.description)+'</div>':'')
-        +'</div>';
-      await pdfBloccoInPagina(pdf,st,{C,maxH:M.utileH});
+      let y=M.mt;
+      // intestazione
+      if(C.intestazione){
+        pdf.setFont(fontName,'bold');pdf.setFontSize(9);pdf.setTextColor(rgb[0],rgb[1],rgb[2]);
+        pdf.text(('Opera '+(i+1)+' di '+arts.length).toUpperCase(),M.ml,y);
+        pdf.setTextColor(140,140,140);pdf.setFont(fontName,'normal');
+        pdf.text(pdf.splitTextToSize(p.title||'',M.utileW*0.5)[0],M.pw-M.mr,y,{align:'right'});
+        y+=3;y=linea(y)+6;
+      }
+      // immagine
+      if(a.image){
+        try{
+          const dim=await pdfImgSize(a.image);
+          if(dim&&dim.w&&dim.h){
+            const maxH=(C.imgMax||70)/100*M.utileH*0.62;
+            const maxW=M.utileW;
+            let w=maxW, h=w*dim.h/dim.w;
+            if(h>maxH){h=maxH;w=h*dim.w/dim.h;}
+            const x=C.imgPos==='sinistra'?M.ml:(C.imgPos==='destra'?M.pw-M.mr-w:(M.pw-w)/2);
+            pdf.addImage(a.image,pdfImgFormat(a.image),x,y,w,h,undefined,'FAST');
+            y+=h+8;
+          }
+        }catch(eImg){diagLog('PDF-IMG',eImg&&eImg.message?eImg.message:String(eImg));}
+      }
+      // titolo
+      y=testo(a.title||'Senza titolo',M.pw/2,y,{size:15,style:'italic',align:'center',lh:8,w:M.utileW-10});
+      if(a.year){y=testo(String(a.year),M.pw/2,y,{size:10,align:'center',color:[120,120,120],lh:7});}
+      y+=3;
+      // scheda dati
+      const dati=[];
+      if(F.includes('year')&&a.year)dati.push(['Anno',a.year]);
+      if(F.includes('code')&&a.code)dati.push(['Codice',a.code]);
+      if(F.includes('technique')&&a.technique)dati.push(['Tecnica',a.technique+(a.support?' su '+a.support:'')]);
+      if(F.includes('dimensions')&&a.dimensions)dati.push(['Dimensioni',a.dimensions]);
+      if(F.includes('frame')&&a.frame)dati.push(['Cornice',a.frame]);
+      if(F.includes('status')&&a.status)dati.push(['Stato',a.status]);
+      if(F.includes('price')&&a.price)dati.push(['Prezzo',euro(a.price)]);
+      if(dati.length){
+        for(const [lab,val] of dati){
+          if(y>M.ph-M.mb){pdf.addPage();y=M.mt;}
+          pdf.setFont(fontName,'bold');pdf.setFontSize(10);pdf.setTextColor(rgb[0],rgb[1],rgb[2]);
+          pdf.text(lab,M.ml,y);
+          pdf.setFont(fontName,'normal');pdf.setTextColor(40,40,40);
+          const vx=M.ml+M.utileW*0.34;
+          const righe=pdf.splitTextToSize(String(val),M.utileW*0.62);
+          pdf.text(righe,vx,y);
+          y+=Math.max(5.5,righe.length*5);
+        }
+      }
+      // descrizione
+      if(F.includes('description')&&a.description){
+        y+=3;y=linea(y)+4;
+        y=testo(a.description,M.ml,y,{size:10.5,lh:5.6});
+      }
     }
     // ---- COLOPHON ----
     if(C.colophon){
       nuovaPagina();
-      st.innerHTML='<div style="padding:40px 20px;text-align:center">'
-        +'<div style="width:60px;height:2px;background:'+col+';margin:0 auto 22px"></div>'
-        +'<div style="font-size:'+T(0.8)+'px;font-weight:700;margin-bottom:10px">'+autore+'</div>'
-        +(db.settings.bio?'<div style="color:#444;max-width:440px;margin:0 auto 18px;text-align:justify;white-space:pre-wrap">'+esc(db.settings.bio)+'</div>':'')
-        +'<div style="color:#666">'+esc(db.settings.email||'')+(db.settings.phone?' \u00b7 '+esc(db.settings.phone):'')+'</div>'
-        +'<div style="font-size:'+T(0.46)+'px;color:#999;margin-top:24px">Catalogo generato con MAIR GO! \u00b7 '+new Date().toLocaleDateString('it-IT')+'</div>'
-        +'</div>';
-      await pdfBloccoInPagina(pdf,st,{C,maxH:M.utileH});
+      let y=M.ph*0.35;
+      pdf.setDrawColor(rgb[0],rgb[1],rgb[2]);pdf.setLineWidth(0.6);pdf.line(M.pw/2-14,y,M.pw/2+14,y);
+      y+=10;
+      y=testo(autore,M.pw/2,y,{size:15,style:'bold',align:'center',lh:8});
+      if(db.settings.bio){y+=2;y=testo(db.settings.bio,M.pw/2,y,{size:10,align:'center',lh:5.5,w:M.utileW*0.8,color:[70,70,70]});}
+      y+=4;testo((db.settings.email||'')+(db.settings.phone?'  \u00b7  '+db.settings.phone:''),M.pw/2,y,{size:10,align:'center',color:[100,100,100]});
+      testo('Catalogo generato con MAIR GO! \u00b7 '+new Date().toLocaleDateString('it-IT'),M.pw/2,M.ph-M.mb,{size:8,align:'center',color:[160,160,160]});
     }
-    // ---- NUMERI ----
+    // ---- NUMERI DI PAGINA ----
     if(C.numeri){
       const tot=pdf.internal.getNumberOfPages();
       const da=C.copertina?2:1;
       for(let n=da;n<=tot;n++){pdf.setPage(n);pdfPiePagina(pdf,n,tot,p.title||'',C);}
     }
-  } finally { st.remove(); }
+  }catch(e){
+    diagLog('PDF-CATALOGO-ERRORE',e&&e.message?e.message:String(e));
+    throw e;
+  }
   return pdf;
 }
 
