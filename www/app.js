@@ -9,7 +9,7 @@ function diagOpen(){
   box.setAttribute('style','position:fixed;top:0;left:0;right:0;bottom:0;z-index:999999;background:#111;color:#0f0;font:12px/1.5 monospace;padding:10px;overflow:auto');
   const testo=window.__LOG__.length?window.__LOG__.join('\n\n'):'(nessun errore registrato)';
   const info='DIAGNOSTICA MAIR GO!\n'
-    +'Versione app.js: 12.0 Backup compatibile\n'
+    +'Versione app.js: 17.3 Fix ripristino e Mostre\n'
     +'docViewerOpen esiste: '+(typeof docViewerOpen)+'\n'
     +'textEditorOpen esiste: '+(typeof textEditorOpen)+'\n'
     +'certDocHtml esiste: '+(typeof certDocHtml)+'\n'
@@ -879,13 +879,16 @@ function agendaView(){const sorted=[...db.agenda].sort((a,b)=>new Date(a.date)-n
 function agendaCard(x){return `<article class="agenda-item card"><div class="datebox"><strong>${new Date(x.date).getDate()||''}</strong><small>${x.date?new Date(x.date).toLocaleDateString('it-IT',{month:'short'}):'—'}</small></div><div class="cardbody"><div class="row spread"><h3>${esc(x.title)}</h3><span class="badge">${esc(x.type||'Evento')}</span></div><div class="meta">${fmtDate(x.date)} ${x.time?'· '+esc(x.time):''} ${x.location?'· '+esc(x.location):''}</div><p>${esc(x.notes||'')}</p><div class="row"><button class="btn" data-action="editAgenda" data-id="${x.id}">Modifica</button><button class="btn danger" data-action="deleteAgenda" data-id="${x.id}">Elimina</button></div></div></article>`}
 function artworkPickerHtml(selectedIds=[],prefix='artPick'){
   const selected=new Set(selectedIds||[]);
-  return `<div class="art-picker" data-art-picker="${prefix}"><input type="search" class="search art-picker-search" placeholder="Cerca per titolo, codice, anno, tecnica…"><div class="art-picker-count meta"></div><div class="art-picker-grid">${db.artworks.map(a=>`<label class="art-pick-card" data-search="${esc([a.title,a.code,a.year,a.technique,a.dimensions,a.collection].filter(Boolean).join(' ').toLowerCase())}"><input type="checkbox" name="arts" value="${a.id}" ${selected.has(a.id)?'checked':''}><span class="art-pick-thumb">${a.image?`<img src="${artThumb(a)}" alt="">`:'🎨'}</span><span class="art-pick-text"><strong>${esc(a.title||'Senza titolo')}</strong><small>${esc([a.code,a.year,a.technique].filter(Boolean).join(' · '))}</small></span></label>`).join('')||'<p class="meta">Inserisci prima delle opere.</p>'}</div></div>`;
+  return `<div class="art-picker" data-art-picker="${prefix}"><input type="search" class="search art-picker-search" placeholder="Cerca opere per titolo, codice, anno, tecnica, dimensioni…"><div class="row spread" style="margin:8px 0"><div class="art-picker-count meta"></div><div class="row"><button type="button" class="btn art-picker-all">Seleziona visibili</button><button type="button" class="btn art-picker-none">Deseleziona</button></div></div><div class="art-picker-grid">${db.artworks.map(a=>`<label class="art-pick-card" data-search="${esc([a.title,a.code,a.year,a.technique,a.support,a.dimensions,a.collection,a.status].filter(Boolean).join(' ').toLowerCase())}"><input type="checkbox" name="arts" value="${esc(a.id)}" ${selected.has(a.id)?'checked':''}><span class="art-pick-thumb">${(a.thumb||a.thumbnail||a.image)?`<img loading="lazy" src="${artThumb(a)}" alt="">`:'🎨'}</span><span class="art-pick-text"><strong>${esc(a.title||'Senza titolo')}</strong><small>${esc([a.code,a.year,a.technique].filter(Boolean).join(' · '))}</small></span></label>`).join('')||'<p class="meta">Inserisci prima delle opere.</p>'}</div></div>`;
 }
 function bindArtworkPicker(prefix='artPick'){
   const root=document.querySelector(`[data-art-picker="${prefix}"]`);if(!root)return;
   const input=root.querySelector('.art-picker-search'),cards=[...root.querySelectorAll('.art-pick-card')],count=root.querySelector('.art-picker-count');
-  const update=()=>{const terms=(input.value||'').trim().toLowerCase().split(/\s+/).filter(Boolean);let shown=0;cards.forEach(c=>{const hay=c.dataset.search||'';const ok=!terms.length||terms.every(t=>hay.includes(t));c.hidden=!ok;if(ok)shown++;});count.textContent=`${shown} opere visualizzate · ${cards.filter(c=>c.querySelector('input').checked).length} selezionate`;};
-  input.addEventListener('input',update);root.addEventListener('change',update);update();
+  const update=()=>{const terms=(input?.value||'').trim().toLowerCase().split(/\s+/).filter(Boolean);let shown=0;cards.forEach(c=>{const hay=c.dataset.search||'';const ok=!terms.length||terms.every(t=>hay.includes(t));c.hidden=!ok;if(ok)shown++;});if(count)count.textContent=`${shown} opere visualizzate · ${cards.filter(c=>c.querySelector('input').checked).length} selezionate`;};
+  input?.addEventListener('input',update);root.addEventListener('change',update);
+  root.querySelector('.art-picker-all')?.addEventListener('click',()=>{cards.filter(c=>!c.hidden).forEach(c=>c.querySelector('input').checked=true);update();});
+  root.querySelector('.art-picker-none')?.addEventListener('click',()=>{cards.forEach(c=>c.querySelector('input').checked=false);update();});
+  update();
 }
 function workspaceModal(w={}){const arts=artworkPickerHtml(w.artworkIds||[],'workspaceArts'),docs=db.library.map(d=>`<label><input type="checkbox" name="docs" value="${d.id}" ${w.documentIds?.includes(d.id)?'checked':''}> ${esc(d.title||d.name)}</label>`).join(''),clients=db.clients.map(c=>`<option value="${c.id}" ${w.clientId===c.id?'selected':''}>${esc(c.name)}</option>`).join('');openModal(w.id?'Modifica workspace':'Nuovo workspace',`<div class="formgrid">${field('Titolo','title',w.title,'text','full')}${field('Stato','status',w.status||'In corso')}${field('Scadenza','deadline',w.deadline,'date')}<div class="field full"><label>Cliente collegato</label><select name="clientId"><option value="">Nessuno</option>${clients}</select></div>${area('Obiettivo / descrizione','description',w.description)}<div class="field full"><label>Opere collegate</label>${arts}</div><div class="field full"><label>Documenti collegati</label><div class="checkgrid">${docs||'Nessun documento.'}</div></div></div>`,async fd=>{const o={...w,id:w.id||uid(),title:fd.get('title'),status:fd.get('status'),deadline:fd.get('deadline'),clientId:fd.get('clientId'),description:fd.get('description'),artworkIds:fd.getAll('arts'),documentIds:fd.getAll('docs'),updated:new Date().toISOString(),created:w.created||new Date().toISOString()};if(w.id)db.workspaces=db.workspaces.map(x=>x.id===w.id?o:x);else db.workspaces.unshift(o);await save();modal.close();render();toast('Workspace salvato')});bindArtworkPicker('workspaceArts')}
 function ensureExhibitionEnhancementStyles(){
@@ -907,14 +910,17 @@ function ensureExhibitionEnhancementStyles(){
 }
 function professionalPickerHtml(selectedIds=[]){
   const selected=new Set(selectedIds||[]);
-  const pros=(db.pros||[]).map(p=>({...p,name:String(p.name||p.nome||p.fullName||p.title||'').trim(),role:p.role||p.ruolo||'Curatore / critico',org:p.org||p.organization||p.galleria||''})).filter(p=>p.name).sort((a,b)=>a.name.localeCompare(b.name,'it'));
-  return `<div class="pro-picker" data-pro-picker="exhibitionPros"><input type="search" class="search pro-picker-search" placeholder="Cerca curatore, critico, galleria, città…"><div class="pro-picker-count meta"></div><div class="pro-picker-grid">${pros.map(p=>`<label class="pro-pick-card" data-search="${esc([p.name,p.role,p.org,p.city,p.email].filter(Boolean).join(' ').toLowerCase())}"><input type="checkbox" name="professionalIds" value="${p.id}" ${selected.has(p.id)?'checked':''}><span class="pro-pick-text"><strong>${esc(p.name)}</strong><small>${esc([p.role,p.org,p.city].filter(Boolean).join(' · '))}</small></span></label>`).join('')||'<p class="meta">Nessun curatore o critico ancora registrato.</p>'}</div></div>`;
+  const pros=(db.pros||[]).map(p=>({...p,name:String(p.name||p.nome||p.fullName||p.title||'').trim(),role:p.role||p.ruolo||'Curatore / critico',org:p.org||p.organization||p.galleria||''})).filter(p=>p.id&&p.name).sort((a,b)=>a.name.localeCompare(b.name,'it'));
+  const quick=pros.length?`<div class="field full"><label>Seleziona rapidamente un contatto già presente</label><select class="pro-picker-quick"><option value="">— Scegli curatore / critico —</option>${pros.map(p=>`<option value="${esc(p.id)}">${esc(p.name)}${p.role?' · '+esc(p.role):''}</option>`).join('')}</select></div>`:'';
+  return `<div class="pro-picker" data-pro-picker="exhibitionPros">${quick}<input type="search" class="search pro-picker-search" placeholder="Cerca curatore, critico, galleria, città, email…"><div class="pro-picker-count meta"></div><div class="pro-picker-grid">${pros.map(p=>`<label class="pro-pick-card" data-search="${esc([p.name,p.role,p.org,p.city,p.email].filter(Boolean).join(' ').toLowerCase())}"><input type="checkbox" name="professionalIds" value="${esc(p.id)}" ${selected.has(p.id)?'checked':''}><span class="pro-pick-text"><strong>${esc(p.name)}</strong><small>${esc([p.role,p.org,p.city,p.email].filter(Boolean).join(' · '))}</small></span></label>`).join('')||'<p class="meta">Nessun curatore o critico ancora registrato. Premi “Aggiungi nuovo”.</p>'}</div></div>`;
 }
 function bindProfessionalPicker(){
   const root=document.querySelector('[data-pro-picker="exhibitionPros"]');if(!root)return;
-  const input=root.querySelector('.pro-picker-search'),cards=[...root.querySelectorAll('.pro-pick-card')],count=root.querySelector('.pro-picker-count');
-  const update=()=>{const terms=(input.value||'').trim().toLowerCase().split(/\s+/).filter(Boolean);let shown=0,checked=0;cards.forEach(c=>{const ok=!terms.length||terms.every(t=>(c.dataset.search||'').includes(t));c.hidden=!ok;if(ok)shown++;if(c.querySelector('input').checked)checked++;});count.textContent=`${shown} contatti visualizzati · ${checked} selezionati`;};
-  input.addEventListener('input',update);root.addEventListener('change',update);update();
+  const input=root.querySelector('.pro-picker-search'),quick=root.querySelector('.pro-picker-quick'),cards=[...root.querySelectorAll('.pro-pick-card')],count=root.querySelector('.pro-picker-count');
+  const update=()=>{const terms=(input?.value||'').trim().toLowerCase().split(/\s+/).filter(Boolean);let shown=0,checked=0;cards.forEach(c=>{const ok=!terms.length||terms.every(t=>(c.dataset.search||'').includes(t));c.hidden=!ok;if(ok)shown++;if(c.querySelector('input').checked)checked++;});if(count)count.textContent=`${shown} contatti visualizzati · ${checked} selezionati`;};
+  input?.addEventListener('input',update);root.addEventListener('change',update);
+  quick?.addEventListener('change',()=>{if(!quick.value)return;const cb=cards.map(c=>c.querySelector('input')).find(x=>x.value===quick.value);if(cb){cb.checked=true;cb.closest('.pro-pick-card')?.scrollIntoView({block:'nearest'});}quick.value='';update();});
+  update();
 }
 function exhibitionModal(x={}){
   ensureExhibitionEnhancementStyles();
@@ -2675,7 +2681,7 @@ async function ripristinaBackupMultiparte(){
       backupProgress(Math.round(((n+1)/manifest.files.length)*100),`Caricata parte ${n+1}/${manifest.files.length}`);
       await new Promise(r=>setTimeout(r,0));
     }
-    db=normalize({...fresh,settings:fresh.settings||{}});save();
+    db=merge(clone(defaults),{...fresh,settings:fresh.settings||{}});await writePersistentState(clone(db));save();
     setTimeout(()=>{try{modal.close()}catch{};alert('Ripristino multiparte completato.');render()},400);
     return true;
   }catch(e){diagLog('RIPRISTINO-MULTIPARTE-ERRORE',e.message||String(e));try{modal.close()}catch{};alert('Ripristino multiparte non riuscito: '+(e.message||e));return false}
