@@ -597,3 +597,54 @@ body{padding-bottom:calc(82px + env(safe-area-inset-bottom))}
 .bulk-progress-bar span{display:block;width:0;height:100%;background:var(--accent);transition:width .18s ease}
 .bulk-progress p{margin:7px 0 0}
 @media(max-width:620px){.bulk-artwork-row{grid-template-columns:1fr}.bulk-artwork-preview{max-height:360px}}
+
+/* MAIR GO 15.8 — Schede opere più separate e pannelli uniformi */
+#artGrid.grid{gap:26px}
+#artGrid .card{
+  border:1px solid color-mix(in srgb,var(--accent) 24%,var(--line));
+  box-shadow:0 14px 34px color-mix(in srgb,var(--ink) 12%,transparent);
+  overflow:hidden;
+}
+#artGrid .cardbody{padding:18px 18px 16px}
+#artGrid .cardbody>.row:last-child{
+  margin:16px -18px -16px!important;
+  padding:14px 18px;
+  border-top:1px solid var(--line);
+  background:linear-gradient(135deg,color-mix(in srgb,var(--accent) 7%,var(--panel)),var(--panel));
+  gap:12px;
+}
+#artGrid .cardbody>.row:last-child .btn{min-width:112px;justify-content:center}
+#artGrid .cardimg{border-bottom:1px solid var(--line)}
+
+/* Tutti i pannelli dei menu con stessa altezza, sfumatura e struttura */
+.hub-grid,.quick-create-grid{gap:12px}
+.hub-tile,.quick-create{
+  min-height:94px;
+  height:94px;
+  padding:14px 15px;
+  border-radius:17px;
+  background:linear-gradient(145deg,color-mix(in srgb,var(--accent) 10%,var(--panel)),var(--panel));
+  border-color:color-mix(in srgb,var(--ink) 12%,var(--line));
+  box-shadow:0 10px 25px color-mix(in srgb,var(--ink) 9%,transparent);
+}
+.hub-tile:nth-child(8n+1),.quick-create:nth-child(8n+1){background:linear-gradient(145deg,color-mix(in srgb,#c95f45 16%,var(--panel)),var(--panel))}
+.hub-tile:nth-child(8n+2),.quick-create:nth-child(8n+2){background:linear-gradient(145deg,color-mix(in srgb,#5c8fbd 16%,var(--panel)),var(--panel))}
+.hub-tile:nth-child(8n+3),.quick-create:nth-child(8n+3){background:linear-gradient(145deg,color-mix(in srgb,#6f9b72 16%,var(--panel)),var(--panel))}
+.hub-tile:nth-child(8n+4),.quick-create:nth-child(8n+4){background:linear-gradient(145deg,color-mix(in srgb,#a477b5 16%,var(--panel)),var(--panel))}
+.hub-tile:nth-child(8n+5),.quick-create:nth-child(8n+5){background:linear-gradient(145deg,color-mix(in srgb,#d6a84d 18%,var(--panel)),var(--panel))}
+.hub-tile:nth-child(8n+6),.quick-create:nth-child(8n+6){background:linear-gradient(145deg,color-mix(in srgb,#4f9a9a 16%,var(--panel)),var(--panel))}
+.hub-tile:nth-child(8n+7),.quick-create:nth-child(8n+7){background:linear-gradient(145deg,color-mix(in srgb,#b56d87 16%,var(--panel)),var(--panel))}
+.hub-tile:nth-child(8n+8),.quick-create:nth-child(8n+8){background:linear-gradient(145deg,color-mix(in srgb,#7a7fa8 16%,var(--panel)),var(--panel))}
+.quick-create.primary-create{color:var(--ink);border-color:color-mix(in srgb,var(--ink) 12%,var(--line))}
+.quick-create.primary-create small{color:var(--muted);opacity:1}
+.quick-create.primary-create>span{background:color-mix(in srgb,var(--panel) 72%,transparent)}
+.hub-icon,.quick-create>span{width:46px;height:46px;border-radius:14px}
+.hub-tile strong,.quick-create strong{font-size:1.03rem}
+.hub-tile small,.quick-create small{font-size:.76rem;line-height:1.25}
+
+@media(max-width:720px){
+  #artGrid.grid{gap:30px}
+  #artGrid .card{margin-bottom:2px}
+  #artGrid .cardbody>.row:last-child{padding-top:15px;padding-bottom:15px}
+  .hub-tile,.quick-create{min-height:88px;height:88px;padding:12px 13px}
+}
