@@ -198,20 +198,31 @@ const HOME_TILES={
   links:{icon:'\ud83d\udd17',title:'Link utili',desc:'Siti, riviste, bandi e risorse per l\u2019arte.',count:()=>(db.links||[]).length},
   pros:{icon:'\ud83d\udc64',title:'Curatori e critici',desc:'Curatori, galleristi, critici e giornalisti.',count:()=>(db.pros||[]).length},
   galleries:{icon:'\ud83c\udfdb\ufe0f',title:'Gallerie',desc:'Spazi espositivi, referenti e recapiti.',count:()=>(db.galleries||[]).length},
-  social:{icon:'\ud83d\udcf1',title:'Social',desc:'Immagini pronte per Instagram, Facebook e TikTok.',count:null},
+  social:{icon:'\ud83d\udcf1',title:'Link social',desc:'Immagini, contenuti e collegamenti per i social.',count:null},
   timeline:{icon:'\ud83d\udd52',title:'Timeline',desc:'Cronologia delle attivit\u00e0 e degli eventi.',count:null},
   settings:{icon:'\u2699\ufe0f',title:'Impostazioni',desc:'Profilo, aspetto, liste e backup.',count:null},
   guide:{icon:'\ud83d\udcd6',title:'Guida offline',desc:'Come usare ogni sezione dell\u2019app.',count:null},
   info:{icon:'\u2139\ufe0f',title:'Informazioni',desc:'Versione, licenza e note sull\u2019app.',count:null},
-  contact:{icon:'\u2709\ufe0f',title:'Contatti',desc:'Segnalazioni e richieste di assistenza.',count:null}
+  contact:{icon:'\u2709\ufe0f',title:'Contatti',desc:'Segnalazioni e richieste di assistenza.',count:null},
+  sustain:{icon:'\u2764\ufe0f',title:'Sostieni MAIR GO',desc:'Aiuta a mantenere l’app gratuita e senza pubblicità.',count:null,action:'dona'}
 };
 const HOME_DEFAULT={
   titolo:'',sottotitolo:'',immagine:'',
   stats:['opere','disponibili','vendute','documenti'],
-  tiles:['artworks','library','pdfstudio','certificates','workspace','exhibitions','clients','pros','galleries','sales','agenda','links','social','timeline','settings','guide','info','contact'],
+  tiles:['artworks','exhibitions','workspace','pdfstudio','library','galleries','pros','clients','sales','agenda','social','timeline','settings','guide','info','contact','sustain'],
   azione:'newArtwork'
 };
-function homeCfg(){const h=db.settings.home||{};return Object.assign({},HOME_DEFAULT,h);}
+function homeCfg(){
+  const h=db.settings.home||{};
+  const preferred=HOME_DEFAULT.tiles.slice();
+  if(!h.layoutVersion||h.layoutVersion<2){
+    h.tiles=preferred;
+    h.layoutVersion=2;
+    db.settings.home=h;
+    try{save()}catch(e){}
+  }
+  return Object.assign({},HOME_DEFAULT,h);
+}
 
 function agendaOggi(){
   const oggi=new Date();oggi.setHours(0,0,0,0);
@@ -741,8 +752,8 @@ function homeView(){
   const hero=`<section class="hero welcome${h.immagine?' has-img':''}"${h.immagine?` style="background-image:linear-gradient(rgba(0,0,0,.55),rgba(0,0,0,.55)),url('${h.immagine}');background-size:cover;background-position:center"`:''}>
     <div><small>ART MANAGEMENT SYSTEM</small><h2>${esc(titolo)}</h2><p>${esc(sub)}</p></div>${btn}</section>`;
   const stats=(h.stats||[]).filter(k=>HOME_STATS[k]).map(k=>{const S=HOME_STATS[k];return stat(S.label,S.calc(),S.icon)}).join('');
-  const tiles=(h.tiles||[]).filter(k=>HOME_TILES[k]).map((k,idx)=>{const T=HOME_TILES[k];const n=T.count?T.count():null;
-    return `<button class="tile${idx===0?' big':''}" data-go="${k}">${n!==null?`<span class="count">${n}</span>`:''}<span class="symbol">${T.icon}</span><h3>${esc(T.title)}</h3><p>${esc(T.desc)}</p></button>`}).join('');
+  const tiles=(h.tiles||[]).filter(k=>HOME_TILES[k]).map((k,idx)=>{const T=HOME_TILES[k];const n=T.count?T.count():null;const nav=T.action?`data-action="${T.action}"`:`data-go="${k}"`;
+    return `<button class="tile home-color-${(idx%8)+1}${idx===0?' big':''}" ${nav}>${n!==null?`<span class="count">${n}</span>`:''}<span class="symbol">${T.icon}</span><h3>${esc(T.title)}</h3><p>${esc(T.desc)}</p></button>`}).join('');
   return `${hero}${stats?`<div class="stats">${stats}</div>`:''}${h.promemoria!==false?promemoriaOggi():''}
     <div class="row spread" style="margin:18px 0 8px"><h3 style="margin:0">Sezioni</h3><button class="btn" data-action="customizeHome">\u2699\ufe0f Personalizza</button></div>
     <div class="tiles">${tiles||'<p class="meta">Nessuna sezione selezionata. Tocca \u201cPersonalizza\u201d.</p>'}</div>
@@ -1302,7 +1313,7 @@ function guideView(){return `${section('Guida offline')}
 <li><strong>Formato</strong>: A4, A5, Letter, A3, verticale o orizzontale.</li>
 <li><strong>Margini</strong>: alto, basso, sinistro e destro in millimetri.</li>
 <li><strong>Carattere</strong>: Times, Helvetica o Courier.</li>
-<li><strong>Colore accento</strong>, corpo del testo e dimensione dei titoli.</li>
+<li><strong>Colore di titoli e dettagli grafici</strong>: definisce il colore di titoli, linee, intestazioni e decorazioni nei PDF; non cambia le immagini delle opere.</li>
 <li><strong>Immagini</strong>: altezza massima in percentuale e posizione.</li>
 <li><strong>Sezioni</strong>: copertina, introduzione, indice, pagina finale, numeri, intestazione opera, riempimento pagina.</li>
 </ul>
@@ -2167,7 +2178,7 @@ function pdfSettingsModal(){
     +'<div class="field"><label>Margine sinistro (mm)</label><input name="mLeft" type="number" min="5" max="60" value="'+C.mLeft+'"></div>'
     +'<div class="field"><label>Margine destro (mm)</label><input name="mRight" type="number" min="5" max="60" value="'+C.mRight+'"></div>'
     +'<div class="field"><label>Carattere</label>'+sel('font',PDF_FONTS,C.font)+'</div>'
-    +'<div class="field"><label>Colore accento</label><input name="colore" type="color" value="'+C.colore+'"></div>'
+    +'<div class="field"><label>Colore di titoli e dettagli grafici</label><input name="colore" type="color" value="'+C.colore+'"><p class="meta">È il colore usato nei PDF per titoli, linee, intestazioni e piccoli elementi decorativi. Non modifica le fotografie delle opere.</p></div>'
     +'<div class="field"><label>Corpo del testo</label><input name="corpo" type="number" min="7" max="18" value="'+C.corpo+'"></div>'
     +'<div class="field"><label>Dimensione titoli</label><input name="titolo" type="number" min="14" max="48" value="'+C.titolo+'"></div>'
     +'<div class="field"><label>Altezza max immagine (%)</label><input name="imgMax" type="number" min="20" max="100" value="'+C.imgMax+'"></div>'

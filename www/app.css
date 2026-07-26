@@ -536,4 +536,16 @@ body{padding-bottom:calc(82px + env(safe-area-inset-bottom))}
 .load-more .btn{min-width:200px}
 /* MAIR GO 15 */
 .toolbar{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin:0 0 18px}.toolbar .search{flex:1;min-width:220px}.stats-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(145px,1fr));gap:12px;margin:16px 0}.stat{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:18px;text-align:center}.stat strong{display:block;font-size:1.45rem;margin-bottom:5px}.stat span{font-size:.85rem;color:var(--muted)}
-.ex-doc-list{display:flex;flex-wrap:wrap;gap:8px;margin:10px 0}.ex-doc-existing{display:grid;gap:8px;margin-top:10px}.ex-doc-existing .record{align-items:center;gap:10px}.ex-doc-existing input{width:auto}.checkcard img{image-rendering:auto}
+
+
+/* MAIR GO 15.5 — Home ordinata e riquadri cromatici */
+.tiles .tile.home-color-1{background:linear-gradient(145deg,color-mix(in srgb,#c95f45 20%,var(--panel)),var(--panel))}
+.tiles .tile.home-color-2{background:linear-gradient(145deg,color-mix(in srgb,#5c8fbd 20%,var(--panel)),var(--panel))}
+.tiles .tile.home-color-3{background:linear-gradient(145deg,color-mix(in srgb,#6f9b72 20%,var(--panel)),var(--panel))}
+.tiles .tile.home-color-4{background:linear-gradient(145deg,color-mix(in srgb,#a477b5 20%,var(--panel)),var(--panel))}
+.tiles .tile.home-color-5{background:linear-gradient(145deg,color-mix(in srgb,#d6a84d 22%,var(--panel)),var(--panel))}
+.tiles .tile.home-color-6{background:linear-gradient(145deg,color-mix(in srgb,#4f9a9a 20%,var(--panel)),var(--panel))}
+.tiles .tile.home-color-7{background:linear-gradient(145deg,color-mix(in srgb,#b56d87 20%,var(--panel)),var(--panel))}
+.tiles .tile.home-color-8{background:linear-gradient(145deg,color-mix(in srgb,#7a7fa8 20%,var(--panel)),var(--panel))}
+.tiles .tile[class*="home-color-"]{border-color:color-mix(in srgb,var(--ink) 12%,transparent);transition:transform .16s ease,box-shadow .16s ease}
+.tiles .tile[class*="home-color-"]:hover{transform:translateY(-2px)}
