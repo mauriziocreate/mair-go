@@ -282,6 +282,16 @@ const I18N={
   "I dati restano solo su questo dispositivo.":"Data stays only on this device.",
   "Home":"Home",
   "📲 Installa":"📲 Install",
+
+  "Lingua / Language":"Language",
+  "English":"English",
+  "Rapido":"Quick",
+  "Completo multiparte":"Full multipart",
+  "Fai il backup ora":"Back up now",
+  "Ultimo backup":"Last backup",
+  "giorni fa":"days ago",
+  "oggi":"today",
+  "ieri":"yesterday",
 };
 function appLang(){return (db&&db.settings&&db.settings.lang)||'it';}
 function T(testo){
@@ -298,7 +308,7 @@ function diagOpen(){
   box.setAttribute('style','position:fixed;top:0;left:0;right:0;bottom:0;z-index:999999;background:#111;color:#0f0;font:12px/1.5 monospace;padding:10px;overflow:auto');
   const testo=window.__LOG__.length?window.__LOG__.join('\n\n'):'(nessun errore registrato)';
   const info='DIAGNOSTICA MAIR GO!\n'
-    +'Versione app.js: 18.5\n'
+    +'Versione app.js: 18.6\n'
     +'docViewerOpen esiste: '+(typeof docViewerOpen)+'\n'
     +'textEditorOpen esiste: '+(typeof textEditorOpen)+'\n'
     +'certDocHtml esiste: '+(typeof certDocHtml)+'\n'
@@ -1639,7 +1649,7 @@ function donaModal(){
   },100);
 }
 
-function guideView(){return `${section('Guida offline')}
+function guideViewIT(){return `${section('Guida offline')}
 <section class="hero"><h2>&#128214; Come usare MAIR GO!</h2><p>Guida completa a tutte le funzioni. Consultabile senza connessione.</p></section>
 
 <div class="guide-wrap">
@@ -1833,6 +1843,200 @@ function guideView(){return `${section('Guida offline')}
 </details>
 
 </div>`}
+
+function guideViewEN(){return `${section('Offline guide')}
+<section class="hero"><h2>&#128214; How to use MAIR GO!</h2><p>Complete guide to every feature. Available without a connection.</p></section>
+
+<div class="guide-wrap">
+
+<details class="guide-item" open><summary><strong>&#9888;&#65039; Backup: read this before anything else</strong></summary>
+<p>MAIR GO! keeps your data <strong>on your device</strong>. There is no server, no account: no one can read your archive, but <strong>no one can give it back to you</strong> if you lose it.</p>
+<p><strong>You can lose everything if:</strong> you uninstall the app, clear the app data in Android settings, the phone breaks or is lost, or you change device.</p>
+<p><strong>The solution:</strong> go to <em>Settings &rarr; Backup &rarr; Export now</em>. The app creates a <strong>.mair</strong> file containing <strong>everything</strong>: artworks with images, documents, certificates, catalogs, clients, sales, agenda and settings.</p>
+<p>When you tap Export, the Android share panel opens: from there choose where to put the file &mdash; Google Drive, email to yourself, WhatsApp, or "Save to files" for a phone folder. <strong>Send it off the device</strong>: a backup that stays only on the phone won't help if you lose the phone.</p>
+<p>To restore: <em>Settings &rarr; Backup &rarr; Import</em>, choose the .mair file and everything comes back as it was, images included.</p>
+<p>On the Backup screen a colored box warns you: <strong>green</strong> if you saved recently, <strong>yellow</strong> if 3 or more days have passed. Make a backup whenever you add important work.</p>
+</details>
+
+<details class="guide-item"><summary><strong>&#128247; Artwork images</strong></summary>
+<p>Each uploaded image can weigh at most <strong>5 MB</strong>: if larger, the app warns you and won't load it.</p>
+<p>The image is kept at its <strong>original quality</strong>, without compression that ruins the result. In addition, the app automatically creates a lightweight <strong>thumbnail</strong> used in lists and searches: this way lists scroll fast and the app uses less memory, while the full photo stays available when needed.</p>
+<p>Artwork lists load <strong>in blocks</strong>: you immediately see the first artworks and the others appear as you scroll, or with the &laquo;Load more&raquo; button. Useful when the archive gets large.</p>
+</details>
+
+<details class="guide-item"><summary><strong>&#128190; Safe backup (verification and restore)</strong></summary>
+<p>The backup saves <strong>all sections</strong>: artworks with images, documents, certificates, catalogs, clients, sales, exhibitions, galleries, curators, links, agenda and settings.</p>
+<p><strong>Verification before saving:</strong> when you create a backup, the app checks that the file is complete and readable <em>before</em> offering where to save it. If something is wrong, it warns you and does not create a faulty file.</p>
+<p><strong>Integrity check:</strong> each backup carries a control code. On restore the app recalculates it: if the file was damaged during saving or transfer, it is blocked instead of loading corrupted data.</p>
+<p><strong>Safe restore:</strong> before replacing your current data, the app makes a <strong>safety copy</strong>. After the restore it asks whether to keep the loaded data or <strong>go back to the previous one</strong>: this way a wrong restore won't make you lose anything.</p>
+<p><strong>Compatibility:</strong> old backups in <code>.mair</code> and <code>.json</code> formats are also read.</p>
+</details>
+
+<details class="guide-item"><summary><strong>&#128190; Where saved files go</strong></summary>
+<p>Everything the app saves &mdash; PDFs, catalogs, Excel, ZIP archives, backups, agenda &mdash; is placed in a dedicated and <strong>visible</strong> phone folder:</p>
+<p style="text-align:center"><strong>Documents &rarr; MAIR GO</strong></p>
+<p>You find it with the phone's <em>Files</em> app, in the Documents section. Files stay there even if you do nothing else.</p>
+<p>After saving, the app asks whether you <strong>also</strong> want to send or copy the file elsewhere (Google Drive, email, WhatsApp&hellip;). It's only an extra: if you answer no or close, the file is already saved in the MAIR GO folder.</p>
+</details>
+
+<details class="guide-item"><summary><strong>&#128241; Installing the app</strong></summary>
+<p>MAIR GO! installs as an <strong>Android app</strong> via an <strong>APK</strong> file, not through the Play Store.</p>
+<p><strong>How to install:</strong></p>
+<ol>
+<li>Receive or download the <code>app-debug.apk</code> file on the phone.</li>
+<li>Open it from the Download folder or the download notification.</li>
+<li>Android warns that the app comes from "unknown sources": this is normal for apps not distributed through the Store. Grant permission, asked only once.</li>
+<li>Confirm the installation. The icon appears on the Home screen.</li>
+</ol>
+<p><strong>Why that warning appears:</strong> Android shows a caution message for every app that doesn't come from the Play Store. It does not indicate an app problem: it only signals that Google hasn't verified it, because it wasn't published on its store.</p>
+<p><strong>Updates:</strong> to install a new version just open the new APK. If Android refuses the update, uninstall the previous version and reinstall &mdash; <strong>but make a backup first</strong>, because uninstalling deletes the data.</p>
+<p><strong>iPhone:</strong> APKs cannot be installed on iOS. It's an Apple limitation, not bypassable.</p>
+</details>
+
+<details class="guide-item"><summary><strong>&#127912; Artworks</strong></summary>
+<p>The central archive. For each artwork you can record title, code, year, technique, support, dimensions, frame, status, price, description and image.</p>
+<p><strong>Advanced filters:</strong> the panel under the search bar is closed at start; tap it to expand and filter by year, technique, status or price.</p>
+<p><strong>Favorites:</strong> the star marks artworks you want to find quickly.</p>
+<p>Lists of techniques, supports, dimensions, frames and statuses are customizable in <em>Settings &rarr; Lists</em>.</p>
+</details>
+
+<details class="guide-item"><summary><strong>&#128218; Library</strong></summary>
+<p>Document archive for PDFs, DOCX, images, texts and notes: catalogs, technical sheets, contracts, articles, inspiration material.</p>
+<p>Each entry has a (customizable) category and can be opened directly in the app.</p>
+</details>
+
+<details class="guide-item"><summary><strong>&#128196; PDF Studio</strong></summary>
+<p>Create catalogs and dossiers from the artworks in the archive. Choose title, subtitle, introduction, which artworks to include and which data to show for each.</p>
+<p>Opening the project and tapping <strong>Open document</strong> shows the preview, then:</p>
+<ul>
+<li><strong>Save PDF</strong> &mdash; generates the file and opens the panel to choose where to put it.</li>
+<li><strong>Share PDF</strong> &mdash; generates and sends directly.</li>
+<li><strong>Layout</strong> &mdash; opens the layout options.</li>
+<li><strong>Text</strong> &mdash; editable and copyable text version.</li>
+</ul>
+<p><strong>How the catalog comes out:</strong> cover, introduction, index of artworks, then <strong>one artwork per page</strong> with a large image and a data sheet, and a final page with biography and contacts. Page numbers are at the bottom.</p>
+</details>
+
+<details class="guide-item"><summary><strong>&#9881;&#65039; Customizable PDF layout</strong></summary>
+<p>From <em>Settings &rarr; PDF layout</em> (or the Layout button) you control:</p>
+<ul>
+<li><strong>Format</strong>: A4, A5, Letter, A3, portrait or landscape.</li>
+<li><strong>Margins</strong>: top, bottom, left and right in millimeters.</li>
+<li><strong>Font</strong>: Times, Helvetica or Courier.</li>
+<li><strong>Accent color</strong>, body text and title size.</li>
+<li><strong>Images</strong>: maximum height in percent and position.</li>
+<li><strong>Sections</strong>: cover, introduction, index, final page, numbers, artwork header, page fill.</li>
+</ul>
+<p>The settings apply to all generated documents and stay saved.</p>
+</details>
+
+<details class="guide-item"><summary><strong>&#10022; Certificates</strong></summary>
+<p>Five ready and customizable templates: <strong>Authenticity</strong>, <strong>Sale/Transfer</strong>, <strong>Provenance</strong>, <strong>Exhibition Certificate</strong>, <strong>Donation</strong>.</p>
+<p>Choose the template, link the artwork from the archive (image and technical data are imported automatically), decide which fields to show and edit the text freely.</p>
+<p>Five graphic themes available: Classic gold, Museum, Gallery black, Editorial, Minimal. The signature can be text or an uploaded image.</p>
+</details>
+
+<details class="guide-item"><summary><strong>&#128241; Social</strong></summary>
+<p>Turn artworks into ready material for Instagram, Facebook and TikTok.</p>
+<p><strong>Single image:</strong> generates a curated card with a gold frame, title, technical data and your signature. Four formats (square, vertical 4:5, story 9:16, horizontal) and four graphic styles.</p>
+<p><strong>Image sequence:</strong> up to 5 numbered artworks, ideal for a carousel.</p>
+<p><strong>Video:</strong> assembles up to 5 artworks into a clip with an opening title, mixed transitions (fade, slide, slow zoom), each artwork's data and a closing with your contacts. Duration adjustable from 3 to 5 seconds per artwork.</p>
+<p>Video creation happens in real time: for 5 artworks it takes about 25 seconds, during which <strong>the screen must stay on</strong> and you must not leave the app.</p>
+<p>The <strong>Post text</strong> button prepares a caption and hashtags ready to copy.</p>
+</details>
+
+<details class="guide-item"><summary><strong>&#128279; Useful links</strong></summary>
+<p>Personal collection of web addresses divided by category: <strong>Art, Magazines, Competitions, Museums, Galleries, Fairs, Materials, Training</strong>.</p>
+<p>Tap a link to open it directly in the browser. Each entry can have a title, a note and the category.</p>
+<p><strong>Categories:</strong> the <em>Categories</em> button lets you add new ones, rename or delete them &mdash; one per line. Links in a deleted category are not lost: they move to the first category.</p>
+<p><strong>PDF print</strong> generates an ordered list by category, with titles, notes and addresses.</p>
+</details>
+
+<details class="guide-item"><summary><strong>&#128100; Curators, galleries and critics</strong></summary>
+<p>Directory of professional contacts, separate from clients. Each contact can have a <strong>photo</strong>, name, role, gallery or institution, city, phone, email, website and social profiles (Instagram, Facebook, LinkedIn and a free field).</p>
+<p>Available roles: Curator, Gallerist, Art critic, Journalist, Collector, Organizer, Photographer, Other. Contacts are automatically grouped by role.</p>
+<p>Phone and email are clickable: tapping them starts the call or opens the mail.</p>
+<p><strong>PDF print</strong> produces the complete list of contacts.</p>
+</details>
+
+<details class="guide-item"><summary><strong>&#127963;&#65039; Galleries</strong></summary>
+<p>File of exhibition spaces with a <strong>gallery image</strong>, name, type (private gallery, public space, museum, foundation, association, fair), address and city.</p>
+<p>For each gallery you can record the <strong>contact person's name</strong> and role, plus phone, email, website and Instagram.</p>
+<p><strong>PDF print</strong> generates the list with all contacts.</p>
+</details>
+
+<details class="guide-item"><summary><strong>&#9906; Searching in sections</strong></summary>
+<p>Artworks, Library, Exhibitions, Clients, Sales, Agenda, Certificates, Curators, Galleries and Links have a <strong>search bar</strong> at the top.</p>
+<p>The search examines <strong>all fields</strong> of the record: name, surname, title, city, phone, email, date, notes, price, category and so on. You don't need to know which field the data is in.</p>
+<p>You can type <strong>several words</strong>: only records containing all of them are shown. For example "milan curator" finds curators in Milan.</p>
+<p>Curators also have a role filter, Artworks and Library have advanced filters, Agenda has a type filter.</p>
+</details>
+
+<details class="guide-item"><summary><strong>&#128682; Exiting the app</strong></summary>
+<p>Top right, next to the theme button, there's the <strong>&#9211;</strong> icon to exit the app. The same command is also in <em>Settings &rarr; Close application</em>. Data stays saved.</p>
+<p>The phone's <strong>Back button</strong> first closes any open windows, then returns to the main screen, and finally offers to exit.</p>
+</details>
+
+<details class="guide-item"><summary><strong>&#128197; Agenda and reminders</strong></summary>
+<p>Appointments, exhibitions, deliveries, deadlines and reminders with date, time and place.</p>
+<p>On the main screen the <strong>To do</strong> box automatically gathers what is <strong>overdue</strong>, <strong>today</strong>, <strong>tomorrow</strong> and in the <strong>coming days</strong>. It turns gold when there are urgent commitments. It can be hidden from Customize.</p>
+<p><strong>Export agenda .ics</strong> creates a file importable into Google Calendar, Apple Calendar or Outlook.</p>
+</details>
+
+<details class="guide-item"><summary><strong>&#127963;&#65039; Exhibitions</strong></summary>
+<p><strong>Exhibitions:</strong> shows with venue, dates, curator and linked artworks. You can upload the <strong>poster</strong>, which appears at the top of the record. From an exhibition you can generate a catalog directly.</p>
+</details>
+
+<details class="guide-item"><summary><strong>&#128101; Clients, Sales and Workspace</strong></summary>
+<p><strong>Clients:</strong> directory of collectors and gallerists, with sales history.</p>
+<p><strong>Sales:</strong> deals and payments, with receipt generation.</p>
+<p><strong>Workspace:</strong> projects gathering artworks, documents and contacts together.</p>
+</details>
+
+<details class="guide-item"><summary><strong>&#128338; Timeline</strong></summary>
+<p>Automatic history of everything: artworks, sales, exhibitions, certificates, documents and tasks, sorted by date and grouped by month. Tap an event to go to its section.</p>
+<p>With <strong>Reset from date</strong> you choose a starting date: the timeline shows only events from there on. It's just a display filter &mdash; <strong>data is not deleted</strong> &mdash; and can be removed anytime.</p>
+</details>
+
+<details class="guide-item"><summary><strong>&#127968; Customizing the main screen</strong></summary>
+<p>The <strong>Customize</strong> button on the Home lets you choose:</p>
+<ul>
+<li>Personal title and welcome phrase.</li>
+<li>Background image for the header.</li>
+<li>Main quick button.</li>
+<li>Which statistics to show (ten available, including total revenue).</li>
+<li>Which sections to show and in what order: the first becomes the large box.</li>
+<li>Whether to show the "To do" box.</li>
+</ul>
+</details>
+
+<details class="guide-item"><summary><strong>&#128202; Data/Excel export</strong></summary>
+<p>From the <strong>Data/Excel export</strong> section you can export the whole archive in standard formats:</p>
+<p><strong>Excel</strong>: seven sheets (artworks, clients, exhibitions, curators, galleries, sales, certificates). Thumbnails are embedded in the Artworks sheet.</p>
+<p><strong>Full archive (ZIP)</strong>: a single compressed file with the Excel, the original images in a folder, the HTML catalog and the instructions.</p>
+<p><strong>HTML catalog</strong>: a standalone web page, viewable offline with any browser.</p>
+<p><strong>Excel import</strong>: re-imports the sheets exported from MAIR GO!, with a preview before confirming. Records with the same code are updated, the others added.</p>
+<p>All files end up in the <strong>Documents &rarr; MAIR GO</strong> folder on the phone.</p>
+</details>
+
+<details class="guide-item"><summary><strong>&#127760; Language / Lingua</strong></summary>
+<p>In <em>Settings &rarr; Appearance</em> you can choose the app language between <strong>Italiano</strong> and <strong>English</strong>.</p>
+<p>The interface translation (menu, sections, buttons) is applied after tapping <strong>Save appearance</strong>. Your data (artwork titles, notes, texts you wrote) obviously stays as you entered it.</p>
+</details>
+
+<details class="guide-item"><summary><strong>&#128274; Security and appearance</strong></summary>
+<p><strong>PIN:</strong> 4 to 6 digits, required at startup. It protects access to the app, but does not encrypt the files: for sensitive data also use the phone's screen lock.</p>
+<p><strong>Appearance:</strong> theme, font size, animations and startup screen are adjustable in Settings.</p>
+</details>
+
+<details class="guide-item"><summary><strong>&#128736; If something doesn't work</strong></summary>
+<p>In <em>Settings &rarr; Diagnostics</em> you find the app's error log.</p>
+<p>Open it, tap <strong>Copy all</strong> and send the text via the Contact section: it contains the technical information useful to identify the problem.</p>
+</details>
+
+</div>`}
+
+function guideView(){return appLang()==='en'?guideViewEN():guideViewIT();}
 
 function contactView(){return `${section('Contatti e segnalazioni')}
 <section class="hero"><h2>&#9993;&#65039; Scrivi all'autore</h2><p>Segnalazioni, malfunzionamenti, suggerimenti o richieste.</p></section>
