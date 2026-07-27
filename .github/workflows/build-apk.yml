@@ -38,7 +38,41 @@ jobs:
       - name: Sincronizza i file dell'app
         run: npx cap sync android
 
+      - name: Ricrea il keystore dalle chiavi segrete
+        run: |
+          echo "${{ secrets.KEYSTORE_BASE64 }}" | base64 -d > android/app/mair-release.keystore
+          ls -la android/app/mair-release.keystore
+
+      - name: Firma con la chiave fissa (aggiornamenti senza disinstallare)
+        run: |
+          python3 - << 'PYSIGN'
+          import re
+          p='android/app/build.gradle'
+          s=open(p).read()
+          sign='''
+              signingConfigs {
+                  fissa {
+                      storeFile file('mair-release.keystore')
+                      storePassword System.getenv('MAIR_STORE_PW')
+                      keyAlias System.getenv('MAIR_KEY_ALIAS')
+                      keyPassword System.getenv('MAIR_KEY_PW')
+                  }
+              }'''
+          s=re.sub(r'android\s*\{', 'android {'+sign, s, count=1)
+          if re.search(r'buildTypes\s*\{', s):
+              s=re.sub(r'buildTypes\s*\{', 'buildTypes {\n        debug { signingConfig signingConfigs.fissa }', s, count=1)
+          else:
+              s=re.sub(r'(signingConfigs\s*\{[^}]*\}\s*\})', r'\1\n    buildTypes { debug { signingConfig signingConfigs.fissa } }', s, count=1)
+          open(p,'w').write(s)
+          print('--- build.gradle firmato ---')
+          i=s.find('android'); print(s[i:i+500])
+          PYSIGN
+
       - name: Compila l'APK
+        env:
+          MAIR_STORE_PW: ${{ secrets.MAIR_KEYSTORE_PASSWORD }}
+          MAIR_KEY_ALIAS: ${{ secrets.MAIR_KEY_ALIAS }}
+          MAIR_KEY_PW: ${{ secrets.MAIR_KEY_PASSWORD }}
         run: |
           cd android
           chmod +x ./gradlew
