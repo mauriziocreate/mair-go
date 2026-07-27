@@ -382,7 +382,7 @@ function diagOpen(){
   box.setAttribute('style','position:fixed;top:0;left:0;right:0;bottom:0;z-index:999999;background:#111;color:#0f0;font:12px/1.5 monospace;padding:10px;overflow:auto');
   const testo=window.__LOG__.length?window.__LOG__.join('\n\n'):'(nessun errore registrato)';
   const info='DIAGNOSTICA MAIR GO!\n'
-    +'Versione app.js: 18.6\n'
+    +'Versione app.js: 18.7\n'
     +'docViewerOpen esiste: '+(typeof docViewerOpen)+'\n'
     +'textEditorOpen esiste: '+(typeof textEditorOpen)+'\n'
     +'certDocHtml esiste: '+(typeof certDocHtml)+'\n'
@@ -2129,6 +2129,51 @@ function guideViewEN(){return `${section('Offline guide')}
 
 function guideView(){return appLang()==='en'?guideViewEN():guideViewIT();}
 
+function infoViewEN(){return `${section('About')}<section class="legal-card"><div class="about-logo">M</div><h2>MAIR GO!</h2>
+<p class="lead"><strong>Art Management System created by the international artist Maurizio D'Andrea.</strong></p>
+<p><span class="badge">Version 1.0</span></p>
+<p>Free application to manage artworks, documents, catalogs, certificates, exhibitions, galleries, curators and critics, useful links, clients, sales and agenda. Distributed without guaranteed support service.</p>
+
+<h3>&#128274; Your privacy, concretely</h3>
+<p><strong>Your data never leaves your device.</strong> There is no server receiving it, no cloud storing it, no central archive. Everything you write and upload stays physically on the phone or computer you are using.</p>
+<p>This means that <strong>no one can read your archive</strong>: neither the app's author, nor third parties, nor advertising companies. Not because of a promise not to look, but because <strong>technically there is no place to look</strong>.</p>
+
+<h3>&#9881;&#65039; How it really works</h3>
+<p>The app saves data in two stores internal to the device:</p>
+<ul>
+<li><strong>Main archive</strong>: contains artworks, images, documents, certificates, clients and sales. It also handles heavy files like artwork photos.</li>
+<li><strong>Service copy</strong>: a second smaller store, used as a reserve when the data is limited.</li>
+</ul>
+<p>Saving is automatic: it happens at every change and also when you close the app or send it to the background.</p>
+
+<h3>&#128241; What the app does NOT do</h3>
+<ul>
+<li>Does not require registration or create accounts.</li>
+<li>Does not ask for email, password or phone number to work.</li>
+<li>Does not show ads and does not profile the user.</li>
+<li>Does not access on its own your contacts, calls, SMS, microphone, camera or GPS location.</li>
+<li>Does not send usage statistics or automatic reports.</li>
+</ul>
+<p>Access to files and images happens <strong>only</strong> when you select them. Sharing, sending emails and opening sites start solely from an explicit command of yours.</p>
+
+<h3>&#127760; When something leaves the device</h3>
+<p>It happens only at your request, and always with a touch of yours: when you save a PDF, export a backup, generate an image or a video for social media, or use the share button. At that moment it is the phone's system that handles the file, and you choose where to send it.</p>
+
+<h3>&#128273; The PIN</h3>
+<p>The PIN prevents opening the app for anyone who picks up your device. It is an <strong>access protection, not encryption</strong>: it does not make the underlying files unreadable. For very sensitive data, combine it with the phone's screen lock.</p>
+
+<h3>&#9888;&#65039; The other side of the coin</h3>
+<p>The fact that the data is only yours has a price: <strong>if the device is lost, breaks or is wiped, there is no one to recover it from</strong>. There is no "password recovery", because there is no account. That's why the backup is not optional: it is the only safety net. You find the full explanation in the Guide.</p>
+
+<h3>&#9878;&#65039; Responsibility</h3>
+<p>Use is under the user's full responsibility. The author does not guarantee service continuity, compatibility with every device or data recovery, and is not liable for losses or damages arising from use of the app, within the limits allowed by applicable law.</p>
+
+<h3>&#9993;&#65039; Contacts</h3>
+<p><a href="mailto:dandreart.info@gmail.com">dandreart.info@gmail.com</a><br><a href="https://www.dandreart.info" target="_blank" rel="noopener">www.dandreart.info</a></p>
+<p class="meta">MAIR GO! 7.5 &middot; Free software &middot; Data on device &middot; No account &middot; No ads</p></section>`}
+
+function infoView(){return appLang()==='en'?infoViewEN():infoViewIT();}
+
 function contactView(){return `${section('Contatti e segnalazioni')}
 <section class="hero"><h2>&#9993;&#65039; Scrivi all'autore</h2><p>Segnalazioni, malfunzionamenti, suggerimenti o richieste.</p></section>
 <div class="formgrid">
@@ -2143,7 +2188,7 @@ ${area('Messaggio','contactMessage','')}
 <p class="meta full">Il pulsante apre la tua app di posta con il messaggio gi&agrave; compilato. Per i malfunzionamenti, allega il testo copiato dalla Diagnostica.</p>
 </div>`}
 
-function infoView(){return `${section('Informazioni')}<section class="legal-card"><div class="about-logo">M</div><h2>MAIR GO!</h2>
+function infoViewIT(){return `${section('Informazioni')}<section class="legal-card"><div class="about-logo">M</div><h2>MAIR GO!</h2>
 <p class="lead"><strong>Art Management System creato dall'artista internazionale Maurizio D'Andrea.</strong></p>
 <p><span class="badge">Versione 1.0</span></p>
 <p>Applicazione gratuita per gestire opere, documenti, cataloghi, certificati, mostre, gallerie, curatori e critici, link utili, clienti, vendite e agenda. Distribuita senza servizio di assistenza garantito.</p>
