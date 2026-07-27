@@ -260,6 +260,28 @@ const I18N={
   "Registra esposizione, luogo e date":"Register exhibition, venue and dates",
   "Registra importi, pagamenti e ricevuta":"Register amounts, payments and receipt",
   "Nuovo curatore / critico":"New curator / critic",
+
+  "Comunicazione, rete professionale, sicurezza e configurazione dell’app.":"Communication, professional network, security and app settings.",
+  "Comunicazione":"Communication",
+  "Rete professionale":"Professional network",
+  "App e sicurezza":"App & security",
+  "Prepara immagini e sequenze per i social.":"Prepare images and sequences for social media.",
+  "Siti, bandi, riviste e risorse.":"Sites, calls, magazines and resources.",
+  "Contatti professionali e giornalisti.":"Professional contacts and journalists.",
+  "Impostazioni e Backup":"Settings & Backup",
+  "Aspetto, profilo, PIN, liste, backup e ripristino.":"Appearance, profile, PIN, lists, backup and restore.",
+  "Esportazione dati/Excel":"Data/Excel export",
+  "Istruzioni per usare ogni funzione.":"Instructions for every feature.",
+  "Versione, privacy e note dell’app.":"Version, privacy and app notes.",
+  "Assistenza":"Support",
+  "Segnalazioni e richieste.":"Feedback and requests.",
+
+  "Inserisci il PIN":"Enter the PIN",
+  "Accedi":"Log in",
+  "PIN dimenticato?":"Forgot PIN?",
+  "I dati restano solo su questo dispositivo.":"Data stays only on this device.",
+  "Home":"Home",
+  "📲 Installa":"📲 Install",
 };
 function appLang(){return (db&&db.settings&&db.settings.lang)||'it';}
 function T(testo){
@@ -276,7 +298,7 @@ function diagOpen(){
   box.setAttribute('style','position:fixed;top:0;left:0;right:0;bottom:0;z-index:999999;background:#111;color:#0f0;font:12px/1.5 monospace;padding:10px;overflow:auto');
   const testo=window.__LOG__.length?window.__LOG__.join('\n\n'):'(nessun errore registrato)';
   const info='DIAGNOSTICA MAIR GO!\n'
-    +'Versione app.js: 18.4\n'
+    +'Versione app.js: 18.5\n'
     +'docViewerOpen esiste: '+(typeof docViewerOpen)+'\n'
     +'textEditorOpen esiste: '+(typeof textEditorOpen)+'\n'
     +'certDocHtml esiste: '+(typeof certDocHtml)+'\n'
@@ -419,7 +441,21 @@ function clone(x){return JSON.parse(JSON.stringify(x))}function load(){try{const
   updateHeader();
   return persistentSave;
 }const uid=()=>crypto.randomUUID?.()||Date.now().toString(36)+Math.random().toString(36).slice(2);const esc=s=>String(s??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));const euro=n=>n?new Intl.NumberFormat('it-IT',{style:'currency',currency:'EUR'}).format(+n):'';function toast(t){const x=$('#toast');x.textContent=T(t);x.classList.add('show');setTimeout(()=>x.classList.remove('show'),1800)}function download(blob,name){const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=name;a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1000)}
-const titles={home:'MAIR GO!',archive:'Archivio',new:'Crea nuovo',activity:'Attività',more:'Altro',artworks:'Opere',library:'Biblioteca Pro',pdfstudio:'PDF Studio',settings:'Impostazioni',info:'Informazioni',timeline:'Timeline',workspace:'Workspace',exhibitions:'Mostre',clients:'Clienti',sales:'Vendite',agenda:'Agenda',certificates:'Certificati',social:'Zona Social',links:'Link utili',pros:'Curatori e critici',galleries:'Gallerie',certpreview:'Certificato',guide:'Guida offline',contact:'Contatti e segnalazioni'};function updateHeader(){document.documentElement.dataset.theme=db.settings.theme;document.documentElement.dataset.accent=db.settings.accent||'oro';document.documentElement.dataset.font=db.settings.fontSize||'medium';document.documentElement.classList.toggle('reduce-motion',db.settings.animations===false);$('#pageTitle').textContent=T(titles[route]||'MAIR GO!');$('#pageSub').textContent=route==='home'?T('Il tuo atelier digitale'):db.settings.artist;document.querySelectorAll('.bottomnav button').forEach(b=>{const r=b.dataset.route;const active=r===route||(HUB_GROUPS[r]||[]).includes(route);b.classList.toggle('active',active)});traduciNav()}
+const titles={home:'MAIR GO!',archive:'Archivio',new:'Crea nuovo',activity:'Attività',more:'Altro',artworks:'Opere',library:'Biblioteca Pro',pdfstudio:'PDF Studio',settings:'Impostazioni',info:'Informazioni',timeline:'Timeline',workspace:'Workspace',exhibitions:'Mostre',clients:'Clienti',sales:'Vendite',agenda:'Agenda',certificates:'Certificati',social:'Zona Social',links:'Link utili',pros:'Curatori e critici',galleries:'Gallerie',certpreview:'Certificato',guide:'Guida offline',contact:'Contatti e segnalazioni'};function updateHeader(){document.documentElement.dataset.theme=db.settings.theme;document.documentElement.dataset.accent=db.settings.accent||'oro';document.documentElement.dataset.font=db.settings.fontSize||'medium';document.documentElement.classList.toggle('reduce-motion',db.settings.animations===false);$('#pageTitle').textContent=T(titles[route]||'MAIR GO!');$('#pageSub').textContent=route==='home'?T('Il tuo atelier digitale'):db.settings.artist;document.querySelectorAll('.bottomnav button').forEach(b=>{const r=b.dataset.route;const active=r===route||(HUB_GROUPS[r]||[]).includes(route);b.classList.toggle('active',active)});traduciNav();traduciStatici()}
+function traduciStatici(){
+  if(typeof appLang!=='function'||appLang()!=='en')return;
+  const map=[
+    ['#pinInput','placeholder'],
+  ];
+  try{
+    const q=(sel,txt)=>{const e=document.querySelector(sel);if(e&&txt)e.textContent=T(txt);};
+    q('#unlockBtn','Accedi');
+    q('#pinHelp','PIN dimenticato?');
+    const pinP=document.querySelector('#lockScreen p');if(pinP)pinP.textContent=T('Inserisci il PIN');
+    document.querySelectorAll('#modal .modalactions .btn').forEach(b=>{const t=b.textContent.trim();if(t==='Annulla')b.textContent=T('Annulla');if(t==='Salva')b.textContent=T('Salva');});
+    const inst=document.querySelector('#installBtn');if(inst)inst.textContent=T('📲 Installa');
+  }catch(e){}
+}
 function traduciNav(){
   const et={home:['Home','Home'],archive:['Archivio','Archive'],new:['Nuovo','New'],activity:['Attività','Activity'],more:['Altro','More']};
   const en=appLang()==='en';
@@ -3598,13 +3634,9 @@ function showLock(){const lock=$('#lockScreen');lock.classList.remove('hidden');
 function startup(){const splash=$('#splash');if(db.settings.splash===false)splash.remove();else setTimeout(()=>splash.classList.add('splash-out'),1500);setTimeout(()=>{splash?.remove();if(db.settings.pinEnabled&&db.settings.pinHash)showLock();else primoAvvio()},1900)}
 $('#homeBtn').onclick=()=>go('home');$('#exitBtn').onclick=()=>esciApp();$('#themeBtn').onclick=()=>{const i=themeOptions.findIndex(x=>x[0]===db.settings.theme);db.settings.theme=themeOptions[(i+1)%themeOptions.length][0];save();render();toast(themeOptions[(i+1)%themeOptions.length][1])};document.querySelectorAll('.bottomnav button').forEach(b=>b.onclick=()=>go(b.dataset.route));$('#viewerClose').onclick=()=>{try{viewer.querySelector('.viewer-shell')?.classList.remove('reader-open');}catch(e){}viewer.close();};window.addEventListener('hashchange',()=>{route=location.hash.slice(1)||'home';render()});let deferredInstallPrompt=null;function installAvailable(){const standalone=matchMedia('(display-mode: standalone)').matches||navigator.standalone===true;const b=$('#installBtn');if(b)b.classList.toggle('hidden',standalone||!deferredInstallPrompt)}window.addEventListener('beforeinstallprompt',e=>{e.preventDefault();deferredInstallPrompt=e;installAvailable()});window.addEventListener('appinstalled',()=>{deferredInstallPrompt=null;installAvailable();toast('MAIR GO! installata')});$('#installBtn').onclick=async()=>{if(!deferredInstallPrompt)return;deferredInstallPrompt.prompt();await deferredInstallPrompt.userChoice;deferredInstallPrompt=null;installAvailable()};async function boot(){
   await initPersistence();
+  // service worker disattivato: causava il mancato aggiornamento dell'app (cache vecchia)
   if('serviceWorker'in navigator){
-    try{
-      const registration=await navigator.serviceWorker.register('./service-worker.js',{scope:'./'});
-      registration.update().catch(()=>{});
-    }catch(error){
-      console.warn('Service worker non registrato:',error);
-    }
+    try{const rs=await navigator.serviceWorker.getRegistrations();rs.forEach(r=>r.unregister());}catch(e){}
   }
   render();
   installAvailable();
