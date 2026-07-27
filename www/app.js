@@ -175,6 +175,91 @@ const I18N={
   "Nuovo progetto":"New project",
   "Certificato di Vendita":"Certificate of Sale",
   "Certificato di Esposizione":"Certificate of Exhibition",
+
+  "Agenda libera.":"Agenda free.",
+  "Aggiungi PDF, DOCX, testo o immagine":"Add PDF, DOCX, text or image",
+  "Aggiungi il primo":"Add the first",
+  "Aggiungi il primo cliente":"Add the first client",
+  "Aggiungi il primo link":"Add the first link",
+  "Aggiungi la prima":"Add the first",
+  "Aggiungi la prima opera":"Add the first artwork",
+  "Aggiungi un contatto professionale":"Add a professional contact",
+  "Aggiungi un evento":"Add an event",
+  "Anno: tutti":"Year: all",
+  "Apri Vendite per controllare saldo e incassi.":"Open Sales to check balance and payments.",
+  "Apri documento":"Open document",
+  "Apri vendite":"Open sales",
+  "Azioni rapide":"Quick actions",
+  "Azzera da data":"Reset from date",
+  "Azzera filtri":"Reset filters",
+  "Carica il primo file":"Upload the first file",
+  "Cliente collegato":"Linked client",
+  "Collegati alle opere":"Linked to artworks",
+  "Cornice decorativa":"Decorative frame",
+  "Cornice: tutte":"Frame: all",
+  "Crea Backup":"Create backup",
+  "Crea backup completo":"Create full backup",
+  "Crea backup rapido":"Create quick backup",
+  "Crea il primo certificato":"Create the first certificate",
+  "Crea la prima mostra":"Create the first exhibition",
+  "Crea portfolio, dossier o listino":"Create portfolio, dossier or price list",
+  "Crea post":"Create post",
+  "Dimensione: tutte":"Size: all",
+  "Filtri avanzati":"Advanced filters",
+  "Fotografie delle opere":"Artwork photos",
+  "Il tuo lavoro, in un solo posto":"Your work, all in one place",
+  "Importa Excel":"Import Excel",
+  "Inserisci prima almeno un’opera.":"Add at least one artwork first.",
+  "Inserisci prima delle opere.":"Add some artworks first.",
+  "Le impostazioni valgono per tutti i cataloghi e certificati generati.":"Settings apply to all generated catalogs and certificates.",
+  "Monitora progetti, mostre, clienti, vendite e prossime scadenze.":"Track projects, exhibitions, clients, sales and upcoming deadlines.",
+  "Nessun curatore o critico ancora registrato. Premi “Aggiungi nuovo”.":"No curator or critic registered yet. Tap “Add new”.",
+  "Nessun progetto. Crea un workspace per riunire materiali e contatti.":"No projects. Create a workspace to gather materials and contacts.",
+  "Nuova vendita":"New sale",
+  "Nuovo PDF":"New PDF",
+  "Nuovo catalogo":"New catalog",
+  "Nuovo certificato":"New certificate",
+  "Nuovo documento":"New document",
+  "Nuovo impegno":"New task",
+  "Opera collegata":"Linked artwork",
+  "Posizione immagine":"Image position",
+  "Preferiti: tutti":"Favorites: all",
+  "Prezzo massimo":"Maximum price",
+  "Prezzo minimo":"Minimum price",
+  "Progetti attivi":"Active projects",
+  "Prossime scadenze":"Upcoming deadlines",
+  "Raccogli materiali e attività collegate":"Gather related materials and activities",
+  "Registra la prima vendita":"Register the first sale",
+  "Scegli fino a 5 opere":"Choose up to 5 artworks",
+  "Serie / collezione":"Series / collection",
+  "Stato: tutti":"Status: all",
+  "Supporto: tutti":"Support: all",
+  "Tecnica: tutte":"Technique: all",
+  "Vendite recenti":"Recent sales",
+  "per contatti e documenti":"for contacts and documents",
+  "Posizione":"Location",
+  "Preferiti":"Favorites",
+  "Cliente":"Client",
+  "Opera":"Artwork",
+  "In corso":"In progress",
+  "Evento":"Event",
+  "Solo preferiti":"Favorites only",
+  "Centrata":"Centered",
+  "A sinistra":"Left",
+  "A destra":"Right",
+  "CENTRO OPERATIVO":"OPERATIONS CENTER",
+  "Importa più opere":"Import multiple artworks",
+  "Ottimizza immagini":"Optimize images",
+  "Aggiungi nuovo":"Add new",
+  "Nessun documento allegato":"No attached documents",
+
+  "Le azioni più frequenti, raccolte in una schermata semplice e immediata.":"The most frequent actions, in one simple screen.",
+  "Inserisci immagine e scheda completa":"Add image and full record",
+  "Autenticità, vendita o provenienza":"Authenticity, sale or provenance",
+  "Collezionista, galleria o contatto":"Collector, gallery or contact",
+  "Registra esposizione, luogo e date":"Register exhibition, venue and dates",
+  "Registra importi, pagamenti e ricevuta":"Register amounts, payments and receipt",
+  "Nuovo curatore / critico":"New curator / critic",
 };
 function appLang(){return (db&&db.settings&&db.settings.lang)||'it';}
 function T(testo){
@@ -191,7 +276,7 @@ function diagOpen(){
   box.setAttribute('style','position:fixed;top:0;left:0;right:0;bottom:0;z-index:999999;background:#111;color:#0f0;font:12px/1.5 monospace;padding:10px;overflow:auto');
   const testo=window.__LOG__.length?window.__LOG__.join('\n\n'):'(nessun errore registrato)';
   const info='DIAGNOSTICA MAIR GO!\n'
-    +'Versione app.js: 18.3\n'
+    +'Versione app.js: 18.4\n'
     +'docViewerOpen esiste: '+(typeof docViewerOpen)+'\n'
     +'textEditorOpen esiste: '+(typeof textEditorOpen)+'\n'
     +'certDocHtml esiste: '+(typeof certDocHtml)+'\n'
@@ -343,7 +428,22 @@ function traduciNav(){
     const span=b.querySelector('span');const ico=span?span.outerHTML:'';
     b.innerHTML=ico+(en?e[1]:e[0]);
   });
-}function go(r){route=r;location.hash=r;render();scrollTo(0,0)}function render(){updateHeader();app.innerHTML=(views[route]||views.home)();bind()}function bind(){document.querySelectorAll('[data-go]').forEach(x=>x.onclick=()=>go(x.dataset.go));document.querySelectorAll('[data-action]').forEach(x=>x.onclick=()=>actions[x.dataset.action]?.(x.dataset.id,x));if(route==='artworks')bindArtworkFilters();if(route==='library')bindLibraryFilters();if(route==='exhibitions')bindSimpleFilter('exSearch','exGrid',db.exhibitions,exhibitionCard);if(route==='clients')bindSimpleFilter('clientSearch','clientGrid',db.clients,clientCard);if(route==='sales')bindSimpleFilter('saleSearch','saleGrid',db.sales,saleCard);if(route==='pros')bindProFilter();if(route==='galleries')bindSimpleFilter('gallerySearch','galleryGrid',db.galleries||[],galleryCard);if(route==='links')bindLinkFilter();if(route==='certificates')bindSimpleFilter('certSearch','certGrid',db.certificates||[],certCard);if(route==='agenda')bindAgendaFilters()}
+}function tHtml(html){
+  if(typeof appLang==='function'&&appLang()!=='en')return html;
+  try{
+    return html
+      .replace(/<strong>([^<>{}]+)<\/strong>/g,(m,t)=>'<strong>'+T(t.trim())+'</strong>')
+      .replace(/<small>([^<>{}]+)<\/small>/g,(m,t)=>'<small>'+T(t.trim())+'</small>')
+      .replace(/<h2>([^<>{}]+)<\/h2>/g,(m,t)=>'<h2>'+T(t.trim())+'</h2>')
+      .replace(/<h3>([^<>{}]+)<\/h3>/g,(m,t)=>'<h3>'+T(t.trim())+'</h3>')
+      .replace(/<h4>([^<>{}]+)<\/h4>/g,(m,t)=>'<h4>'+T(t.trim())+'</h4>')
+      .replace(/<summary>([^<>{}]+)<\/summary>/g,(m,t)=>'<summary>'+T(t.trim())+'</summary>')
+      .replace(/<option>([^<>{}]+)<\/option>/g,(m,t)=>'<option>'+T(t.trim())+'</option>')
+      .replace(/<option value="([^"]*)">([^<>{}]+)<\/option>/g,(m,v,t)=>'<option value="'+v+'">'+T(t.trim())+'</option>')
+      .replace(/<p class="section-intro">([^<>{}]+)<\/p>/g,(m,t)=>'<p class="section-intro">'+T(t.trim())+'</p>');
+  }catch(e){return html;}
+}
+function go(r){route=r;location.hash=r;render();scrollTo(0,0)}function render(){updateHeader();app.innerHTML=tHtml((views[route]||views.home)());bind()}function bind(){document.querySelectorAll('[data-go]').forEach(x=>x.onclick=()=>go(x.dataset.go));document.querySelectorAll('[data-action]').forEach(x=>x.onclick=()=>actions[x.dataset.action]?.(x.dataset.id,x));if(route==='artworks')bindArtworkFilters();if(route==='library')bindLibraryFilters();if(route==='exhibitions')bindSimpleFilter('exSearch','exGrid',db.exhibitions,exhibitionCard);if(route==='clients')bindSimpleFilter('clientSearch','clientGrid',db.clients,clientCard);if(route==='sales')bindSimpleFilter('saleSearch','saleGrid',db.sales,saleCard);if(route==='pros')bindProFilter();if(route==='galleries')bindSimpleFilter('gallerySearch','galleryGrid',db.galleries||[],galleryCard);if(route==='links')bindLinkFilter();if(route==='certificates')bindSimpleFilter('certSearch','certGrid',db.certificates||[],certCard);if(route==='agenda')bindAgendaFilters()}
 function section(t,b=''){return `<div class="sectionhead"><h2>${T(t)}</h2>${b}</div>`}function empty(i,t,b=''){return `<div class="empty"><div style="font-size:2.5rem">${i}</div><p>${T(t)}</p>${b}</div>`}function img(src,alt=''){return src?`<img src="${src}" alt="${esc(alt)}" loading="lazy" decoding="async">`:'✦'}function field(label,name,value='',type='text',full=''){return `<div class="field ${full}"><label>${T(label)}</label><input name="${name}" type="${type}" value="${esc(value)}"></div>`}function area(label,name,value='',full='full'){return `<div class="field ${full}"><label>${T(label)}</label><textarea name="${name}">${esc(value)}</textarea></div>`}function selectField(label,name,list,value='',full=''){return `<div class="field ${full}"><label>${label}</label><div class="field-inline"><select name="${name}">${list.map(v=>`<option ${v===value?'selected':''}>${esc(v)}</option>`).join('')}</select><button type="button" class="btn" data-add-list="${name}">＋</button></div></div>`}
 function artworkCard(a){return `<article class="card"><div class="cardimg">${img(artThumb(a),a.title)}</div><div class="cardbody"><div class="row spread"><h3>${esc(a.title||'Senza titolo')}</h3><button class="star" data-action="toggleArtworkFav" data-id="${a.id}">${a.favorite?'★':'☆'}</button></div><div class="meta">${esc(a.year||'s.d.')} · ${esc(a.technique||'Tecnica non indicata')}</div><span class="badge">${esc(a.dimensions||'Dimensioni n.d.')}</span><span class="badge">${esc(a.status||'Disponibile')}</span>${a.price?`<span class="badge">${euro(a.price)}</span>`:''}<div class="row" style="margin-top:12px"><button class="btn primary" data-action="editArtwork" data-id="${a.id}">Apri</button><button class="btn danger" data-action="deleteArtwork" data-id="${a.id}">Elimina</button></div></div></article>`}
 function libCard(d){const ico=d.mime?.includes('pdf')?'📕':d.mime?.includes('word')||d.name?.endsWith('.docx')?'📘':d.mime?.startsWith('image')?'🖼️':'📄';return `<article class="card"><div class="cardbody"><div class="row spread"><div class="doc-type">${ico}</div><button class="star" data-action="toggleLibFav" data-id="${d.id}">${d.favorite?'★':'☆'}</button></div><h3>${esc(d.title||d.name)}</h3><div class="meta">${esc(d.author||'Autore non indicato')} · ${esc(d.category||'Altro')}</div><p>${esc(d.description||'')}</p>${(d.tags||[]).map(t=>`<span class="badge">${esc(t)}</span>`).join('')}<div class="row" style="margin-top:12px"><button class="btn primary" data-action="openLibrary" data-id="${d.id}">Leggi</button><button class="btn" data-action="editLibrary" data-id="${d.id}">Modifica</button><button class="btn danger" data-action="deleteLibrary" data-id="${d.id}">Elimina</button></div></div></article>`}
