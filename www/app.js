@@ -289,6 +289,21 @@ const I18N={
   "Persone, eventi e operazioni quotidiane dell’atelier.":"People, events and the atelier’s daily operations.",
   "Collezionisti, galleristi e storico acquisti.":"Collectors, gallerists and purchase history.",
   "Trattative, incassi, residui e ricevute.":"Deals, payments, outstanding balances and receipts.",
+  // traduzioni completate per Home e finestra Sostieni MAIR GO!
+  "Link social":"Social links",
+  "Cronologia delle attività e degli eventi.":"History of activities and events.",
+  "Profilo, aspetto, liste e backup.":"Profile, appearance, lists and backups.",
+  "Come usare ogni sezione dell’app.":"How to use every section of the app.",
+  "Versione, licenza e note sull’app.":"Version, license and app notes.",
+  "Contatti":"Contact",
+  "Segnalazioni e richieste di assistenza.":"Feedback and support requests.",
+  "Sostieni MAIR GO!":"Support MAIR GO!",
+  "Dona con PayPal a":"Donate via PayPal to",
+  "Copia indirizzo PayPal":"Copy PayPal address",
+  "Apri PayPal":"Open PayPal",
+  "Grazie di cuore per il sostegno.":"Thank you sincerely for your support.",
+  "Indirizzo PayPal copiato":"PayPal address copied",
+  "Copia manuale: ":"Copy manually: ",
   "Home":"Home",
   "📲 Installa":"📲 Install",
 
@@ -1637,22 +1652,28 @@ function timelineAzzeraModal(){
 
 function donaModal(){
   const paypal='mauro_maurizio@hotmail.it';
-  const url='https://www.paypal.com/paypalme/'; // fallback generico
-  openModal('\u2764\ufe0f Sostieni MAIR GO!','<div style="text-align:center;padding:6px">'
+  const en=appLang()==='en';
+  const p1=en
+    ?'MAIR GO! is a <strong>free, ad-free project</strong>, created by an artist for artists. It does not collect personal data and has no source of income.'
+    :'MAIR GO! &egrave; un progetto <strong>gratuito e senza pubblicit&agrave;</strong>, creato da un artista per gli artisti. Non raccoglie dati e non ha alcuna fonte di guadagno.';
+  const p2=en
+    ?'Maintaining and improving it &mdash; with new features, fixes and updates &mdash; requires time and dedication. If you find the app useful, even a small donation helps <strong>keep it alive, free and available to everyone</strong>.'
+    :'Mantenerlo e migliorarlo &mdash; nuove funzioni, correzioni, aggiornamenti &mdash; richiede tempo e lavoro. Se l\u2019app ti &egrave; utile, una donazione anche piccola aiuta a <strong>tenerla viva, libera e gratuita per tutti</strong>.';
+  openModal(T('\u2764\ufe0f Sostieni MAIR GO!'),'<div style="text-align:center;padding:6px">'
     +'<div style="font-size:2.6rem;margin-bottom:10px">\u2764\ufe0f</div>'
-    +'<p style="line-height:1.6;text-align:left">MAIR GO! &egrave; un progetto <strong>gratuito e senza pubblicit&agrave;</strong>, creato da un artista per gli artisti. Non raccoglie dati e non ha alcuna fonte di guadagno.</p>'
-    +'<p style="line-height:1.6;text-align:left">Mantenerlo e migliorarlo &mdash; nuove funzioni, correzioni, aggiornamenti &mdash; richiede tempo e lavoro. Se l\u2019app ti &egrave; utile, una donazione anche piccola aiuta a <strong>tenerla viva, libera e gratuita per tutti</strong>.</p>'
+    +'<p style="line-height:1.6;text-align:left">'+p1+'</p>'
+    +'<p style="line-height:1.6;text-align:left">'+p2+'</p>'
     +'<div style="background:color-mix(in srgb,#0070ba 12%,transparent);border-radius:12px;padding:16px;margin:16px 0">'
-    +'<div style="font-size:.85rem;color:var(--muted)">Dona con PayPal a</div>'
+    +'<div style="font-size:.85rem;color:var(--muted)">'+T('Dona con PayPal a')+'</div>'
     +'<div style="font-weight:700;font-size:1.05rem;margin:4px 0;word-break:break-all">'+paypal+'</div>'
     +'</div>'
-    +'<button class="btn primary" id="donaCopia" style="width:100%;padding:13px">\ud83d\udccb Copia indirizzo PayPal</button>'
-    +'<button class="btn" id="donaApri" style="width:100%;padding:13px;margin-top:8px">\ud83c\udf10 Apri PayPal</button>'
-    +'<p class="meta" style="margin-top:14px">Grazie di cuore per il sostegno.</p>'
-  +'</div>',()=>modal.close(),'Chiudi');
+    +'<button class="btn primary" id="donaCopia" style="width:100%;padding:13px">\ud83d\udccb '+T('Copia indirizzo PayPal')+'</button>'
+    +'<button class="btn" id="donaApri" style="width:100%;padding:13px;margin-top:8px">\ud83c\udf10 '+T('Apri PayPal')+'</button>'
+    +'<p class="meta" style="margin-top:14px">'+T('Grazie di cuore per il sostegno.')+'</p>'
+  +'</div>',()=>modal.close(),T('Chiudi'));
   setTimeout(()=>{
     const c=document.getElementById('donaCopia');
-    if(c)c.onclick=async()=>{try{await navigator.clipboard.writeText(paypal);toast('Indirizzo PayPal copiato');}catch(e){toast('Copia manuale: '+paypal);}};
+    if(c)c.onclick=async()=>{try{await navigator.clipboard.writeText(paypal);toast('Indirizzo PayPal copiato');}catch(e){toast(T('Copia manuale: ')+paypal);}};
     const a=document.getElementById('donaApri');
     if(a)a.onclick=()=>{try{window.open('https://www.paypal.com/','_blank');}catch(e){}};
   },100);
