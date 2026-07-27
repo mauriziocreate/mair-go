@@ -280,6 +280,15 @@ const I18N={
   "Accedi":"Log in",
   "PIN dimenticato?":"Forgot PIN?",
   "I dati restano solo su questo dispositivo.":"Data stays only on this device.",
+  // traduzioni completate: Archivio, Nuovo, Attività, Clienti e Vendite
+  "Tutto ciò che appartiene al tuo patrimonio artistico e documentale, organizzato in un solo punto.":"Everything belonging to your artistic and documentary heritage, organized in one place.",
+  "Biblioteca":"Library",
+  "Schede, fotografie, filtri, prezzi e stato.":"Records, photographs, filters, prices and status.",
+  "Cataloghi, dossier, listini e portfolio.":"Catalogs, dossiers, price lists and portfolios.",
+  "Mostra, scadenza o promemoria":"Exhibition, deadline or reminder",
+  "Persone, eventi e operazioni quotidiane dell’atelier.":"People, events and the atelier’s daily operations.",
+  "Collezionisti, galleristi e storico acquisti.":"Collectors, gallerists and purchase history.",
+  "Trattative, incassi, residui e ricevute.":"Deals, payments, outstanding balances and receipts.",
   "Home":"Home",
   "📲 Installa":"📲 Install",
 
