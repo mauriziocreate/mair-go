@@ -367,11 +367,9 @@ const I18N={
   "oggi":"today",
   "ieri":"yesterday",
 
-  "💾 Dimensione archivio":"💾 Archive size",
-  "Seleziona tutte":"Select all",
-  "Seleziona visibili":"Select visible",
-  "Deseleziona":"Deselect",
-  "Nessuna immagine da mostrare":"No image to show",
+  "Catalogo con molte opere":"Catalog with many artworks",
+  "Genero":"Generating",
+  "Salvata parte":"Saved part",
 };
 function appLang(){return (db&&db.settings&&db.settings.lang)||'it';}
 function T(testo){
@@ -388,7 +386,7 @@ function diagOpen(){
   box.setAttribute('style','position:fixed;top:0;left:0;right:0;bottom:0;z-index:999999;background:#111;color:#0f0;font:12px/1.5 monospace;padding:10px;overflow:auto');
   const testo=window.__LOG__.length?window.__LOG__.join('\n\n'):'(nessun errore registrato)';
   const info='DIAGNOSTICA MAIR GO!\n'
-    +'Versione app.js: 19.0\n'
+    +'Versione app.js: 19.1\n'
     +'docViewerOpen esiste: '+(typeof docViewerOpen)+'\n'
     +'textEditorOpen esiste: '+(typeof textEditorOpen)+'\n'
     +'certDocHtml esiste: '+(typeof certDocHtml)+'\n'
@@ -571,24 +569,7 @@ function traduciNav(){
 }
 function go(r){route=r;location.hash=r;render();scrollTo(0,0)}function render(){updateHeader();app.innerHTML=tHtml((views[route]||views.home)());bind()}function bind(){document.querySelectorAll('[data-go]').forEach(x=>x.onclick=()=>go(x.dataset.go));document.querySelectorAll('[data-action]').forEach(x=>x.onclick=()=>actions[x.dataset.action]?.(x.dataset.id,x));if(route==='artworks')bindArtworkFilters();if(route==='library')bindLibraryFilters();if(route==='exhibitions')bindSimpleFilter('exSearch','exGrid',db.exhibitions,exhibitionCard);if(route==='clients')bindSimpleFilter('clientSearch','clientGrid',db.clients,clientCard);if(route==='sales')bindSimpleFilter('saleSearch','saleGrid',db.sales,saleCard);if(route==='pros')bindProFilter();if(route==='galleries')bindSimpleFilter('gallerySearch','galleryGrid',db.galleries||[],galleryCard);if(route==='links')bindLinkFilter();if(route==='certificates')bindSimpleFilter('certSearch','certGrid',db.certificates||[],certCard);if(route==='agenda')bindAgendaFilters()}
 function section(t,b=''){return `<div class="sectionhead"><h2>${T(t)}</h2>${b}</div>`}function empty(i,t,b=''){return `<div class="empty"><div style="font-size:2.5rem">${i}</div><p>${T(t)}</p>${b}</div>`}function img(src,alt=''){return src?`<img src="${src}" alt="${esc(alt)}" loading="lazy" decoding="async">`:'✦'}function field(label,name,value='',type='text',full=''){return `<div class="field ${full}"><label>${T(label)}</label><input name="${name}" type="${type}" value="${esc(value)}"></div>`}function area(label,name,value='',full='full'){return `<div class="field ${full}"><label>${T(label)}</label><textarea name="${name}">${esc(value)}</textarea></div>`}function selectField(label,name,list,value='',full=''){return `<div class="field ${full}"><label>${label}</label><div class="field-inline"><select name="${name}">${list.map(v=>`<option ${v===value?'selected':''}>${esc(v)}</option>`).join('')}</select><button type="button" class="btn" data-add-list="${name}">＋</button></div></div>`}
-
-function mostraImmagineIntera(src,titolo){
-  // overlay a schermo intero con immagine e X per chiudere
-  let ov=document.getElementById('imgFull');
-  if(ov)ov.remove();
-  ov=document.createElement('div');
-  ov.id='imgFull';
-  ov.innerHTML='<button id="imgFullClose" aria-label="Chiudi">\u2715</button>'
-    +'<img src="'+src+'" alt="'+(titolo?String(titolo).replace(/"/g,'')+'':'')+'">'
-    +(titolo?'<div class="imgFull-cap">'+esc(titolo)+'</div>':'');
-  document.body.appendChild(ov);
-  const chiudi=()=>ov.remove();
-  ov.querySelector('#imgFullClose').onclick=chiudi;
-  ov.onclick=(e)=>{if(e.target===ov)chiudi();};  // click sul fondo chiude
-  document.addEventListener('keydown',function esc(e){if(e.key==='Escape'){chiudi();document.removeEventListener('keydown',esc);}});
-}
-
-function artworkCard(a){return `<article class="card"><div class="cardimg" data-action="zoomArtwork" data-id="${a.id}" style="cursor:zoom-in">${img(artThumb(a),a.title)}</div><div class="cardbody"><div class="row spread"><h3>${esc(a.title||'Senza titolo')}</h3><button class="star" data-action="toggleArtworkFav" data-id="${a.id}">${a.favorite?'★':'☆'}</button></div><div class="meta">${esc(a.year||'s.d.')} · ${esc(a.technique||'Tecnica non indicata')}</div><span class="badge">${esc(a.dimensions||'Dimensioni n.d.')}</span><span class="badge">${esc(a.status||'Disponibile')}</span>${a.price?`<span class="badge">${euro(a.price)}</span>`:''}<div class="row" style="margin-top:12px"><button class="btn primary" data-action="editArtwork" data-id="${a.id}">Apri</button><button class="btn danger" data-action="deleteArtwork" data-id="${a.id}">Elimina</button></div></div></article>`}
+function artworkCard(a){return `<article class="card"><div class="cardimg">${img(artThumb(a),a.title)}</div><div class="cardbody"><div class="row spread"><h3>${esc(a.title||'Senza titolo')}</h3><button class="star" data-action="toggleArtworkFav" data-id="${a.id}">${a.favorite?'★':'☆'}</button></div><div class="meta">${esc(a.year||'s.d.')} · ${esc(a.technique||'Tecnica non indicata')}</div><span class="badge">${esc(a.dimensions||'Dimensioni n.d.')}</span><span class="badge">${esc(a.status||'Disponibile')}</span>${a.price?`<span class="badge">${euro(a.price)}</span>`:''}<div class="row" style="margin-top:12px"><button class="btn primary" data-action="editArtwork" data-id="${a.id}">Apri</button><button class="btn danger" data-action="deleteArtwork" data-id="${a.id}">Elimina</button></div></div></article>`}
 function libCard(d){const ico=d.mime?.includes('pdf')?'📕':d.mime?.includes('word')||d.name?.endsWith('.docx')?'📘':d.mime?.startsWith('image')?'🖼️':'📄';return `<article class="card"><div class="cardbody"><div class="row spread"><div class="doc-type">${ico}</div><button class="star" data-action="toggleLibFav" data-id="${d.id}">${d.favorite?'★':'☆'}</button></div><h3>${esc(d.title||d.name)}</h3><div class="meta">${esc(d.author||'Autore non indicato')} · ${esc(d.category||'Altro')}</div><p>${esc(d.description||'')}</p>${(d.tags||[]).map(t=>`<span class="badge">${esc(t)}</span>`).join('')}<div class="row" style="margin-top:12px"><button class="btn primary" data-action="openLibrary" data-id="${d.id}">Leggi</button><button class="btn" data-action="editLibrary" data-id="${d.id}">Modifica</button><button class="btn danger" data-action="deleteLibrary" data-id="${d.id}">Elimina</button></div></div></article>`}
 const themeOptions=[['atelier','Atelier'],['museum','Museo chiaro'],['dark','Dark Gallery'],['blackgold','Black & Gold'],['ocean','Ocean'],['forest','Forest'],['burgundy','Burgundy'],['paper','Carta editoriale'],['violet','Viola contemporaneo']];
 function stat(label,value,icon){return `<div class="stat"><span>${icon}</span><strong>${value}</strong><small>${label}</small></div>`}
@@ -1325,7 +1306,7 @@ function agendaView(){const sorted=[...db.agenda].sort((a,b)=>new Date(a.date)-n
 function agendaCard(x){return `<article class="agenda-item card"><div class="datebox"><strong>${new Date(x.date).getDate()||''}</strong><small>${x.date?new Date(x.date).toLocaleDateString('it-IT',{month:'short'}):'—'}</small></div><div class="cardbody"><div class="row spread"><h3>${esc(x.title)}</h3><span class="badge">${esc(x.type||'Evento')}</span></div><div class="meta">${fmtDate(x.date)} ${x.time?'· '+esc(x.time):''} ${x.location?'· '+esc(x.location):''}</div><p>${esc(x.notes||'')}</p><div class="row"><button class="btn" data-action="editAgenda" data-id="${x.id}">Modifica</button><button class="btn danger" data-action="deleteAgenda" data-id="${x.id}">Elimina</button></div></div></article>`}
 function artworkPickerHtml(selectedIds=[],prefix='artPick'){
   const selected=new Set(selectedIds||[]);
-  return `<div class="art-picker" data-art-picker="${prefix}"><input type="search" class="search art-picker-search" placeholder="Cerca opere per titolo, codice, anno, tecnica, dimensioni…"><div class="row spread" style="margin:8px 0"><div class="art-picker-count meta"></div><div class="row"><button type="button" class="btn art-picker-all">Seleziona tutte</button><button type="button" class="btn art-picker-none">Deseleziona</button></div></div><div class="art-picker-grid">${db.artworks.map(a=>`<label class="art-pick-card" data-search="${esc([a.title,a.code,a.year,a.technique,a.support,a.dimensions,a.collection,a.status].filter(Boolean).join(' ').toLowerCase())}"><input type="checkbox" name="arts" value="${esc(a.id)}" ${selected.has(a.id)?'checked':''}><span class="art-pick-thumb">${(a.thumb||a.thumbnail||a.image)?`<img loading="lazy" src="${artThumb(a)}" alt="">`:'🎨'}</span><span class="art-pick-text"><strong>${esc(a.title||'Senza titolo')}</strong><small>${esc([a.code,a.year,a.technique].filter(Boolean).join(' · '))}</small></span></label>`).join('')||'<p class="meta">Inserisci prima delle opere.</p>'}</div></div>`;
+  return `<div class="art-picker" data-art-picker="${prefix}"><input type="search" class="search art-picker-search" 'Cerca opere per titolo, codice, anno, tecnica, dimensioni…')}"><div class="row spread" style="margin:8px 0"><div class="art-picker-count meta"></div><div class="row"><button type="button" class="btn art-picker-all">Seleziona visibili</button><button type="button" class="btn art-picker-none">Deseleziona</button></div></div><div class="art-picker-grid">${db.artworks.map(a=>`<label class="art-pick-card" data-search="${esc([a.title,a.code,a.year,a.technique,a.support,a.dimensions,a.collection,a.status].filter(Boolean).join(' ').toLowerCase())}"><input type="checkbox" name="arts" value="${esc(a.id)}" ${selected.has(a.id)?'checked':''}><span class="art-pick-thumb">${(a.thumb||a.thumbnail||a.image)?`<img loading="lazy" src="${artThumb(a)}" alt="">`:'🎨'}</span><span class="art-pick-text"><strong>${esc(a.title||'Senza titolo')}</strong><small>${esc([a.code,a.year,a.technique].filter(Boolean).join(' · '))}</small></span></label>`).join('')||'<p class="meta">Inserisci prima delle opere.</p>'}</div></div>`;
 }
 function bindArtworkPicker(prefix='artPick'){
   const root=document.querySelector(`[data-art-picker="${prefix}"]`);if(!root)return;
@@ -2708,7 +2689,7 @@ function laStartImage(d){
 }
 
 function dataURLtoBlob(u){const [h,b]=u.split(','),m=(h.match(/:(.*?);/)||[])[1]||'application/octet-stream',bin=atob(b),a=new Uint8Array(bin.length);for(let i=0;i<bin.length;i++)a[i]=bin.charCodeAt(i);return new Blob([a],{type:m})}
-function pdfProjectModal(p={}){const arts=artworkPickerHtml(p.artworkIds||[],'pdfArts');openModal(p.id?'Modifica progetto PDF':'Nuovo progetto PDF',`<div class="formgrid">${field('Titolo','title',p.title||'Catalogo opere','text','full')}${field('Sottotitolo','subtitle',p.subtitle||db.settings.artist,'text','full')}<div class="field"><label>Tipo</label><select name="type">${['Stampa archivio','Catalogo esposizione','Archivio filtrato','Portfolio','Listino prezzi','Dossier galleria'].map(x=>`<option ${p.type===x?'selected':''}>${x}</option>`)}</select></div><div class="field"><label>Tema</label><select name="theme">${['Minimal','Museo','Black Gallery','Editoriale','Atelier','Black & Gold','Ocean','Forest'].map(x=>`<option ${p.theme===x?'selected':''}>${x}</option>`)}</select></div>${area('Testo introduttivo','intro',p.intro)}<div class="field full"><label>Campi visibili</label><div class="row" style="flex-wrap:wrap">${['year:Anno','technique:Tecnica','dimensions:Dimensioni','description:Descrizione','price:Prezzo','status:Stato','frame:Cornice','code:Codice'].map(x=>{const[k,l]=x.split(':');return`<label><input type="checkbox" name="fields" value="${k}" ${!p.fields||p.fields.includes(k)?'checked':''}> ${l}</label>`}).join('')}</div></div><div class="field full"><label>Opere</label>${arts}</div></div>`,fd=>{const obj={...p,id:p.id||uid(),title:fd.get('title'),subtitle:fd.get('subtitle'),type:fd.get('type'),theme:fd.get('theme'),intro:fd.get('intro'),fields:fd.getAll('fields'),artworkIds:fd.getAll('arts'),created:p.created||new Date().toISOString()};if(p.id)db.pdfProjects=db.pdfProjects.map(x=>x.id===p.id?obj:x);else db.pdfProjects.unshift(obj);save();modal.close();previewId=obj.id;route='pdfpreview';location.hash='pdfpreview';render();toast('Progetto PDF salvato: puoi aprire il documento')});bindArtworkPicker('pdfArts')}
+function pdfProjectModal(p={}){const checks=db.artworks.map(a=>`<label class="checkcard">${a.image?`<img src="${a.image}">`:''}<div class="row spread"><strong>${esc(a.title||'Senza titolo')}</strong><input type="checkbox" name="arts" value="${a.id}" ${p.artworkIds?.includes(a.id)?'checked':''}></div></label>`).join('');openModal(p.id?'Modifica progetto PDF':'Nuovo progetto PDF',`<div class="formgrid">${field('Titolo','title',p.title||'Catalogo opere','text','full')}${field('Sottotitolo','subtitle',p.subtitle||db.settings.artist,'text','full')}<div class="field"><label>Tipo</label><select name="type">${['Stampa archivio','Catalogo esposizione','Archivio filtrato','Portfolio','Listino prezzi','Dossier galleria'].map(x=>`<option ${p.type===x?'selected':''}>${x}</option>`)}</select></div><div class="field"><label>Tema</label><select name="theme">${['Minimal','Museo','Black Gallery','Editoriale','Atelier','Black & Gold','Ocean','Forest'].map(x=>`<option ${p.theme===x?'selected':''}>${x}</option>`)}</select></div>${area('Testo introduttivo','intro',p.intro)}<div class="field full"><label>Campi visibili</label><div class="row" style="flex-wrap:wrap">${['year:Anno','technique:Tecnica','dimensions:Dimensioni','description:Descrizione','price:Prezzo','status:Stato','frame:Cornice','code:Codice'].map(x=>{const[k,l]=x.split(':');return`<label><input type="checkbox" name="fields" value="${k}" ${!p.fields||p.fields.includes(k)?'checked':''}> ${l}</label>`}).join('')}</div></div><div class="field full"><label>Opere</label><div class="checkgrid">${checks||'<p>Inserisci prima almeno un’opera.</p>'}</div></div></div>`,fd=>{const obj={...p,id:p.id||uid(),title:fd.get('title'),subtitle:fd.get('subtitle'),type:fd.get('type'),theme:fd.get('theme'),intro:fd.get('intro'),fields:fd.getAll('fields'),artworkIds:fd.getAll('arts'),created:p.created||new Date().toISOString()};if(p.id)db.pdfProjects=db.pdfProjects.map(x=>x.id===p.id?obj:x);else db.pdfProjects.unshift(obj);save();modal.close();previewId=obj.id;route='pdfpreview';location.hash='pdfpreview';render();toast('Progetto PDF salvato: puoi aprire il documento')})}
 /* ===================== CERTIFICATI ===================== */
 const CERT_TEMPLATES={
   autenticita:{label:'Certificato di Autenticità',icon:'✦',
@@ -2867,7 +2848,8 @@ function certDocHtml(c){
    +'<div><small>'+esc(c.place||'')+(c.place&&c.date?', ':'')+(c.date?fmtDate(c.date):'')+'</small></div></div></div>';
 }
 function pdfDocHtml(p){
-  const arts=(p.artworkIds||[]).map(id=>db.artworks.find(a=>a.id===id)).filter(Boolean);
+  let arts=(p.artworkIds||[]).map(id=>db.artworks.find(a=>a.id===id)).filter(Boolean);
+  if(opt.da!=null&&opt.a!=null){arts=arts.slice(opt.da,opt.a);}
   const F=p.fields||[];
   const riga=(lab,val)=>val?'<p><strong>'+lab+':</strong> '+esc(val)+'</p>':'';
   return '<header style="border-bottom:3px solid #8a6a1f;padding-bottom:18px;margin-bottom:24px">'
@@ -2996,7 +2978,7 @@ function pdfImgFormat(dataUrl){
   return 'JPEG';
 }
 // ridimensiona un'immagine per il PDF: riduce peso e memoria (evita crash con molte opere)
-function pdfImgRidotta(dataUrl,maxLato){
+function pdfImgRidotta(dataUrl,maxLato,jpegQ){
   return new Promise((res)=>{
     try{
       const im=new Image();
@@ -3012,7 +2994,7 @@ function pdfImgRidotta(dataUrl,maxLato){
           const cx=cv.getContext('2d');
           cx.fillStyle='#ffffff';cx.fillRect(0,0,w,h);
           cx.drawImage(im,0,0,w,h);
-          const out=cv.toDataURL('image/jpeg',0.82);
+          const out=cv.toDataURL('image/jpeg',jpegQ||0.82);
           cv.width=cv.height=0; // libera subito la memoria del canvas
           res({data:out,w,h});
         }catch(e){res(null);}
@@ -3022,7 +3004,62 @@ function pdfImgRidotta(dataUrl,maxLato){
     }catch(e){res(null);}
   });
 }
-async function pdfCatalogoImpaginato(p){
+
+// menu di scelta quando il catalogo ha molte opere
+function scegliModalitaCatalogo(nOp){
+  return new Promise(risolvi=>{
+    const QN={nome:'normale',lato:1100,jpeg:0.82};
+    const QR={nome:'ridotta',lato:700,jpeg:0.68};
+    const html='<div class="catopt">'
+      +'<p class="meta">Il catalogo contiene <strong>'+nOp+' opere</strong>. Con molte immagini un PDF unico può essere pesante. Scegli come procedere:</p>'
+      +'<button class="btn catopt-b" data-scelta="unico-normale">📄 PDF unico · qualità normale<small>Immagini nitide. Su telefoni con poca memoria può faticare.</small></button>'
+      +'<button class="btn catopt-b" data-scelta="unico-ridotta">📄 PDF unico · qualità ridotta<small>Immagini più leggere: un solo file, meno rischio. Provalo e vedi se ti piace.</small></button>'
+      +'<button class="btn catopt-b primary" data-scelta="diviso">🧩 Diviso in più PDF<small>Più file da 100 opere. Sicuro: non va mai in crash.</small></button>'
+      +'</div>';
+    openModal('Catalogo con molte opere',html,null,' ');
+    // il pulsante Salva del modale non serve qui
+    const sav=document.getElementById('modalSave');if(sav)sav.style.display='none';
+    document.querySelectorAll('#modalBody [data-scelta]').forEach(b=>b.onclick=()=>{
+      if(sav)sav.style.display='';
+      const s=b.dataset.scelta;modal.close();
+      if(s==='unico-normale')risolvi({modo:'unico',q:QN});
+      else if(s==='unico-ridotta')risolvi({modo:'unico',q:QR});
+      else if(s==='diviso')risolvi({modo:'diviso',q:QR});
+    });
+    // se chiude senza scegliere
+    modal.addEventListener('close',function once(){modal.removeEventListener('close',once);if(sav)sav.style.display='';risolvi(null);},{once:true});
+  });
+}
+
+// genera il catalogo diviso in più PDF da 100 opere, salvati singolarmente
+async function generaCatalogoDiviso(dato,scelta,nOp){
+  const perParte=100;
+  const parti=Math.ceil(nOp/perParte);
+  const titoloBase=(dato.title||'Catalogo').replace(/[\\/:*?"<>|]/g,'_');
+  toast('Genero '+parti+' PDF…');
+  for(let i=0;i<parti;i++){
+    const da=i*perParte, a=Math.min((i+1)*perParte,nOp);
+    diagLog('PDF','parte '+(i+1)+'/'+parti+' opere '+da+'-'+a);
+    try{
+      const pdf=await pdfCatalogoImpaginato(dato,{...scelta.q,da,a});
+      const nome=titoloBase+' - parte '+(i+1)+' di '+parti+'.pdf';
+      const blob=pdf.output('blob');
+      await salvaFileBlob(nome,blob,'application/pdf');
+      toast('Salvata parte '+(i+1)+' di '+parti);
+      await new Promise(r=>setTimeout(r,300)); // respiro per liberare memoria
+    }catch(e){
+      diagLog('PDF-PARTE-ERRORE',e&&e.message?e.message:String(e));
+      alert('Problema nella parte '+(i+1)+'. Le parti già salvate sono al sicuro.');
+      return;
+    }
+  }
+  alert('Fatto! Catalogo salvato in '+parti+' file PDF nella cartella MAIR GO.');
+}
+
+async function pdfCatalogoImpaginato(p,opt){
+  opt=opt||{};
+  const qLato=opt.lato||1100;      // risoluzione immagini
+  const qJpeg=opt.jpeg||0.82;       // compressione
   const C=pdfCfg();
   const {jsPDF}=window.jspdf;
   const pdf=new jsPDF({orientation:C.orientamento,unit:'mm',format:C.formato});
@@ -3113,7 +3150,7 @@ async function pdfCatalogoImpaginato(p){
       // immagine
       if(a.image){
         try{
-          const rid=await pdfImgRidotta(a.image,1100);  // riduce peso e memoria
+          const rid=await pdfImgRidotta(a.image,qLato,qJpeg);  // qualità scelta dall'utente
           if(rid&&rid.w&&rid.h){
             const maxH=(C.imgMax||70)/100*M.utileH*0.62;
             const maxW=M.utileW;
@@ -3746,11 +3783,21 @@ function docViewerOpen(title,inner,extraCss,plainText){
         try{
           if(ctx.tipo==='catalogo'&&ctx.dato){
             const nOp=(ctx.dato.artworkIds||[]).length;
-            if(nOp>60&&!confirm('Il catalogo contiene '+nOp+' opere. La generazione pu\u00f2 richiedere circa '+Math.ceil(nOp/25)+'-'+Math.ceil(nOp/12)+' minuti e non va interrotta.\n\nProcedere?')){
-              btn.textContent=originale;bPrint.disabled=false;bShare.disabled=false;return;
+            // sopra le 120 opere: chiedo all'utente come procedere (mai crash)
+            if(nOp>120){
+              const scelta=await scegliModalitaCatalogo(nOp);
+              if(!scelta){btn.textContent=originale;bPrint.disabled=false;bShare.disabled=false;return;}
+              if(scelta.modo==='diviso'){
+                await generaCatalogoDiviso(ctx.dato,scelta,nOp);
+                btn.textContent=originale;bPrint.disabled=false;bShare.disabled=false;
+                return; // i file sono già salvati singolarmente
+              }
+              diagLog('PDF','catalogo '+nOp+' opere, qualità '+scelta.q.nome);
+              pdf=await pdfCatalogoImpaginato(ctx.dato,scelta.q);
+            }else{
+              diagLog('PDF','impaginazione catalogo '+nOp+' opere');
+              pdf=await pdfCatalogoImpaginato(ctx.dato);
             }
-            diagLog('PDF','impaginazione catalogo '+nOp+' opere');
-            pdf=await pdfCatalogoImpaginato(ctx.dato);
           }else if(ctx.tipo==='certificato'&&ctx.dato){
             diagLog('PDF','impaginazione certificato');
             pdf=await pdfCertificatoImpaginato(ctx.dato);
@@ -3864,18 +3911,8 @@ function mairIntegrity(){const issues=[];const add=(level,type,msg,id='')=>issue
   (db.artworks||[]).forEach(a=>{if(!a.image)add('avviso','Opera senza immagine',a.title||a.code||'Senza titolo',a.id);if(!a.title)add('avviso','Opera incompleta','Titolo mancante',a.id)});
   const checks=[['sales','Vendita','artworkId','artworks'],['sales','Vendita','clientId','clients'],['certificates','Certificato','artworkId','artworks'],['certificates','Certificato','clientId','clients']];checks.forEach(([s,l,f,target])=>(db[s]||[]).forEach(x=>{if(x[f]&&!(db[target]||[]).some(y=>y.id===x[f]))add('errore','Collegamento mancante',`${l}: ${f} non trovato`,x.id)}));
   [['artworks',['title','year','dimensions']],['clients',['name','email']],['pros',['name','email']],['galleries',['name','email']]].forEach(([s,fs])=>{const map=new Map();(db[s]||[]).forEach(x=>{const k=mairDuplicateKey(x,fs);if(k.replace(/\|/g,'')){if(map.has(k))add('avviso','Possibile duplicato',`${s}: ${x.title||x.name||x.id}`,x.id);else map.set(k,x.id)}})});return issues}
-function mairDbSize(){
-  try{
-    const txt=JSON.stringify(db);
-    const bytes=new Blob([txt]).size;
-    const mb=bytes/1048576;
-    let img=0;(db.artworks||[]).forEach(a=>{if(a.image)img+=a.image.length;});
-    return {bytes,leggibile:mb>=1?mb.toFixed(1)+' MB':(bytes/1024).toFixed(0)+' KB',immaginiMB:(img/1048576).toFixed(1)};
-  }catch(e){return {bytes:0,leggibile:'?',immaginiMB:'?'};}
-}
-
 function mairStats(){const values=(db.sales||[]).map(s=>Number(s.total||s.amount||0)).filter(Number.isFinite);return {opere:(db.artworks||[]).length,conImmagine:(db.artworks||[]).filter(a=>a.image).length,disponibili:(db.artworks||[]).filter(a=>String(a.status).toLowerCase()==='disponibile').length,vendute:(db.artworks||[]).filter(a=>String(a.status).toLowerCase()==='venduto').length,clienti:(db.clients||[]).length,mostre:(db.exhibitions||[]).length,professionisti:(db.pros||[]).length,gallerie:(db.galleries||[]).length,certificati:(db.certificates||[]).length,vendite:(db.sales||[]).length,valoreVendite:values.reduce((a,b)=>a+b,0)}}
-function archiveToolsView(){const st=mairStats(),issues=mairIntegrity(),dbSize=mairDbSize();return `${section('Esportazione dati/Excel')}<p class="section-intro">Esporta, importa e controlla il tuo archivio senza appesantire l’uso quotidiano.</p><div class="stats">${stat('Opere',st.opere,'🎨')}${stat('Clienti',st.clienti,'👥')}${stat('Vendite',st.vendite,'💶')}${stat('Problemi',issues.length,'🛡️')}</div><div class="card" style="margin:14px 0"><div class="cardbody"><h3>💾 Dimensione archivio</h3><p class="meta">L'archivio occupa <strong>${dbSize.leggibile}</strong> in totale, di cui circa <strong>${dbSize.immaginiMB} MB</strong> di immagini. I dati stanno tutti sul dispositivo.</p></div></div><div class="grid"><article class="card"><div class="cardbody"><h3>📊 Esportazione Excel</h3><p>Sette fogli separati. Nel foglio Opere sono incorporate le miniature.</p><button class="btn primary" data-action="exportExcel13">Esporta Excel</button></div></article><article class="card"><div class="cardbody"><h3>📦 Archivio completo</h3><p>ZIP con Excel, immagini originali, catalogo HTML e istruzioni.</p><button class="btn primary" data-action="exportComplete13">Esporta tutto</button></div></article><article class="card"><div class="cardbody"><h3>🌐 Catalogo HTML</h3><p>Catalogo autonomo, consultabile offline con qualunque browser.</p><button class="btn" data-action="exportHtml13">Esporta HTML</button></div></article><article class="card"><div class="cardbody"><h3>↩️ Importazione Excel</h3><p>Importa i fogli esportati da MAIR GO. Prima viene mostrata un’anteprima.</p><button class="btn" data-action="importExcel14">Importa Excel</button></div></article></div><h2>Controllo integrità</h2><div class="row"><button class="btn primary" data-action="refreshIntegrity14">Ricontrolla</button></div><div class="integrity-list">${issues.length?issues.map(i=>`<div class="integrity-item ${i.level}"><strong>${esc(i.type)}</strong><span>${esc(i.msg)}</span></div>`).join(''):'<div class="integrity-ok">✓ Nessun problema rilevato</div>'}</div><h2>Statistiche</h2><div class="stats">${stat('Con immagine',st.conImmagine,'🖼️')}${stat('Disponibili',st.disponibili,'✓')}${stat('Vendute',st.vendute,'●')}${stat('Mostre',st.mostre,'🏛️')}${stat('Certificati',st.certificati,'✦')}${stat('Valore vendite',euro(st.valoreVendite),'€')}</div>`}
+function archiveToolsView(){const st=mairStats(),issues=mairIntegrity();return `${section('Esportazione dati/Excel')}<p class="section-intro">Esporta, importa e controlla il tuo archivio senza appesantire l’uso quotidiano.</p><div class="stats">${stat('Opere',st.opere,'🎨')}${stat('Clienti',st.clienti,'👥')}${stat('Vendite',st.vendite,'💶')}${stat('Problemi',issues.length,'🛡️')}</div><div class="grid"><article class="card"><div class="cardbody"><h3>📊 Esportazione Excel</h3><p>Sette fogli separati. Nel foglio Opere sono incorporate le miniature.</p><button class="btn primary" data-action="exportExcel13">Esporta Excel</button></div></article><article class="card"><div class="cardbody"><h3>📦 Archivio completo</h3><p>ZIP con Excel, immagini originali, catalogo HTML e istruzioni.</p><button class="btn primary" data-action="exportComplete13">Esporta tutto</button></div></article><article class="card"><div class="cardbody"><h3>🌐 Catalogo HTML</h3><p>Catalogo autonomo, consultabile offline con qualunque browser.</p><button class="btn" data-action="exportHtml13">Esporta HTML</button></div></article><article class="card"><div class="cardbody"><h3>↩️ Importazione Excel</h3><p>Importa i fogli esportati da MAIR GO. Prima viene mostrata un’anteprima.</p><button class="btn" data-action="importExcel14">Importa Excel</button></div></article></div><h2>Controllo integrità</h2><div class="row"><button class="btn primary" data-action="refreshIntegrity14">Ricontrolla</button></div><div class="integrity-list">${issues.length?issues.map(i=>`<div class="integrity-item ${i.level}"><strong>${esc(i.type)}</strong><span>${esc(i.msg)}</span></div>`).join(''):'<div class="integrity-ok">✓ Nessun problema rilevato</div>'}</div><h2>Statistiche</h2><div class="stats">${stat('Con immagine',st.conImmagine,'🖼️')}${stat('Disponibili',st.disponibili,'✓')}${stat('Vendute',st.vendute,'●')}${stat('Mostre',st.mostre,'🏛️')}${stat('Certificati',st.certificati,'✦')}${stat('Valore vendite',euro(st.valoreVendite),'€')}</div>`}
 function mairText(n){return (n?.textContent||'').trim()}
 async function mairParseXlsx(file){if(typeof JSZip==='undefined')throw new Error('Libreria ZIP non disponibile.');const zip=await JSZip.loadAsync(await file.arrayBuffer()),wbXml=await zip.file('xl/workbook.xml')?.async('text');if(!wbXml)throw new Error('File Excel non riconosciuto.');const parser=new DOMParser(),wb=parser.parseFromString(wbXml,'application/xml'),names=[...wb.querySelectorAll('sheet')].map(x=>x.getAttribute('name'));let shared=[];const sf=zip.file('xl/sharedStrings.xml');if(sf){const sx=parser.parseFromString(await sf.async('text'),'application/xml');shared=[...sx.querySelectorAll('si')].map(si=>[...si.querySelectorAll('t')].map(mairText).join(''))}
  const out={};for(let i=0;i<names.length;i++){const f=zip.file(`xl/worksheets/sheet${i+1}.xml`);if(!f)continue;const sx=parser.parseFromString(await f.async('text'),'application/xml'),rows=[...sx.querySelectorAll('sheetData row')].map(r=>[...r.querySelectorAll('c')].map(c=>{const type=c.getAttribute('t'),v=mairText(c.querySelector('v')),t=[...c.querySelectorAll('is t')].map(mairText).join('');return type==='s'?shared[Number(v)]||'':type==='inlineStr'?t:v}));if(!rows.length)continue;const headers=rows[0].map(x=>String(x).trim()),records=rows.slice(1).map(vals=>Object.fromEntries(headers.map((h,j)=>[h,vals[j]??'']))).filter(x=>Object.values(x).some(Boolean));const match=MAIR_EXPORT_SECTIONS.find(([,l])=>l.toLowerCase()===names[i].toLowerCase());if(match){if(match[0]==='artworks')records.forEach(r=>delete r.Foto);out[match[0]]=records}}
@@ -3890,8 +3927,7 @@ const actions={exportExcel13:()=>mairExportExcel(),exportComplete13:()=>mairExpo
  newPro:()=>proModal(),editPro:id=>proModal((db.pros||[]).find(x=>x.id===id)),deletePro:id=>del('pros',id),
  printPros:()=>{window.__PDFCTX__={tipo:'generico'};docViewerOpen('Curatori e critici',prosDocHtml(),'',prosPlain())},
  newGallery:()=>galleryModal(),editGallery:id=>galleryModal((db.galleries||[]).find(x=>x.id===id)),deleteGallery:id=>del('galleries',id),
- printGalleries:()=>{window.__PDFCTX__={tipo:'generico'};docViewerOpen('Gallerie',galleriesDocHtml(),'',galleriesPlain())},esciApp:()=>esciApp(),chiudiTutto:()=>chiudiOverlay(),newSocialPost:()=>{const a=db.artworks.filter(x=>x.image);if(!a.length){toast('Aggiungi immagini alle opere');return}socialPostModal(a[0])},socialSingolo:()=>{const a=db.artworks.filter(x=>x.image);if(a.length)socialPostModal(a[0])},socialSequenza:()=>socialSequenzaModal(),socialVideo:()=>videoModal(),socialDaOpera:id=>{const a=db.artworks.find(x=>x.id===id);if(a)socialPostModal(a)},pdfSettings:()=>pdfSettingsModal(),customizeHome:()=>homeCustomizeModal(),prepareEmail:()=>{const name=document.querySelector('[name=contactName]')?.value||'',from=document.querySelector('[name=contactEmail]')?.value||'',cat=$('#contactCategory')?.value||'Altro',sub=document.querySelector('[name=contactSubject]')?.value||'Contatto da MAIR GO!',msg=document.querySelector('[name=contactMessage]')?.value||'';const body=`Nome: ${name}\nEmail: ${from}\nCategoria: ${cat}\n\n${msg}`;location.href=`mailto:dandreart.info@gmail.com?subject=${encodeURIComponent('MAIR GO! - '+cat+' - '+sub)}&body=${encodeURIComponent(body)}`},copyContactEmail:async()=>{await navigator.clipboard.writeText('dandreart.info@gmail.com');toast('Indirizzo copiato')},newWorkspace:()=>workspaceModal(),editWorkspace:id=>workspaceModal(db.workspaces.find(x=>x.id===id)),deleteWorkspace:id=>del('workspaces',id),newExhibition:()=>exhibitionModal(),editExhibition:id=>exhibitionModal(db.exhibitions.find(x=>x.id===id)),deleteExhibition:id=>del('exhibitions',id),catalogFromExhibition:id=>catalogFromExhibition(id),newClient:()=>clientModal(),editClient:id=>clientModal(db.clients.find(x=>x.id===id)),deleteClient:id=>del('clients',id),newSale:()=>saleModal(),newSaleForClient:id=>saleModal({clientId:id}),editSale:id=>saleModal(db.sales.find(x=>x.id===id)),deleteSale:id=>del('sales',id),printReceipt:id=>printReceipt(id),newAgenda:()=>agendaModal(),editAgenda:id=>agendaModal(db.agenda.find(x=>x.id===id)),deleteAgenda:id=>del('agenda',id),exportAgendaIcs:()=>exportAgendaIcs(),newArtwork:()=>artworkModal(),bulkImportArtworks:()=>bulkImportArtworksModal(),optimizeArtworkImages:()=>optimizeArtworkImages(),zoomArtwork:(id)=>{const a=db.artworks.find(x=>x.id===id);if(!a||!a.image){toast('Nessuna immagine da mostrare');return;}mostraImmagineIntera(a.image,a.title);},
-  editArtwork:id=>artworkModal(db.artworks.find(x=>x.id===id)),deleteArtwork:id=>del('artworks',id),toggleArtworkFav:id=>{const x=db.artworks.find(a=>a.id===id);x.favorite=!x.favorite;save();render()},newLibrary:()=>libraryModal(),editLibrary:id=>libraryModal(db.library.find(x=>x.id===id)),openLibrary:id=>openLibrary(id),deleteLibrary:id=>del('library',id),toggleLibFav:id=>{const x=db.library.find(a=>a.id===id);x.favorite=!x.favorite;save();render()},newPdfProject:()=>pdfProjectModal(),editPdfProject:id=>pdfProjectModal(db.pdfProjects.find(x=>x.id===id)),deletePdfProject:id=>del('pdfProjects',id),openPdfProject:id=>{previewId=id;route='pdfpreview';render()},newCertificate:()=>certificateModal(),editCertificate:id=>certificateModal(db.certificates.find(x=>x.id===id)),deleteCertificate:id=>del('certificates',id),openCertificate:id=>{certPreviewId=id;go('certpreview')},backCert:()=>go('certificates'),printCert:()=>{diagLog('CLICK','printCert premuto');const c=db.certificates.find(x=>x.id===certPreviewId);if(!c)return;const tpl=CERT_TEMPLATES[c.template]||CERT_TEMPLATES.autenticita;window.__PDFCTX__={tipo:'certificato',dato:c};docViewerOpen(c.title||tpl.title,certDocHtml(c),'',certPlain(c))},shareCert:()=>{const c=db.certificates.find(x=>x.id===certPreviewId);if(!c)return;const tpl=CERT_TEMPLATES[c.template]||CERT_TEMPLATES.autenticita;textEditorOpen(c.title||tpl.title,certPlain(c))},backPdf:()=>go('pdfstudio'),printPdf:()=>{diagLog('CLICK','printPdf premuto');const p=db.pdfProjects.find(x=>x.id===previewId);if(!p)return;window.__PDFCTX__={tipo:'catalogo',dato:p};docViewerOpen(p.title||'Catalogo',pdfDocHtml(p),'',pdfPlain(p))},sharePdf:()=>{const p=db.pdfProjects.find(x=>x.id===previewId);if(!p)return;textEditorOpen(p.title||'Catalogo',pdfPlain(p))},saveProfile:()=>{db.settings.artist=$('[name=artist]').value;db.settings.bio=$('[name=bio]').value;db.settings.email=$('[name=email]').value;db.settings.phone=$('[name=phone]').value;save();toast('Profilo salvato')},saveAppearance:()=>{db.settings.theme=$('#themeSetting').value;db.settings.fontSize=$('#fontSetting').value;db.settings.lang=$('#langSetting')?.value||'it';db.settings.animations=$('#animationsSetting').checked;db.settings.splash=$('#splashSetting').checked;save();render();toast('Aspetto salvato')},savePin:async()=>{const enabled=$('#pinEnabled').checked,p=$('#newPin').value,c=$('#confirmPin').value;if(p&&(!/^\d{4,6}$/.test(p)||p!==c))return alert('Inserisci due PIN uguali di 4–6 cifre.');if(p)db.settings.pinHash=await hashPin(p);if(enabled&&!db.settings.pinHash)return alert('Imposta prima un PIN.');db.settings.pinEnabled=enabled;save();toast('Sicurezza salvata')},resetArtworkFilters:()=>{document.querySelectorAll('.filtergrid input,.filtergrid select').forEach(x=>x.value='');bindArtworkFilters();},addListItem:k=>{const v=prompt('Nuova voce');if(v){db.settings.lists[k].push(v);save();render()}},removeListItem:id=>{const[k,i]=id.split(':');db.settings.lists[k].splice(+i,1);save();render()},saveLists:()=>{document.querySelectorAll('[data-list-key]').forEach(x=>db.settings.lists[x.dataset.listKey][+x.dataset.listI]=x.value.trim());save();toast('Liste salvate')},exportBackup:()=>backupChoiceModal(),exportBackupQuick:()=>creaBackupRapido(),exportBackupFull:()=>creaBackupMultiparte(),importBackup:()=>ripristinaBackupProfessionale(),importBackupParts:()=>ripristinaBackupMultiparte()};window.actions=actions;function del(k,id){if(confirm('Eliminare definitivamente?')){db[k]=db[k].filter(x=>x.id!==id);save();render()}}
+ printGalleries:()=>{window.__PDFCTX__={tipo:'generico'};docViewerOpen('Gallerie',galleriesDocHtml(),'',galleriesPlain())},esciApp:()=>esciApp(),chiudiTutto:()=>chiudiOverlay(),newSocialPost:()=>{const a=db.artworks.filter(x=>x.image);if(!a.length){toast('Aggiungi immagini alle opere');return}socialPostModal(a[0])},socialSingolo:()=>{const a=db.artworks.filter(x=>x.image);if(a.length)socialPostModal(a[0])},socialSequenza:()=>socialSequenzaModal(),socialVideo:()=>videoModal(),socialDaOpera:id=>{const a=db.artworks.find(x=>x.id===id);if(a)socialPostModal(a)},pdfSettings:()=>pdfSettingsModal(),customizeHome:()=>homeCustomizeModal(),prepareEmail:()=>{const name=document.querySelector('[name=contactName]')?.value||'',from=document.querySelector('[name=contactEmail]')?.value||'',cat=$('#contactCategory')?.value||'Altro',sub=document.querySelector('[name=contactSubject]')?.value||'Contatto da MAIR GO!',msg=document.querySelector('[name=contactMessage]')?.value||'';const body=`Nome: ${name}\nEmail: ${from}\nCategoria: ${cat}\n\n${msg}`;location.href=`mailto:dandreart.info@gmail.com?subject=${encodeURIComponent('MAIR GO! - '+cat+' - '+sub)}&body=${encodeURIComponent(body)}`},copyContactEmail:async()=>{await navigator.clipboard.writeText('dandreart.info@gmail.com');toast('Indirizzo copiato')},newWorkspace:()=>workspaceModal(),editWorkspace:id=>workspaceModal(db.workspaces.find(x=>x.id===id)),deleteWorkspace:id=>del('workspaces',id),newExhibition:()=>exhibitionModal(),editExhibition:id=>exhibitionModal(db.exhibitions.find(x=>x.id===id)),deleteExhibition:id=>del('exhibitions',id),catalogFromExhibition:id=>catalogFromExhibition(id),newClient:()=>clientModal(),editClient:id=>clientModal(db.clients.find(x=>x.id===id)),deleteClient:id=>del('clients',id),newSale:()=>saleModal(),newSaleForClient:id=>saleModal({clientId:id}),editSale:id=>saleModal(db.sales.find(x=>x.id===id)),deleteSale:id=>del('sales',id),printReceipt:id=>printReceipt(id),newAgenda:()=>agendaModal(),editAgenda:id=>agendaModal(db.agenda.find(x=>x.id===id)),deleteAgenda:id=>del('agenda',id),exportAgendaIcs:()=>exportAgendaIcs(),newArtwork:()=>artworkModal(),bulkImportArtworks:()=>bulkImportArtworksModal(),optimizeArtworkImages:()=>optimizeArtworkImages(),editArtwork:id=>artworkModal(db.artworks.find(x=>x.id===id)),deleteArtwork:id=>del('artworks',id),toggleArtworkFav:id=>{const x=db.artworks.find(a=>a.id===id);x.favorite=!x.favorite;save();render()},newLibrary:()=>libraryModal(),editLibrary:id=>libraryModal(db.library.find(x=>x.id===id)),openLibrary:id=>openLibrary(id),deleteLibrary:id=>del('library',id),toggleLibFav:id=>{const x=db.library.find(a=>a.id===id);x.favorite=!x.favorite;save();render()},newPdfProject:()=>pdfProjectModal(),editPdfProject:id=>pdfProjectModal(db.pdfProjects.find(x=>x.id===id)),deletePdfProject:id=>del('pdfProjects',id),openPdfProject:id=>{previewId=id;route='pdfpreview';render()},newCertificate:()=>certificateModal(),editCertificate:id=>certificateModal(db.certificates.find(x=>x.id===id)),deleteCertificate:id=>del('certificates',id),openCertificate:id=>{certPreviewId=id;go('certpreview')},backCert:()=>go('certificates'),printCert:()=>{diagLog('CLICK','printCert premuto');const c=db.certificates.find(x=>x.id===certPreviewId);if(!c)return;const tpl=CERT_TEMPLATES[c.template]||CERT_TEMPLATES.autenticita;window.__PDFCTX__={tipo:'certificato',dato:c};docViewerOpen(c.title||tpl.title,certDocHtml(c),'',certPlain(c))},shareCert:()=>{const c=db.certificates.find(x=>x.id===certPreviewId);if(!c)return;const tpl=CERT_TEMPLATES[c.template]||CERT_TEMPLATES.autenticita;textEditorOpen(c.title||tpl.title,certPlain(c))},backPdf:()=>go('pdfstudio'),printPdf:()=>{diagLog('CLICK','printPdf premuto');const p=db.pdfProjects.find(x=>x.id===previewId);if(!p)return;window.__PDFCTX__={tipo:'catalogo',dato:p};docViewerOpen(p.title||'Catalogo',pdfDocHtml(p),'',pdfPlain(p))},sharePdf:()=>{const p=db.pdfProjects.find(x=>x.id===previewId);if(!p)return;textEditorOpen(p.title||'Catalogo',pdfPlain(p))},saveProfile:()=>{db.settings.artist=$('[name=artist]').value;db.settings.bio=$('[name=bio]').value;db.settings.email=$('[name=email]').value;db.settings.phone=$('[name=phone]').value;save();toast('Profilo salvato')},saveAppearance:()=>{db.settings.theme=$('#themeSetting').value;db.settings.fontSize=$('#fontSetting').value;db.settings.lang=$('#langSetting')?.value||'it';db.settings.animations=$('#animationsSetting').checked;db.settings.splash=$('#splashSetting').checked;save();render();toast('Aspetto salvato')},savePin:async()=>{const enabled=$('#pinEnabled').checked,p=$('#newPin').value,c=$('#confirmPin').value;if(p&&(!/^\d{4,6}$/.test(p)||p!==c))return alert('Inserisci due PIN uguali di 4–6 cifre.');if(p)db.settings.pinHash=await hashPin(p);if(enabled&&!db.settings.pinHash)return alert('Imposta prima un PIN.');db.settings.pinEnabled=enabled;save();toast('Sicurezza salvata')},resetArtworkFilters:()=>{document.querySelectorAll('.filtergrid input,.filtergrid select').forEach(x=>x.value='');bindArtworkFilters();},addListItem:k=>{const v=prompt('Nuova voce');if(v){db.settings.lists[k].push(v);save();render()}},removeListItem:id=>{const[k,i]=id.split(':');db.settings.lists[k].splice(+i,1);save();render()},saveLists:()=>{document.querySelectorAll('[data-list-key]').forEach(x=>db.settings.lists[x.dataset.listKey][+x.dataset.listI]=x.value.trim());save();toast('Liste salvate')},exportBackup:()=>backupChoiceModal(),exportBackupQuick:()=>creaBackupRapido(),exportBackupFull:()=>creaBackupMultiparte(),importBackup:()=>ripristinaBackupProfessionale(),importBackupParts:()=>ripristinaBackupMultiparte()};window.actions=actions;function del(k,id){if(confirm('Eliminare definitivamente?')){db[k]=db[k].filter(x=>x.id!==id);save();render()}}
 
 function testoRicercabile(x){
   const salta=['image','photo','poster','signatureImg','data','file','thumb','id','created','updated'];
