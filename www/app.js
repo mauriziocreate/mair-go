@@ -366,6 +366,13 @@ const I18N={
   "giorni fa":"days ago",
   "oggi":"today",
   "ieri":"yesterday",
+
+  "Pulisci la timeline":"Clean up the timeline",
+  "🧹 Pulisci timeline":"🧹 Clean timeline",
+  "Pulisci":"Clean",
+  "Timeline pulita":"Timeline cleaned",
+  "Timeline: mostro di nuovo tutto":"Timeline: showing everything again",
+  "Mostra eventi dal":"Show events from",
 };
 function appLang(){return (db&&db.settings&&db.settings.lang)||'it';}
 function T(testo){
@@ -382,7 +389,7 @@ function diagOpen(){
   box.setAttribute('style','position:fixed;top:0;left:0;right:0;bottom:0;z-index:999999;background:#111;color:#0f0;font:12px/1.5 monospace;padding:10px;overflow:auto');
   const testo=window.__LOG__.length?window.__LOG__.join('\n\n'):'(nessun errore registrato)';
   const info='DIAGNOSTICA MAIR GO!\n'
-    +'Versione app.js: 18.8\n'
+    +'Versione app.js: 18.9\n'
     +'docViewerOpen esiste: '+(typeof docViewerOpen)+'\n'
     +'textEditorOpen esiste: '+(typeof textEditorOpen)+'\n'
     +'certDocHtml esiste: '+(typeof certDocHtml)+'\n'
@@ -1612,7 +1619,7 @@ function galleriesView(){
   const list=db.galleries||[];
   return section('Gallerie','<button class="btn primary" data-action="newGallery">&#65291; Nuova galleria</button>')
    +'<section class="hero"><h2>&#127963;&#65039; Gallerie</h2><p>Spazi espositivi con immagine, referente, recapiti e sito.</p></section>'
-   +'<div class="toolbar"><input id="gallerySearch" class="search" placeholder="Cerca per nome, città, referente, telefono, email…"Cerca per nome, citt\\u00e0, referente, telefono, email\\u2026")}"></div>'
+   +'<div class="toolbar"><input id="gallerySearch" class="search" placeholder="${T("Cerca per nome, citt\\u00e0, referente, telefono, email\\u2026")}"></div>'
    +'<div class="row" style="margin-bottom:16px"><button class="btn" data-action="printGalleries">&#128196; Stampa PDF</button></div>'
    +'<div id="galleryGrid" class="grid">'+(list.length?list.map(galleryCard).join(''):empty('&#127963;&#65039;','Nessuna galleria salvata.','<button class="btn primary" data-action="newGallery">Aggiungi la prima</button>'))+'</div>';
 }
@@ -1692,23 +1699,24 @@ function timelineView(){
   const blocchi=Object.keys(perMese).map(mese=>'<div class="tl-mese"><h3>'+esc(mese)+'</h3>'
     +perMese[mese].map(e=>'<button class="tl-ev" data-go="'+e.rotta+'"><span class="tl-ico">'+e.icona+'</span><span class="tl-txt"><strong>'+esc(e.tit)+'</strong><small>'+new Date(e.data).toLocaleDateString('it-IT')+' \u00b7 '+esc(e.tipo)+'</small></span></button>').join('')
     +'</div>').join('');
-  const soglia=db.settings.timelineFrom?('<p class="meta">Mostro gli eventi dal '+new Date(db.settings.timelineFrom).toLocaleDateString('it-IT')+' in poi.</p>'):'';
-  return section('Timeline','<button class="btn" data-action="timelineAzzera">\ud83e\uddf9 Azzera da data</button>')
+  const soglia=db.settings.timelineFrom?('<p class="meta">Timeline pulita: mostro gli eventi dal '+new Date(db.settings.timelineFrom).toLocaleDateString('it-IT')+' in poi. I dati restano tutti nelle loro sezioni.</p>'):'';
+  return section('Timeline','<button class="btn" data-action="timelineAzzera">\ud83e\uddf9 Pulisci timeline</button>')
    +'<section class="hero"><h2>\ud83d\udd52 Timeline</h2><p>Cronologia automatica di opere, vendite, mostre, certificati, documenti e impegni.</p></section>'
    +soglia
    +(ev.length?'<div class="timeline">'+blocchi+'</div>':empty('\ud83d\udd52','Nessun evento da mostrare.'+(db.settings.timelineFrom?' Prova a rimuovere il filtro data.':'')));
 }
 function timelineAzzeraModal(){
   const oggi=new Date().toISOString().slice(0,10);
-  openModal('Azzera timeline da una data','<div class="formgrid">'
-    +'<p class="meta full">La timeline mostrer\u00e0 solo gli eventi <strong>a partire</strong> dalla data scelta. Gli eventi precedenti verranno nascosti dalla cronologia (i dati NON vengono cancellati).</p>'
+  openModal('Pulisci la timeline','<div class="formgrid">'
+    +'<p class="meta full">Scegli una data: la timeline mostrer\u00e0 solo gli eventi <strong>da quella data in poi</strong>. Gli eventi precedenti spariscono dalla cronologia.</p>'
+    +'<p class="meta full" style="color:var(--accent)"><strong>I tuoi dati restano al sicuro:</strong> opere, vendite, mostre e documenti NON vengono cancellati, restano nelle loro sezioni. Si pulisce solo questa cronologia.</p>'
     +field('Mostra eventi dal','timelineFrom',db.settings.timelineFrom||oggi,'date','full')
-    +(db.settings.timelineFrom?'<label class="chkline"><input type="checkbox" name="rimuovi"> Rimuovi il filtro e mostra tutto</label>':'')
+    +(db.settings.timelineFrom?'<label class="chkline full"><input type="checkbox" name="rimuovi"> Mostra di nuovo tutti gli eventi (annulla la pulizia)</label>':'')
   +'</div>',fd=>{
-    if(fd.get('rimuovi')){delete db.settings.timelineFrom;}
-    else{const d=fd.get('timelineFrom');if(d)db.settings.timelineFrom=d;}
-    save();modal.close();go('timeline');toast('Timeline aggiornata');
-  });
+    if(fd.get('rimuovi')){delete db.settings.timelineFrom;toast('Timeline: mostro di nuovo tutto');}
+    else{const d=fd.get('timelineFrom');if(d)db.settings.timelineFrom=d;toast('Timeline pulita');}
+    save();modal.close();go('timeline');
+  },'Pulisci');
 }
 
 function donaModal(){
@@ -2248,18 +2256,6 @@ function openModal(title,html,onSave,saveLabel='Salva'){
   saveBtn.onclick=async e=>{
     e.preventDefault();
     if(saveBtn.disabled)return;
-    // controllo email: blocca il salvataggio se un campo email contiene un indirizzo non valido
-    const emailRe=/^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    const form=$('#modalForm');
-    let emailErrata=null;
-    form.querySelectorAll('input[type=email], input[name=email], input[name=contactEmail]').forEach(inp=>{
-      const v=(inp.value||'').trim();
-      if(v && !emailRe.test(v)) emailErrata=v;
-    });
-    if(emailErrata){
-      alert(T('Controlla l\u2019indirizzo email: non sembra valido.')+'\n\n'+emailErrata);
-      return;
-    }
     const original=saveBtn.textContent;
     saveBtn.disabled=true;
     saveBtn.textContent='Salvataggio…';
