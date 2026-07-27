@@ -388,7 +388,7 @@ function diagOpen(){
   box.setAttribute('style','position:fixed;top:0;left:0;right:0;bottom:0;z-index:999999;background:#111;color:#0f0;font:12px/1.5 monospace;padding:10px;overflow:auto');
   const testo=window.__LOG__.length?window.__LOG__.join('\n\n'):'(nessun errore registrato)';
   const info='DIAGNOSTICA MAIR GO!\n'
-    +'Versione app.js: 19.2\n'
+    +'Versione app.js: 19.3\n'
     +'docViewerOpen esiste: '+(typeof docViewerOpen)+'\n'
     +'textEditorOpen esiste: '+(typeof textEditorOpen)+'\n'
     +'certDocHtml esiste: '+(typeof certDocHtml)+'\n'
@@ -2867,8 +2867,7 @@ function certDocHtml(c){
    +'<div><small>'+esc(c.place||'')+(c.place&&c.date?', ':'')+(c.date?fmtDate(c.date):'')+'</small></div></div></div>';
 }
 function pdfDocHtml(p){
-  let arts=(p.artworkIds||[]).map(id=>db.artworks.find(a=>a.id===id)).filter(Boolean);
-  if(opt.da!=null&&opt.a!=null){arts=arts.slice(opt.da,opt.a);}
+  const arts=(p.artworkIds||[]).map(id=>db.artworks.find(a=>a.id===id)).filter(Boolean);
   const F=p.fields||[];
   const riga=(lab,val)=>val?'<p><strong>'+lab+':</strong> '+esc(val)+'</p>':'';
   return '<header style="border-bottom:3px solid #8a6a1f;padding-bottom:18px;margin-bottom:24px">'
@@ -3079,7 +3078,8 @@ async function pdfCatalogoImpaginato(p,opt){
   const {jsPDF}=window.jspdf;
   const pdf=new jsPDF({orientation:C.orientamento,unit:'mm',format:C.formato});
   const M=pdfMisure(pdf,C);
-  const arts=(p.artworkIds||[]).map(id=>db.artworks.find(a=>a.id===id)).filter(Boolean);
+  let arts=(p.artworkIds||[]).map(id=>db.artworks.find(a=>a.id===id)).filter(Boolean);
+  if(opt.da!=null&&opt.a!=null){arts=arts.slice(opt.da,opt.a);}
   const F=p.fields||[];
   const autore=db.settings.artist||'';
   const col=C.colore||'#8a6a1f';
