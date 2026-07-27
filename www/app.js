@@ -382,7 +382,7 @@ function diagOpen(){
   box.setAttribute('style','position:fixed;top:0;left:0;right:0;bottom:0;z-index:999999;background:#111;color:#0f0;font:12px/1.5 monospace;padding:10px;overflow:auto');
   const testo=window.__LOG__.length?window.__LOG__.join('\n\n'):'(nessun errore registrato)';
   const info='DIAGNOSTICA MAIR GO!\n'
-    +'Versione app.js: 18.7\n'
+    +'Versione app.js: 18.8\n'
     +'docViewerOpen esiste: '+(typeof docViewerOpen)+'\n'
     +'textEditorOpen esiste: '+(typeof textEditorOpen)+'\n'
     +'certDocHtml esiste: '+(typeof certDocHtml)+'\n'
@@ -1612,7 +1612,7 @@ function galleriesView(){
   const list=db.galleries||[];
   return section('Gallerie','<button class="btn primary" data-action="newGallery">&#65291; Nuova galleria</button>')
    +'<section class="hero"><h2>&#127963;&#65039; Gallerie</h2><p>Spazi espositivi con immagine, referente, recapiti e sito.</p></section>'
-   +'<div class="toolbar"><input id="gallerySearch" class="search" placeholder="${T("Cerca per nome, citt\\u00e0, referente, telefono, email\\u2026")}"></div>'
+   +'<div class="toolbar"><input id="gallerySearch" class="search" placeholder="Cerca per nome, città, referente, telefono, email…"Cerca per nome, citt\\u00e0, referente, telefono, email\\u2026")}"></div>'
    +'<div class="row" style="margin-bottom:16px"><button class="btn" data-action="printGalleries">&#128196; Stampa PDF</button></div>'
    +'<div id="galleryGrid" class="grid">'+(list.length?list.map(galleryCard).join(''):empty('&#127963;&#65039;','Nessuna galleria salvata.','<button class="btn primary" data-action="newGallery">Aggiungi la prima</button>'))+'</div>';
 }
@@ -2248,6 +2248,18 @@ function openModal(title,html,onSave,saveLabel='Salva'){
   saveBtn.onclick=async e=>{
     e.preventDefault();
     if(saveBtn.disabled)return;
+    // controllo email: blocca il salvataggio se un campo email contiene un indirizzo non valido
+    const emailRe=/^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    const form=$('#modalForm');
+    let emailErrata=null;
+    form.querySelectorAll('input[type=email], input[name=email], input[name=contactEmail]').forEach(inp=>{
+      const v=(inp.value||'').trim();
+      if(v && !emailRe.test(v)) emailErrata=v;
+    });
+    if(emailErrata){
+      alert(T('Controlla l\u2019indirizzo email: non sembra valido.')+'\n\n'+emailErrata);
+      return;
+    }
     const original=saveBtn.textContent;
     saveBtn.disabled=true;
     saveBtn.textContent='Salvataggio…';
