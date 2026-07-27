@@ -388,7 +388,7 @@ function diagOpen(){
   box.setAttribute('style','position:fixed;top:0;left:0;right:0;bottom:0;z-index:999999;background:#111;color:#0f0;font:12px/1.5 monospace;padding:10px;overflow:auto');
   const testo=window.__LOG__.length?window.__LOG__.join('\n\n'):'(nessun errore registrato)';
   const info='DIAGNOSTICA MAIR GO!\n'
-    +'Versione app.js: 19.0\n'
+    +'Versione app.js: 19.2\n'
     +'docViewerOpen esiste: '+(typeof docViewerOpen)+'\n'
     +'textEditorOpen esiste: '+(typeof textEditorOpen)+'\n'
     +'certDocHtml esiste: '+(typeof certDocHtml)+'\n'
@@ -2867,7 +2867,8 @@ function certDocHtml(c){
    +'<div><small>'+esc(c.place||'')+(c.place&&c.date?', ':'')+(c.date?fmtDate(c.date):'')+'</small></div></div></div>';
 }
 function pdfDocHtml(p){
-  const arts=(p.artworkIds||[]).map(id=>db.artworks.find(a=>a.id===id)).filter(Boolean);
+  let arts=(p.artworkIds||[]).map(id=>db.artworks.find(a=>a.id===id)).filter(Boolean);
+  if(opt.da!=null&&opt.a!=null){arts=arts.slice(opt.da,opt.a);}
   const F=p.fields||[];
   const riga=(lab,val)=>val?'<p><strong>'+lab+':</strong> '+esc(val)+'</p>':'';
   return '<header style="border-bottom:3px solid #8a6a1f;padding-bottom:18px;margin-bottom:24px">'
@@ -2996,7 +2997,7 @@ function pdfImgFormat(dataUrl){
   return 'JPEG';
 }
 // ridimensiona un'immagine per il PDF: riduce peso e memoria (evita crash con molte opere)
-function pdfImgRidotta(dataUrl,maxLato){
+function pdfImgRidotta(dataUrl,maxLato,jpegQ){
   return new Promise((res)=>{
     try{
       const im=new Image();
@@ -3012,7 +3013,7 @@ function pdfImgRidotta(dataUrl,maxLato){
           const cx=cv.getContext('2d');
           cx.fillStyle='#ffffff';cx.fillRect(0,0,w,h);
           cx.drawImage(im,0,0,w,h);
-          const out=cv.toDataURL('image/jpeg',0.82);
+          const out=cv.toDataURL('image/jpeg',jpegQ||0.82);
           cv.width=cv.height=0; // libera subito la memoria del canvas
           res({data:out,w,h});
         }catch(e){res(null);}
@@ -3022,7 +3023,58 @@ function pdfImgRidotta(dataUrl,maxLato){
     }catch(e){res(null);}
   });
 }
-async function pdfCatalogoImpaginato(p){
+
+function scegliModalitaCatalogo(nOp){
+  return new Promise(risolvi=>{
+    const QN={nome:'normale',lato:1100,jpeg:0.82};
+    const QR={nome:'ridotta',lato:700,jpeg:0.68};
+    const html='<div class="catopt">'
+      +'<p class="meta">Il catalogo contiene <strong>'+nOp+' opere</strong>. Con molte immagini un PDF unico pu\u00f2 essere pesante. Scegli come procedere:</p>'
+      +'<button class="btn catopt-b" data-scelta="unico-normale">\ud83d\udcc4 PDF unico \u00b7 qualit\u00e0 normale<small>Immagini nitide. Su telefoni con poca memoria pu\u00f2 faticare.</small></button>'
+      +'<button class="btn catopt-b" data-scelta="unico-ridotta">\ud83d\udcc4 PDF unico \u00b7 qualit\u00e0 ridotta<small>Immagini pi\u00f9 leggere: un solo file, meno rischio. Provalo e vedi se ti piace.</small></button>'
+      +'<button class="btn catopt-b primary" data-scelta="diviso">\ud83e\udde9 Diviso in pi\u00f9 PDF<small>Pi\u00f9 file da 100 opere. Sicuro: non va mai in crash.</small></button>'
+      +'</div>';
+    openModal('Catalogo con molte opere',html,null,' ');
+    const sav=document.getElementById('modalSave');if(sav)sav.style.display='none';
+    document.querySelectorAll('#modalBody [data-scelta]').forEach(b=>b.onclick=()=>{
+      if(sav)sav.style.display='';
+      const sc=b.dataset.scelta;modal.close();
+      if(sc==='unico-normale')risolvi({modo:'unico',q:QN});
+      else if(sc==='unico-ridotta')risolvi({modo:'unico',q:QR});
+      else if(sc==='diviso')risolvi({modo:'diviso',q:QR});
+    });
+    modal.addEventListener('close',function once(){modal.removeEventListener('close',once);if(sav)sav.style.display='';risolvi(null);},{once:true});
+  });
+}
+
+async function generaCatalogoDiviso(dato,scelta,nOp){
+  const perParte=100;
+  const parti=Math.ceil(nOp/perParte);
+  const titoloBase=(dato.title||'Catalogo').replace(/[\\/:*?"<>|]/g,'_');
+  toast('Genero '+parti+' PDF\u2026');
+  for(let i=0;i<parti;i++){
+    const da=i*perParte, a=Math.min((i+1)*perParte,nOp);
+    diagLog('PDF','parte '+(i+1)+'/'+parti+' opere '+da+'-'+a);
+    try{
+      const pdf=await pdfCatalogoImpaginato(dato,{...scelta.q,da,a});
+      const nome=titoloBase+' - parte '+(i+1)+' di '+parti+'.pdf';
+      const blob=pdf.output('blob');
+      await salvaFileBlob(nome,blob,'application/pdf');
+      toast('Salvata parte '+(i+1)+' di '+parti);
+      await new Promise(r=>setTimeout(r,300));
+    }catch(e){
+      diagLog('PDF-PARTE-ERRORE',e&&e.message?e.message:String(e));
+      alert('Problema nella parte '+(i+1)+'. Le parti gi\u00e0 salvate sono al sicuro.');
+      return;
+    }
+  }
+  alert('Fatto! Catalogo salvato in '+parti+' file PDF nella cartella MAIR GO.');
+}
+
+async function pdfCatalogoImpaginato(p,opt){
+  opt=opt||{};
+  const qLato=opt.lato||1100;
+  const qJpeg=opt.jpeg||0.82;
   const C=pdfCfg();
   const {jsPDF}=window.jspdf;
   const pdf=new jsPDF({orientation:C.orientamento,unit:'mm',format:C.formato});
@@ -3113,7 +3165,7 @@ async function pdfCatalogoImpaginato(p){
       // immagine
       if(a.image){
         try{
-          const rid=await pdfImgRidotta(a.image,1100);  // riduce peso e memoria
+          const rid=await pdfImgRidotta(a.image,qLato,qJpeg);
           if(rid&&rid.w&&rid.h){
             const maxH=(C.imgMax||70)/100*M.utileH*0.62;
             const maxW=M.utileW;
@@ -3746,11 +3798,20 @@ function docViewerOpen(title,inner,extraCss,plainText){
         try{
           if(ctx.tipo==='catalogo'&&ctx.dato){
             const nOp=(ctx.dato.artworkIds||[]).length;
-            if(nOp>60&&!confirm('Il catalogo contiene '+nOp+' opere. La generazione pu\u00f2 richiedere circa '+Math.ceil(nOp/25)+'-'+Math.ceil(nOp/12)+' minuti e non va interrotta.\n\nProcedere?')){
-              btn.textContent=originale;bPrint.disabled=false;bShare.disabled=false;return;
+            if(nOp>120){
+              const scelta=await scegliModalitaCatalogo(nOp);
+              if(!scelta){btn.textContent=originale;bPrint.disabled=false;bShare.disabled=false;return;}
+              if(scelta.modo==='diviso'){
+                await generaCatalogoDiviso(ctx.dato,scelta,nOp);
+                btn.textContent=originale;bPrint.disabled=false;bShare.disabled=false;
+                return;
+              }
+              diagLog('PDF','catalogo '+nOp+' opere, qualità '+scelta.q.nome);
+              pdf=await pdfCatalogoImpaginato(ctx.dato,scelta.q);
+            }else{
+              diagLog('PDF','impaginazione catalogo '+nOp+' opere');
+              pdf=await pdfCatalogoImpaginato(ctx.dato);
             }
-            diagLog('PDF','impaginazione catalogo '+nOp+' opere');
-            pdf=await pdfCatalogoImpaginato(ctx.dato);
           }else if(ctx.tipo==='certificato'&&ctx.dato){
             diagLog('PDF','impaginazione certificato');
             pdf=await pdfCertificatoImpaginato(ctx.dato);
