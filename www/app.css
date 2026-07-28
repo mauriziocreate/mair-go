@@ -718,3 +718,10 @@ body{padding-bottom:calc(82px + env(safe-area-inset-bottom))}
 .catopt{display:flex;flex-direction:column;gap:12px}
 .catopt-b{display:flex;flex-direction:column;align-items:flex-start;text-align:left;padding:14px 16px;height:auto;line-height:1.4;white-space:normal}
 .catopt-b small{display:block;margin-top:4px;font-weight:400;opacity:.75;font-size:.85rem}
+
+/* ===== ALLINEAMENTO CARD SELEZIONE CONTATTI ===== */
+.pro-pick-card{display:flex;align-items:center;gap:12px;text-align:left;padding:12px 14px}
+.pro-pick-card input[type=checkbox]{flex:0 0 auto;order:0;margin:0}
+.pro-pick-text{flex:1;display:flex;flex-direction:column;align-items:flex-start;text-align:left;min-width:0}
+.pro-pick-text strong{text-align:left}
+.pro-pick-text small{text-align:left;color:var(--muted)}
