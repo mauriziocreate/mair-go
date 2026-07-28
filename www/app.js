@@ -385,6 +385,11 @@ const I18N={
   "Tutti i ruoli":"All roles",
   "Nessun problema rilevato":"No problems found",
   "Problemi":"Problems",
+
+  "Prova e tutorial":"Demo & tutorial",
+  "Se hai caricato i dati d’esempio puoi rimuoverli qui. Puoi anche rivedere il giro guidato.":"If you loaded the sample data you can remove it here. You can also replay the guided tour.",
+  "Rimuovi dati d’esempio":"Remove sample data",
+  "Rivedi il tour":"Replay the tour",
 };
 function appLang(){return (db&&db.settings&&db.settings.lang)||'it';}
 function T(testo){
@@ -401,7 +406,7 @@ function diagOpen(){
   box.setAttribute('style','position:fixed;top:0;left:0;right:0;bottom:0;z-index:999999;background:#111;color:#0f0;font:12px/1.5 monospace;padding:10px;overflow:auto');
   const testo=window.__LOG__.length?window.__LOG__.join('\n\n'):'(nessun errore registrato)';
   const info='DIAGNOSTICA MAIR GO!\n'
-    +'Versione app.js: 19.7\n'
+    +'Versione app.js: 20.0\n'
     +'docViewerOpen esiste: '+(typeof docViewerOpen)+'\n'
     +'textEditorOpen esiste: '+(typeof textEditorOpen)+'\n'
     +'certDocHtml esiste: '+(typeof certDocHtml)+'\n'
@@ -1458,6 +1463,131 @@ document.addEventListener('DOMContentLoaded',()=>{
   }catch(e){}
 });
 
+
+/* ===== DATI D'ESEMPIO (leggeri, cancellabili) ===== */
+function generaImmagineDemo(testo,c1,c2){
+  // genera un'immagine SVG leggera (pochi byte) come data URL
+  const svg='<svg xmlns="http://www.w3.org/2000/svg" width="600" height="450" viewBox="0 0 600 450">'
+    +'<defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1">'
+    +'<stop offset="0" stop-color="'+c1+'"/><stop offset="1" stop-color="'+c2+'"/></linearGradient></defs>'
+    +'<rect width="600" height="450" fill="url(#g)"/>'
+    +'<circle cx="300" cy="200" r="90" fill="rgba(255,255,255,.18)"/>'
+    +'<text x="300" y="230" font-family="Georgia,serif" font-size="52" fill="rgba(255,255,255,.92)" text-anchor="middle">'+testo+'</text>'
+    +'<text x="300" y="410" font-family="system-ui,sans-serif" font-size="20" fill="rgba(255,255,255,.7)" text-anchor="middle">MAIR GO! · esempio</text>'
+    +'</svg>';
+  return 'data:image/svg+xml;base64,'+btoa(unescape(encodeURIComponent(svg)));
+}
+function caricaDatiEsempio(){
+  const oggi=new Date();
+  const iso=(g)=>{const d=new Date(oggi);d.setDate(d.getDate()+g);return d.toISOString();};
+  const isoData=(g)=>iso(g).slice(0,10);
+  const marca='__demo__'; // marchio per riconoscere e cancellare i dati d'esempio
+
+  // 5 OPERE con immagini leggere
+  const opere=[
+    {titolo:'Vortice n.1',anno:'2024',tec:'Olio su tela',dim:'80 × 100 cm',prezzo:'2500',stato:'Disponibile',c:['#3a4a7a','#8a6a1f'],desc:'Opera della serie sul vortice, motivo centrale della ricerca.'},
+    {titolo:'Silenzio interiore',anno:'2023',tec:'Acrilico su tela',dim:'60 × 80 cm',prezzo:'1800',stato:'Disponibile',c:['#6a2a3a','#c98a4a'],desc:'Studio sull\u2019introversione e sul non detto.'},
+    {titolo:'Spirale rossa',anno:'2024',tec:'Tecnica mista',dim:'100 × 100 cm',prezzo:'3200',stato:'Venduto',c:['#8a2a2a','#e0a030'],desc:'Grande formato, spirale logaritmica dominante.'},
+    {titolo:'Frammento d\u2019inconscio',anno:'2022',tec:'Olio su tavola',dim:'40 × 50 cm',prezzo:'1200',stato:'Disponibile',c:['#2a5a4a','#a0c060'],desc:'Piccolo formato intimo.'},
+    {titolo:'Notturno',anno:'2023',tec:'Olio su tela',dim:'70 × 90 cm',prezzo:'2100',stato:'Disponibile',c:['#1a2a4a','#5a6a9a'],desc:'Atmosfera notturna, toni profondi.'}
+  ];
+  const idsOpere=[];
+  opere.forEach((o,i)=>{
+    const img=generaImmagineDemo(String(i+1),o.c[0],o.c[1]);
+    const id=uid();idsOpere.push(id);
+    db.artworks.push({id,title:o.titolo,year:o.anno,technique:o.tec,dimensions:o.dim,
+      price:o.prezzo,status:o.stato,description:o.desc,image:img,thumb:img,
+      demo:marca,updated:new Date().toISOString(),created:new Date().toISOString()});
+  });
+
+  // 1 CURATORE
+  const idCur=uid();
+  db.pros.push({id:idCur,name:'Elena Rossi',role:'Curatore',org:'Studio d\u2019Arte Contemporanea',
+    city:'Milano',email:'elena.rossi@esempio.it',phone:'+39 02 1234567',demo:marca,
+    updated:new Date().toISOString(),created:new Date().toISOString()});
+
+  // 1 GALLERIA
+  const idGal=uid();
+  db.galleries.push({id:idGal,name:'Galleria Le Muse',type:'Galleria privata',city:'Torino',
+    address:'Via Roma 12',manager:'Marco Bianchi',email:'info@lemuse.esempio.it',
+    phone:'+39 011 7654321',demo:marca,updated:new Date().toISOString(),created:new Date().toISOString()});
+
+  // 1 CLIENTE
+  const idCli=uid();
+  db.clients.push({id:idCli,name:'Giovanni Verdi',company:'Collezione privata',city:'Roma',
+    email:'g.verdi@esempio.it',phone:'+39 06 9876543',preferences:'Predilige i grandi formati.',
+    demo:marca,updated:new Date().toISOString(),created:new Date().toISOString()});
+
+  // 1 VENDITA (collegata all'opera "Spirale rossa" e al cliente)
+  db.sales.push({id:uid(),artworkId:idsOpere[2],clientId:idCli,total:'3200',
+    method:'Bonifico',date:isoData(-30),status:'Saldato',demo:marca,
+    updated:new Date().toISOString(),created:new Date().toISOString()});
+
+  // 1 MOSTRA
+  db.exhibitions.push({id:uid(),title:'Il Vortice dell\u2019Anima',venue:'Galleria Le Muse',
+    city:'Torino',startDate:isoData(15),endDate:isoData(45),curator:'Elena Rossi',
+    artworkIds:[idsOpere[0],idsOpere[1]],status:'In programma',demo:marca,
+    updated:new Date().toISOString(),created:new Date().toISOString()});
+
+  // 2 APPUNTAMENTI in agenda
+  db.agenda.push({id:uid(),title:'Incontro con la curatrice Elena Rossi',date:isoData(3),
+    time:'15:00',location:'Milano',demo:marca,updated:new Date().toISOString(),created:new Date().toISOString()});
+  db.agenda.push({id:uid(),title:'Consegna opera a Galleria Le Muse',date:isoData(10),
+    time:'10:30',location:'Torino',demo:marca,updated:new Date().toISOString(),created:new Date().toISOString()});
+
+  save();
+}
+function haDatiEsempio(){
+  const sez=['artworks','pros','galleries','clients','sales','exhibitions','agenda'];
+  return sez.some(k=>(db[k]||[]).some(x=>x&&x.demo==='__demo__'));
+}
+function cancellaDatiEsempio(){
+  if(!confirm('Rimuovere tutti i dati d\u2019esempio?\n\nLe voci che hai aggiunto tu resteranno intatte.'))return;
+  const sez=['artworks','pros','galleries','clients','sales','exhibitions','agenda'];
+  sez.forEach(k=>{if(Array.isArray(db[k]))db[k]=db[k].filter(x=>!(x&&x.demo==='__demo__'));});
+  save();render();toast('Dati d\u2019esempio rimossi');
+}
+
+
+/* ===== GIRO GUIDATO PRIMO AVVIO ===== */
+function giroGuidato(){
+  if(db.settings.tourFatto)return;
+  const passi=[
+    {ic:'🎨',t:'La tua Home',d:'Qui vedi a colpo d\u2019occhio le statistiche del tuo archivio e le azioni rapide. Il riquadro "Da fare" ti ricorda gli impegni in scadenza.'},
+    {ic:'◫',t:'Archivio e Opere',d:'Il cuore dell\u2019app. Ogni opera ha immagine, scheda completa, prezzo e stato. Puoi filtrare, cercare e toccare un\u2019immagine per vederla intera.'},
+    {ic:'＋',t:'Crea nuovo',d:'Da qui aggiungi in un tocco: opere, certificati, cataloghi PDF, documenti, clienti, curatori.'},
+    {ic:'◷',t:'Attività',d:'Agenda, mostre, clienti, vendite e la timeline di tutto ciò che accade nel tuo atelier.'},
+    {ic:'☰',t:'Altro',d:'Zona Social, link utili, gallerie, impostazioni, esportazione dati, guida e backup. Esplora con calma.'},
+    {ic:'💾',t:'Il backup è sacro',d:'I dati stanno solo sul tuo telefono. Fai regolarmente un backup da Impostazioni e salvalo altrove (Drive, email): è l\u2019unico modo per non perderli.'}
+  ];
+  let i=0;
+  const ov=document.createElement('div');
+  ov.id='tourOverlay';
+  ov.style.cssText='position:fixed;inset:0;z-index:99997;background:rgba(15,12,10,.82);display:flex;align-items:center;justify-content:center;padding:24px;backdrop-filter:blur(3px)';
+  document.body.appendChild(ov);
+  const mostra=()=>{
+    const p=passi[i];
+    ov.innerHTML='<div style="max-width:420px;width:100%;background:var(--panel,#fff);border-radius:20px;padding:30px 26px;box-shadow:0 20px 70px rgba(0,0,0,.6);text-align:center">'
+      +'<div style="font-size:3rem;margin-bottom:10px">'+p.ic+'</div>'
+      +'<h2 style="margin:0 0 10px;font-family:Georgia,serif">'+p.t+'</h2>'
+      +'<p style="margin:0 0 22px;color:var(--muted,#777);line-height:1.6">'+p.d+'</p>'
+      +'<div style="display:flex;gap:6px;justify-content:center;margin-bottom:18px">'
+      + passi.map((_,k)=>'<span style="width:8px;height:8px;border-radius:50%;background:'+(k===i?'var(--accent,#8a6a1f)':'var(--line,#ccc)')+'"></span>').join('')
+      +'</div>'
+      +'<div style="display:flex;gap:10px">'
+      +(i>0?'<button id="tPrev" class="btn" style="flex:1">Indietro</button>':'')
+      +'<button id="tNext" class="btn primary" style="flex:2">'+(i<passi.length-1?'Avanti':'Inizia a usare l\u2019app')+'</button>'
+      +'</div>'
+      +'<button id="tSkip" class="btn ghost" style="width:100%;margin-top:8px;font-size:.85rem">Salta il tour</button>'
+      +'</div>';
+    const next=ov.querySelector('#tNext');if(next)next.onclick=()=>{if(i<passi.length-1){i++;mostra();}else fine();};
+    const prev=ov.querySelector('#tPrev');if(prev)prev.onclick=()=>{if(i>0){i--;mostra();}};
+    const skip=ov.querySelector('#tSkip');if(skip)skip.onclick=fine;
+  };
+  const fine=()=>{db.settings.tourFatto=true;save();ov.remove();};
+  mostra();
+}
+
 /* ===== PRIMO AVVIO ===== */
 function primoAvvio(){
   if(db.settings.configurato)return false;
@@ -1474,7 +1604,7 @@ function primoAvvio(){
     +'<div class="field"><label>Telefono (facoltativo)</label><input id="bvTel" type="tel"></div>'
     +'<div style="background:color-mix(in srgb,#c98a1f 12%,transparent);border-radius:10px;padding:12px;margin:16px 0;font-size:.86rem;line-height:1.5">'
     +'<strong>&#9888;&#65039; Importante</strong><br>I dati restano solo sul tuo dispositivo: nessuno pu\u00f2 leggerli, ma nessuno pu\u00f2 restituirteli se li perdi. Fai regolarmente il <strong>backup</strong> da Impostazioni.</div>'
-    +'<button id="bvOk" class="btn primary" style="width:100%;padding:14px">Inizia</button>'
+    +'<label style="display:flex;align-items:center;gap:10px;margin:4px 0 14px;font-size:.9rem;cursor:pointer"><input type="checkbox" id="bvEsempio" checked style="width:20px;height:20px"> Carica alcuni <strong>dati d\u2019esempio</strong> (cancellabili quando vuoi)</label>'+'<button id="bvOk" class="btn primary" style="width:100%;padding:14px">Inizia</button>'
     +'<button id="bvSalta" class="btn" style="width:100%;margin-top:8px">Salta per ora</button>'
     +'</div>';
   document.body.appendChild(h);
@@ -1486,8 +1616,13 @@ function primoAvvio(){
       const e=h.querySelector('#bvEmail').value.trim();if(e)db.settings.email=e;
       const t=h.querySelector('#bvTel').value.trim();if(t)db.settings.phone=t;
     }
-    db.settings.configurato=true;save();h.remove();render();
+    const vuoleEsempio=salva && h.querySelector('#bvEsempio') && h.querySelector('#bvEsempio').checked;
+    db.settings.configurato=true;save();h.remove();
+    if(vuoleEsempio){try{caricaDatiEsempio();}catch(e){diagLog('DEMO',e&&e.message?e.message:String(e));}}
+    render();
     if(salva)toast('Benvenuto, '+db.settings.artist+'!');
+    // giro guidato subito dopo
+    setTimeout(()=>{try{giroGuidato();}catch(e){}},500);
   };
   h.querySelector('#bvOk').onclick=()=>chiudi(true);
   h.querySelector('#bvSalta').onclick=()=>chiudi(false);
@@ -2267,7 +2402,7 @@ function infoViewIT(){return `${section('Informazioni')}<section class="legal-ca
 <p><a href="mailto:dandreart.info@gmail.com">dandreart.info@gmail.com</a><br><a href="https://www.dandreart.info" target="_blank" rel="noopener">www.dandreart.info</a></p>
 <p class="meta">MAIR GO! 7.5 &middot; Software gratuito &middot; Dati sul dispositivo &middot; Nessun account &middot; Nessuna pubblicit&agrave;</p></section>`}
 
-function settingsView(){const L=db.settings.lists;return `${section('Impostazioni')}<div class="settings-tabs"><a href="#appearance">${T('Aspetto')}</a><a href="#security">${T('Sicurezza')}</a><a href="#profile">${T('Profilo')}</a><a href="#lists">${T('Liste')}</a><a href="#backup">${T('Backup')}</a></div><div class="formgrid"><div class="card" id="appearance"><div class="cardbody"><h3>${T('🎨 Aspetto')}</h3><div class="field"><label>${T('Tema dell\u2019app')}</label><select id="themeSetting">${themeOptions.map(([v,l])=>`<option value="${v}" ${db.settings.theme===v?'selected':''}>${l}</option>`).join('')}</select></div><div class="field"><label>${T('Dimensione caratteri')}</label><select id="fontSetting"><option value="small" ${db.settings.fontSize==='small'?'selected':''}>${T('Piccola')}</option><option value="medium" ${db.settings.fontSize==='medium'?'selected':''}>${T('Media')}</option><option value="large" ${db.settings.fontSize==='large'?'selected':''}>${T('Grande')}</option></select></div><div class="field"><label>Lingua / Language</label><select id="langSetting"><option value="it" ${(db.settings.lang||'it')==='it'?'selected':''}>Italiano</option><option value="en" ${db.settings.lang==='en'?'selected':''}>English</option></select></div><label class="switchrow"><input id="animationsSetting" type="checkbox" ${db.settings.animations!==false?'checked':''}> ${T('Animazioni')}</label><label class="switchrow"><input id="splashSetting" type="checkbox" ${db.settings.splash!==false?'checked':''}> ${T('Mostra splash all\u2019avvio')}</label><button class="btn primary" data-action="saveAppearance">${T('Salva aspetto')}</button></div></div><div class="card" id="security"><div class="cardbody"><h3>${T('🔒 Sicurezza')}</h3><label class="switchrow"><input id="pinEnabled" type="checkbox" ${db.settings.pinEnabled?'checked':''}> ${T('Richiedi PIN all\u2019avvio')}</label><div class="field"><label>${T('Nuovo PIN (4\u20136 cifre)')}</label><input id="newPin" type="password" inputmode="numeric" maxlength="6" placeholder="Lascia vuoto per non cambiarlo"></div><div class="field"><label>${T('Conferma PIN')}</label><input id="confirmPin" type="password" inputmode="numeric" maxlength="6"></div><button class="btn primary" data-action="savePin">${T('Salva sicurezza')}</button><p class="meta">${T('Il PIN è una protezione locale di accesso, non una cifratura dei file.')}</p></div></div><div class="card" id="profile"><div class="cardbody"><h3>${T('👤 Profilo artista')}</h3>${field('Nome artista / atelier','artist',db.settings.artist)}${area('Biografia','bio',db.settings.bio,'')}${field('Email','email',db.settings.email,'email')}${field('Telefono','phone',db.settings.phone)}<button class="btn primary" data-action="saveProfile">${T('Salva profilo')}</button></div></div><div class="card"><div class="cardbody"><h3>${T('📄 Impaginazione PDF')}</h3><p class="meta">${T('Formato, margini, caratteri, colori, immagini e sezioni dei documenti generati.')}</p><button class="btn" data-action="pdfSettings">${T('Configura impaginazione')}</button></div></div><div class="card"><div class="cardbody"><h3>${T('❤️ Sostieni il progetto')}</h3><p class="meta">${T('MAIR GO! è gratuita e senza pubblicità. Una donazione aiuta a mantenerla e migliorarla.')}</p><button class="btn primary" data-action="dona">${T('❤️ Dona con PayPal')}</button></div></div><div class="card"><div class="cardbody"><h3>${T('🚪 Chiudi applicazione')}</h3><p class="meta">${T('Chiude completamente MAIR GO!. I dati restano salvati.')}</p><button class="btn danger" data-action="esciApp">${T('Esci dall\u2019app')}</button></div></div><div class="card"><div class="cardbody"><h3>${T('🛠 Diagnostica')}</h3><p class="meta">${T('Se qualcosa non funziona, apri il registro errori e invia il testo allo sviluppatore.')}</p><button class="btn" data-action="openDiag">${T('Apri diagnostica')}</button></div></div><div class="card" id="backup"><div class="cardbody"><h3>${T('💾 Backup')}</h3>${backupBanner()}<p>${T('Il file .backup contiene tutto l’archivio MAIR GO!: opere e immagini, documenti, certificati, cataloghi, clienti, vendite, agenda e impostazioni.').replace('.backup','<strong>.backup</strong>')}</p><p>${T('Premi Crea Backup e scegli tu dove salvarlo, per esempio Google Drive o una cartella del telefono. Il file temporaneo usato dall’APK viene eliminato dopo la scelta, anche quando annulli la condivisione.').replace('Crea Backup','<strong>'+T('Crea Backup')+'</strong>')}</p><div class="row"><button class="btn" data-action="exportBackupQuick">${T('⚡ Backup rapido')}</button><button class="btn primary" data-action="exportBackupFull">${T('🧩 Backup completo multiparte')}</button><button class="btn" data-action="importBackup">${T('↩️ Ripristina backup classico')}</button><button class="btn" data-action="importBackupParts">${T('📂 Ripristina multiparte')}</button></div><p class="meta">${T('Rapido: dati e miniature, senza immagini originali. Completo multiparte: progettato per archivi fino a 1000 opere; salva più file piccoli e poi apre la scelta della cartella, così puoi salvarli in Documenti, Drive o memoria esterna. Compatibile anche con i vecchi file .mair e .json. Ultimo backup:')} ${db.settings.lastBackup?new Date(db.settings.lastBackup).toLocaleString(appLang()==='en'?'en-GB':'it-IT'):T('mai')}</p></div></div></div><h2 id="lists" style="margin-top:28px">${T('Liste personalizzabili')}</h2><div class="grid">${Object.entries({techniques:T('Tecniche'),supports:T('Supporti'),dimensions:T('Dimensioni'),frames:T('Cornici'),statuses:T('Stati'),categories:T('Categorie Biblioteca')}).map(([k,t])=>`<article class="card"><div class="cardbody"><h3>${t}</h3><div class="list-manager">${L[k].map((v,i)=>`<div class="list-row"><input value="${esc(v)}" data-list-key="${k}" data-list-i="${i}"><button class="btn danger" data-action="removeListItem" data-id="${k}:${i}">×</button></div>`).join('')}<button class="btn" data-action="addListItem" data-id="${k}">${T('＋ Aggiungi voce')}</button><button class="btn primary" data-action="saveLists">${T('Salva modifiche')}</button></div></div></article>`).join('')}</div>`}
+function settingsView(){const L=db.settings.lists;return `${section('Impostazioni')}<div class="settings-tabs"><a href="#appearance">${T('Aspetto')}</a><a href="#security">${T('Sicurezza')}</a><a href="#profile">${T('Profilo')}</a><a href="#lists">${T('Liste')}</a><a href="#backup">${T('Backup')}</a></div><div class="formgrid"><div class="card" id="appearance"><div class="cardbody"><h3>${T('🎨 Aspetto')}</h3><div class="field"><label>${T('Tema dell\u2019app')}</label><select id="themeSetting">${themeOptions.map(([v,l])=>`<option value="${v}" ${db.settings.theme===v?'selected':''}>${l}</option>`).join('')}</select></div><div class="field"><label>${T('Dimensione caratteri')}</label><select id="fontSetting"><option value="small" ${db.settings.fontSize==='small'?'selected':''}>${T('Piccola')}</option><option value="medium" ${db.settings.fontSize==='medium'?'selected':''}>${T('Media')}</option><option value="large" ${db.settings.fontSize==='large'?'selected':''}>${T('Grande')}</option></select></div><div class="field"><label>Lingua / Language</label><select id="langSetting"><option value="it" ${(db.settings.lang||'it')==='it'?'selected':''}>Italiano</option><option value="en" ${db.settings.lang==='en'?'selected':''}>English</option></select></div><label class="switchrow"><input id="animationsSetting" type="checkbox" ${db.settings.animations!==false?'checked':''}> ${T('Animazioni')}</label><label class="switchrow"><input id="splashSetting" type="checkbox" ${db.settings.splash!==false?'checked':''}> ${T('Mostra splash all\u2019avvio')}</label><button class="btn primary" data-action="saveAppearance">${T('Salva aspetto')}</button></div></div><div class="card" id="security"><div class="cardbody"><h3>${T('🔒 Sicurezza')}</h3><label class="switchrow"><input id="pinEnabled" type="checkbox" ${db.settings.pinEnabled?'checked':''}> ${T('Richiedi PIN all\u2019avvio')}</label><div class="field"><label>${T('Nuovo PIN (4\u20136 cifre)')}</label><input id="newPin" type="password" inputmode="numeric" maxlength="6" placeholder="Lascia vuoto per non cambiarlo"></div><div class="field"><label>${T('Conferma PIN')}</label><input id="confirmPin" type="password" inputmode="numeric" maxlength="6"></div><button class="btn primary" data-action="savePin">${T('Salva sicurezza')}</button><p class="meta">${T('Il PIN è una protezione locale di accesso, non una cifratura dei file.')}</p></div></div><div class="card" id="profile"><div class="cardbody"><h3>${T('👤 Profilo artista')}</h3>${field('Nome artista / atelier','artist',db.settings.artist)}${area('Biografia','bio',db.settings.bio,'')}${field('Email','email',db.settings.email,'email')}${field('Telefono','phone',db.settings.phone)}<button class="btn primary" data-action="saveProfile">${T('Salva profilo')}</button></div></div><div class="card"><div class="cardbody"><h3>${T('📄 Impaginazione PDF')}</h3><p class="meta">${T('Formato, margini, caratteri, colori, immagini e sezioni dei documenti generati.')}</p><button class="btn" data-action="pdfSettings">${T('Configura impaginazione')}</button></div></div><div class="card"><div class="cardbody"><h3>${T('❤️ Sostieni il progetto')}</h3><p class="meta">${T('MAIR GO! è gratuita e senza pubblicità. Una donazione aiuta a mantenerla e migliorarla.')}</p><button class="btn primary" data-action="dona">${T('❤️ Dona con PayPal')}</button></div></div><div class="card"><div class="cardbody"><h3>${T('🚪 Chiudi applicazione')}</h3><p class="meta">${T('Chiude completamente MAIR GO!. I dati restano salvati.')}</p><button class="btn danger" data-action="esciApp">${T('Esci dall\u2019app')}</button></div></div><div class="card"><div class="cardbody"><h3>${T('🛠 Diagnostica')}</h3><p class="meta">${T('Se qualcosa non funziona, apri il registro errori e invia il testo allo sviluppatore.')}</p><button class="btn" data-action="openDiag">${T('Apri diagnostica')}</button></div></div><div class="card"><div class="cardbody"><h3>${T('Prova e tutorial')}</h3><p class="meta">${T('Se hai caricato i dati d\u2019esempio puoi rimuoverli qui. Puoi anche rivedere il giro guidato.')}</p><div class="row">${haDatiEsempio()?`<button class="btn danger" data-action="rimuoviEsempio">${T('Rimuovi dati d\u2019esempio')}</button>`:''}<button class="btn" data-action="rivediTour">${T('Rivedi il tour')}</button></div></div></div><div class="card" id="backup"><div class="cardbody"><h3>${T('💾 Backup')}</h3>${backupBanner()}<p>${T('Il file .backup contiene tutto l’archivio MAIR GO!: opere e immagini, documenti, certificati, cataloghi, clienti, vendite, agenda e impostazioni.').replace('.backup','<strong>.backup</strong>')}</p><p>${T('Premi Crea Backup e scegli tu dove salvarlo, per esempio Google Drive o una cartella del telefono. Il file temporaneo usato dall’APK viene eliminato dopo la scelta, anche quando annulli la condivisione.').replace('Crea Backup','<strong>'+T('Crea Backup')+'</strong>')}</p><div class="row"><button class="btn" data-action="exportBackupQuick">${T('⚡ Backup rapido')}</button><button class="btn primary" data-action="exportBackupFull">${T('🧩 Backup completo multiparte')}</button><button class="btn" data-action="importBackup">${T('↩️ Ripristina backup classico')}</button><button class="btn" data-action="importBackupParts">${T('📂 Ripristina multiparte')}</button></div><p class="meta">${T('Rapido: dati e miniature, senza immagini originali. Completo multiparte: progettato per archivi fino a 1000 opere; salva più file piccoli e poi apre la scelta della cartella, così puoi salvarli in Documenti, Drive o memoria esterna. Compatibile anche con i vecchi file .mair e .json. Ultimo backup:')} ${db.settings.lastBackup?new Date(db.settings.lastBackup).toLocaleString(appLang()==='en'?'en-GB':'it-IT'):T('mai')}</p></div></div></div><h2 id="lists" style="margin-top:28px">${T('Liste personalizzabili')}</h2><div class="grid">${Object.entries({techniques:T('Tecniche'),supports:T('Supporti'),dimensions:T('Dimensioni'),frames:T('Cornici'),statuses:T('Stati'),categories:T('Categorie Biblioteca')}).map(([k,t])=>`<article class="card"><div class="cardbody"><h3>${t}</h3><div class="list-manager">${L[k].map((v,i)=>`<div class="list-row"><input value="${esc(v)}" data-list-key="${k}" data-list-i="${i}"><button class="btn danger" data-action="removeListItem" data-id="${k}:${i}">×</button></div>`).join('')}<button class="btn" data-action="addListItem" data-id="${k}">${T('＋ Aggiungi voce')}</button><button class="btn primary" data-action="saveLists">${T('Salva modifiche')}</button></div></div></article>`).join('')}</div>`}
 function openModal(title,html,onSave,saveLabel='Salva'){
   $('#modalTitle').textContent=T(title);
   $('#modalBody').innerHTML=html;
@@ -3969,7 +4104,7 @@ async function mairParseXlsx(file){if(typeof JSZip==='undefined')throw new Error
 async function mairImportExcel(){const input=document.createElement('input');input.type='file';input.accept='.xlsx,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet';input.onchange=async()=>{const f=input.files?.[0];if(!f)return;try{const parsed=await mairParseXlsx(f),summary=Object.entries(parsed).map(([k,v])=>`${k}: ${v.length}`).join('\n');if(!summary)throw new Error('Nessun foglio MAIR GO riconosciuto.');if(!confirm(`Dati trovati:\n${summary}\n\nI record con lo stesso ID saranno aggiornati; gli altri aggiunti. Continuare?`))return;Object.entries(parsed).forEach(([k,rows])=>{const old=db[k]||[],map=new Map(old.map(x=>[x.id,x]));rows.forEach(r=>{r.id=r.id||uid();map.set(r.id,{...(map.get(r.id)||{}),...r})});db[k]=[...map.values()]});save();render();toast('Importazione completata')}catch(e){alert('Importazione non riuscita: '+(e.message||e))}};input.click()}
 views.archiveTools=()=>archiveToolsView();titles.archiveTools='Esportazione dati/Excel';
 
-const actions={exportExcel13:()=>mairExportExcel(),exportComplete13:()=>mairExportComplete(),exportHtml13:()=>mairExportHtml(),importExcel14:()=>mairImportExcel(),refreshIntegrity14:()=>{const issues=mairIntegrity();render();alert(T('Esecuzione terminata')+'.\n\n'+(issues.length?(T('Problemi rilevati')+': '+issues.length):T('Nessun problema rilevato. Archivio integro.')));},openDiag:()=>diagOpen(),dona:()=>donaModal(),timelineAzzera:()=>timelineAzzeraModal(),
+const actions={exportExcel13:()=>mairExportExcel(),exportComplete13:()=>mairExportComplete(),exportHtml13:()=>mairExportHtml(),importExcel14:()=>mairImportExcel(),refreshIntegrity14:()=>{const issues=mairIntegrity();render();alert(T('Esecuzione terminata')+'.\n\n'+(issues.length?(T('Problemi rilevati')+': '+issues.length):T('Nessun problema rilevato. Archivio integro.')));},openDiag:()=>diagOpen(),rimuoviEsempio:()=>cancellaDatiEsempio(),rivediTour:()=>{db.settings.tourFatto=false;save();giroGuidato();},dona:()=>donaModal(),timelineAzzera:()=>timelineAzzeraModal(),
  newLink:()=>linkModal(),editLink:id=>linkModal((db.links||[]).find(x=>x.id===id)),deleteLink:id=>del('links',id),
  manageLinkCats:()=>linkCatsModal(),
  printLinks:()=>{window.__PDFCTX__={tipo:'generico'};docViewerOpen('Link utili',linksDocHtml(),'',linksPlain())},
