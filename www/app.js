@@ -401,7 +401,7 @@ function diagOpen(){
   box.setAttribute('style','position:fixed;top:0;left:0;right:0;bottom:0;z-index:999999;background:#111;color:#0f0;font:12px/1.5 monospace;padding:10px;overflow:auto');
   const testo=window.__LOG__.length?window.__LOG__.join('\n\n'):'(nessun errore registrato)';
   const info='DIAGNOSTICA MAIR GO!\n'
-    +'Versione app.js: 19.6\n'
+    +'Versione app.js: 19.7\n'
     +'docViewerOpen esiste: '+(typeof docViewerOpen)+'\n'
     +'textEditorOpen esiste: '+(typeof textEditorOpen)+'\n'
     +'certDocHtml esiste: '+(typeof certDocHtml)+'\n'
@@ -1355,8 +1355,8 @@ function ensureExhibitionEnhancementStyles(){
   const st=document.createElement('style');st.id='mair-exhibition-enhancement-css';st.textContent=`
   .exhibition-artworks-box,.exhibition-pros-box{border:1px solid var(--line);border-radius:14px;padding:14px;background:color-mix(in srgb,var(--panel) 94%,var(--accent) 6%)}
   .art-picker-search,.pro-picker-search{width:100%;margin:10px 0 8px}
-  .art-picker-grid,.pro-picker-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:10px;max-height:420px;overflow:auto;padding:2px}
-  .art-pick-card,.pro-pick-card{display:flex;gap:10px;align-items:center;border:1px solid var(--line);border-radius:12px;padding:9px;background:var(--panel);cursor:pointer}
+  .art-picker-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:10px;max-height:420px;overflow:auto;padding:2px}.pro-picker-grid{display:flex;flex-direction:column;gap:8px;max-height:420px;overflow:auto;padding:2px}
+  .art-pick-card,.pro-pick-card{display:flex;gap:12px;align-items:center;border:1px solid var(--line);border-radius:12px;padding:11px 12px;background:var(--panel);cursor:pointer}.pro-pick-card input[type=checkbox]{flex:0 0 22px;width:22px;height:22px;margin:0}.pro-pick-card .pro-pick-text{flex:1 1 auto;min-width:0;display:flex;flex-direction:column;gap:2px;text-align:left}.pro-pick-card .pro-pick-text strong{white-space:normal;word-break:break-word}.pro-pick-card .pro-pick-text small{color:var(--muted);white-space:normal;word-break:break-word}
   .art-pick-card:has(input:checked),.pro-pick-card:has(input:checked){outline:2px solid var(--accent);background:color-mix(in srgb,var(--panel) 88%,var(--accent) 12%)}
   .art-pick-thumb{width:58px;height:58px;flex:0 0 58px;border-radius:9px;overflow:hidden;display:grid;place-items:center;background:var(--soft)}
   .art-pick-thumb img{width:100%;height:100%;object-fit:cover}
