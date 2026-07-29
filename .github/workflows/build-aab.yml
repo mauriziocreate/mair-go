@@ -36,6 +36,21 @@ jobs:
       - name: Sincronizza i file dell'app
         run: npx cap sync android
 
+      - name: Imposta versionCode e versionName
+        run: |
+          python3 - << 'PYVER'
+          import re
+          p='android/app/build.gradle'
+          s=open(p).read()
+          # CAMBIA QUESTO NUMERO a ogni caricamento su Google Play (deve solo salire: 11, 12, 13...)
+          vc='11'
+          vn='1.0.11'
+          s=re.sub(r'versionCode\s+\d+', 'versionCode '+vc, s, count=1)
+          s=re.sub(r'versionName\s+"[^"]*"', 'versionName "'+vn+'"', s, count=1)
+          open(p,'w').write(s)
+          print('versionCode='+vc+' versionName='+vn)
+          PYVER
+
       - name: Imposta Android API 35 richiesta da Google Play
         run: |
           python3 - << 'PYSDK'
@@ -47,27 +62,6 @@ jobs:
           p.write_text(s)
           print(p.read_text())
           PYSDK
-
-      - name: Imposta versione Google Play 6
-        run: |
-          python3 - << 'PYVERSION'
-          import re
-          from pathlib import Path
-
-          p = Path('android/app/build.gradle')
-          s = p.read_text()
-
-          s, n_code = re.subn(r'\bversionCode\s+\d+', 'versionCode 11', s, count=1)
-          s, n_name = re.subn(r'\bversionName\s+["\'][^"\']+["\']', 'versionName "1.1.0"', s, count=1)
-
-          if n_code != 1:
-              raise SystemExit('ERRORE: versionCode non trovato in android/app/build.gradle')
-          if n_name != 1:
-              raise SystemExit('ERRORE: versionName non trovato in android/app/build.gradle')
-
-          p.write_text(s)
-          print('Impostati versionCode 8 e versionName 1.0.5')
-          PYVERSION
 
       - name: Ricrea il keystore dalle chiavi segrete
         run: |
