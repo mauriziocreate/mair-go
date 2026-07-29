@@ -441,6 +441,104 @@ const I18N={
   "Pianifica appuntamenti, mostre, consegne, scadenze e promemoria.":"Schedule appointments, exhibitions, deliveries, deadlines and reminders.",
   "Il tuo archivio artistico":"Your art archive",
   "Organizza e gestisci le tue opere artistiche, con immagini, schede, prezzi e stato.":"Organize and manage your artworks, with images, records, prices and status.",
+
+  "Senza titolo":"Untitled",
+  "Senza nome":"Unnamed",
+  "Disponibile":"Available",
+  "Venduto":"Sold",
+  "Riservato":"Reserved",
+  "In esposizione":"On exhibition",
+  "In prestito":"On loan",
+  "Donato":"Donated",
+  "Collezione privata":"Private collection",
+  "Non disponibile":"Unavailable",
+  "Titolo":"Title",
+  "Stato":"Status",
+  "Anno":"Year",
+  "Tecnica":"Technique",
+  "Supporto":"Support",
+  "Dimensioni":"Dimensions",
+  "Cornice":"Frame",
+  "Descrizione":"Description",
+  "Note":"Notes",
+  "Note private":"Private notes",
+  "Data":"Date",
+  "Scadenza":"Deadline",
+  "Promemoria":"Reminder",
+  "Luogo":"Venue",
+  "Nome e cognome":"Full name",
+  "Nome":"Name",
+  "Indirizzo":"Address",
+  "Prezzo totale":"Total price",
+  "Metodo di pagamento":"Payment method",
+  "Codice opera":"Artwork code",
+  "Posizione attuale":"Current location",
+  "Obiettivo / descrizione":"Goal / description",
+  "Data inizio":"Start date",
+  "Data fine":"End date",
+  "Luogo / galleria":"Venue / gallery",
+  "Galleria / istituzione":"Gallery / institution",
+  "Note organizzative":"Organizational notes",
+  "Azienda / galleria":"Company / gallery",
+  "Tecnica non indicata":"Technique not specified",
+  "Opera non collegata":"Artwork not linked",
+  "Modifica workspace":"Edit workspace",
+  "Modifica cliente":"Edit client",
+  "Modifica opera":"Edit artwork",
+  "Importa opere":"Import artworks",
+  "Immagine non valida":"Invalid image",
+  "Agenda vuota":"Empty agenda",
+  "ESCI":"EXIT",
+  "Usa il tasto Indietro del telefono per uscire":"Use your phone’s Back button to exit",
+  "Chiudi":"Close",
+  "Copia tutto":"Copy all",
+  "Copiato!":"Copied!",
+  "Selezionalo a mano":"Select it manually",
+  "PROVA APRI DOC":"TEST OPEN DOC",
+  "Crea prima un certificato":"Create a certificate first",
+  "Nessun risultato":"No results",
+  "Nessun elemento.":"No items.",
+  "Carica altre":"Load more",
+  "opere visualizzate su":"artworks displayed out of",
+  "Controlla l’indirizzo email: non sembra valido.":"Check the email address: it does not appear to be valid.",
+  "Non è stato possibile salvare.":"Could not save.",
+  "Libreria ZIP non disponibile.":"ZIP library unavailable.",
+  "Salva subito una copia: resterà nei Download del telefono e sopravvive alla cancellazione della cache.":"Save a copy now: it will remain in your phone’s Downloads and will survive cache deletion.",
+  "È passato troppo tempo. Fai una nuova copia per non rischiare di perdere i dati.":"Too much time has passed. Create a new copy to avoid losing your data.",
+  "Tecnica comune":"Common technique",
+  "Supporto comune":"Common support",
+  "Cornice comune":"Common frame",
+  "Serie / collezione comune":"Common series / collection",
+  "Posizione comune":"Common location",
+  "Opera":"Artwork",
+  "Opere":"Artworks",
+  "Mostre":"Exhibitions",
+  "Clienti":"Clients",
+  "Vendite":"Sales",
+  "Gallerie":"Galleries",
+  "Curatori e critici":"Curators and critics",
+  "Biblioteca Pro":"Pro Library",
+  "Impostazioni":"Settings",
+  "Informazioni":"Information",
+  "Certificati":"Certificates",
+  "Zona Social":"Social Zone",
+  "Link utili":"Useful links",
+  "Contatti e segnalazioni":"Contacts and feedback",
+  "Guida offline":"Offline guide",
+  "Crea nuovo":"Create new",
+  "Attività":"Activity",
+  "Altro":"More",
+  "Archivio":"Archive",
+  "Nuovo":"New",
+  "Annulla":"Cancel",
+  "Salva":"Save",
+  "Modifica":"Edit",
+  "Elimina":"Delete",
+  "Apri":"Open",
+  "Condividi":"Share",
+  "Scarica":"Download",
+  "Seleziona":"Select",
+  "Rimuovi":"Remove",
 };
 function appLang(){return (db&&db.settings&&db.settings.lang)||'it';}
 function T(testo){
@@ -601,18 +699,49 @@ function clone(x){return JSON.parse(JSON.stringify(x))}function load(){try{const
   return persistentSave;
 }const uid=()=>crypto.randomUUID?.()||Date.now().toString(36)+Math.random().toString(36).slice(2);const esc=s=>String(s??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));const euro=n=>n?new Intl.NumberFormat('it-IT',{style:'currency',currency:'EUR'}).format(+n):'';function toast(t){const x=$('#toast');x.textContent=T(t);x.classList.add('show');setTimeout(()=>x.classList.remove('show'),1800)}function download(blob,name){const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=name;a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1000)}
 const titles={home:'MAIR GO!',archive:'Archivio',new:'Crea nuovo',activity:'Attività',more:'Altro',artworks:'Opere',library:'Biblioteca Pro',pdfstudio:'PDF Studio',settings:'Impostazioni',info:'Informazioni',timeline:'Timeline',workspace:'Workspace',exhibitions:'Mostre',clients:'Clienti',sales:'Vendite',agenda:'Agenda',certificates:'Certificati',social:'Zona Social',links:'Link utili',pros:'Curatori e critici',galleries:'Gallerie',certpreview:'Certificato',guide:'Guida offline',contact:'Contatti e segnalazioni'};function updateHeader(){document.documentElement.dataset.theme=db.settings.theme;document.documentElement.dataset.accent=db.settings.accent||'oro';document.documentElement.dataset.font=db.settings.fontSize||'medium';document.documentElement.classList.toggle('reduce-motion',db.settings.animations===false);$('#pageTitle').textContent=T(titles[route]||'MAIR GO!');$('#pageSub').textContent=route==='home'?T('Il tuo atelier digitale'):db.settings.artist;document.querySelectorAll('.bottomnav button').forEach(b=>{const r=b.dataset.route;const active=r===route||(HUB_GROUPS[r]||[]).includes(route);b.classList.toggle('active',active)});traduciNav();traduciStatici()}
+function traduciValoreUI(testo){
+  if(appLang()!=='en'||typeof testo!=='string'||!testo)return testo;
+  const iniziale=testo;
+  const spazioIniziale=(iniziale.match(/^\s*/)||[''])[0];
+  const spazioFinale=(iniziale.match(/\s*$/)||[''])[0];
+  const pulito=iniziale.trim();
+  if(!pulito)return iniziale;
+  if(I18N[pulito])return spazioIniziale+I18N[pulito]+spazioFinale;
+  let m;
+  if((m=pulito.match(/^(\d+) opere visualizzate su (\d+)$/)))return `${spazioIniziale}${m[1]} artworks displayed out of ${m[2]}${spazioFinale}`;
+  if((m=pulito.match(/^Carica altre \((\d+)\)$/)))return `${spazioIniziale}Load more (${m[1]})${spazioFinale}`;
+  if((m=pulito.match(/^Nessun risultato per “(.+)”\.$/)))return `${spazioIniziale}No results for “${m[1]}”.${spazioFinale}`;
+  if((m=pulito.match(/^(\d+) opere?$/)))return `${spazioIniziale}${m[1]} ${m[1]==='1'?'artwork':'artworks'}${spazioFinale}`;
+  return iniziale;
+}
+function traduciNodoUI(radice=document){
+  if(appLang()!=='en'||!radice)return;
+  const esclusi=new Set(['SCRIPT','STYLE','TEXTAREA','OPTION']);
+  try{
+    const walker=document.createTreeWalker(radice,NodeFilter.SHOW_TEXT);
+    const nodi=[];let n;
+    while((n=walker.nextNode()))nodi.push(n);
+    nodi.forEach(node=>{
+      const parent=node.parentElement;
+      if(!parent||esclusi.has(parent.tagName)||parent.closest('[contenteditable="true"],.doc-content,.reader-page'))return;
+      const v=traduciValoreUI(node.nodeValue);
+      if(v!==node.nodeValue)node.nodeValue=v;
+    });
+    radice.querySelectorAll?.('input[placeholder],textarea[placeholder],[title],[aria-label]').forEach(el=>{
+      ['placeholder','title','aria-label'].forEach(a=>{if(el.hasAttribute(a)){const v=traduciValoreUI(el.getAttribute(a));if(v!==el.getAttribute(a))el.setAttribute(a,v);}});
+    });
+    radice.querySelectorAll?.('select option').forEach(o=>{const v=traduciValoreUI(o.textContent);if(v!==o.textContent)o.textContent=v;});
+  }catch(e){}
+}
 function traduciStatici(){
   if(typeof appLang!=='function'||appLang()!=='en')return;
-  const map=[
-    ['#pinInput','placeholder'],
-  ];
   try{
     const q=(sel,txt)=>{const e=document.querySelector(sel);if(e&&txt)e.textContent=T(txt);};
     q('#unlockBtn','Accedi');
     q('#pinHelp','PIN dimenticato?');
     const pinP=document.querySelector('#lockScreen p');if(pinP)pinP.textContent=T('Inserisci il PIN');
-    document.querySelectorAll('#modal .modalactions .btn').forEach(b=>{const t=b.textContent.trim();if(t==='Annulla')b.textContent=T('Annulla');if(t==='Salva')b.textContent=T('Salva');});
     const inst=document.querySelector('#installBtn');if(inst)inst.textContent=T('📲 Installa');
+    traduciNodoUI(document);
   }catch(e){}
 }
 function traduciNav(){
@@ -638,8 +767,8 @@ function traduciNav(){
       .replace(/<p class="section-intro">([^<>{}]+)<\/p>/g,(m,t)=>'<p class="section-intro">'+T(t.trim())+'</p>');
   }catch(e){return html;}
 }
-function go(r){route=r;location.hash=r;render();scrollTo(0,0)}function render(){updateHeader();app.innerHTML=tHtml((views[route]||views.home)());bind()}function bind(){document.querySelectorAll('[data-go]').forEach(x=>x.onclick=()=>go(x.dataset.go));document.querySelectorAll('[data-action]').forEach(x=>x.onclick=()=>actions[x.dataset.action]?.(x.dataset.id,x));if(route==='artworks')bindArtworkFilters();if(route==='library')bindLibraryFilters();if(route==='exhibitions')bindSimpleFilter('exSearch','exGrid',db.exhibitions,exhibitionCard);if(route==='clients')bindSimpleFilter('clientSearch','clientGrid',db.clients,clientCard);if(route==='sales')bindSimpleFilter('saleSearch','saleGrid',db.sales,saleCard);if(route==='pros')bindProFilter();if(route==='galleries')bindSimpleFilter('gallerySearch','galleryGrid',db.galleries||[],galleryCard);if(route==='links')bindLinkFilter();if(route==='certificates')bindSimpleFilter('certSearch','certGrid',db.certificates||[],certCard);if(route==='agenda')bindAgendaFilters()}
-function section(t,b=''){return `<div class="sectionhead"><h2>${T(t)}</h2>${b}</div>`}function empty(i,t,b=''){return `<div class="empty"><div style="font-size:2.5rem">${i}</div><p>${T(t)}</p>${b}</div>`}function img(src,alt=''){return src?`<img src="${src}" alt="${esc(alt)}" loading="lazy" decoding="async">`:'✦'}function field(label,name,value='',type='text',full=''){return `<div class="field ${full}"><label>${T(label)}</label><input name="${name}" type="${type}" value="${esc(value)}"></div>`}function area(label,name,value='',full='full'){return `<div class="field ${full}"><label>${T(label)}</label><textarea name="${name}">${esc(value)}</textarea></div>`}function selectField(label,name,list,value='',full=''){return `<div class="field ${full}"><label>${label}</label><div class="field-inline"><select name="${name}">${list.map(v=>`<option ${v===value?'selected':''}>${esc(v)}</option>`).join('')}</select><button type="button" class="btn" data-add-list="${name}">＋</button></div></div>`}
+function go(r){route=r;location.hash=r;render();scrollTo(0,0)}function render(){updateHeader();app.innerHTML=tHtml((views[route]||views.home)());traduciNodoUI(app);bind();traduciNodoUI(app)}function bind(){document.querySelectorAll('[data-go]').forEach(x=>x.onclick=()=>go(x.dataset.go));document.querySelectorAll('[data-action]').forEach(x=>x.onclick=()=>actions[x.dataset.action]?.(x.dataset.id,x));if(route==='artworks')bindArtworkFilters();if(route==='library')bindLibraryFilters();if(route==='exhibitions')bindSimpleFilter('exSearch','exGrid',db.exhibitions,exhibitionCard);if(route==='clients')bindSimpleFilter('clientSearch','clientGrid',db.clients,clientCard);if(route==='sales')bindSimpleFilter('saleSearch','saleGrid',db.sales,saleCard);if(route==='pros')bindProFilter();if(route==='galleries')bindSimpleFilter('gallerySearch','galleryGrid',db.galleries||[],galleryCard);if(route==='links')bindLinkFilter();if(route==='certificates')bindSimpleFilter('certSearch','certGrid',db.certificates||[],certCard);if(route==='agenda')bindAgendaFilters()}
+function section(t,b=''){return `<div class="sectionhead"><h2>${T(t)}</h2>${b}</div>`}function empty(i,t,b=''){return `<div class="empty"><div style="font-size:2.5rem">${i}</div><p>${T(t)}</p>${b}</div>`}function img(src,alt=''){return src?`<img src="${src}" alt="${esc(alt)}" loading="lazy" decoding="async">`:'✦'}function field(label,name,value='',type='text',full=''){return `<div class="field ${full}"><label>${T(label)}</label><input name="${name}" type="${type}" value="${esc(value)}"></div>`}function area(label,name,value='',full='full'){return `<div class="field ${full}"><label>${T(label)}</label><textarea name="${name}">${esc(value)}</textarea></div>`}function selectField(label,name,list,value='',full=''){return `<div class="field ${full}"><label>${T(label)}</label><div class="field-inline"><select name="${name}">${list.map(v=>`<option value="${esc(v)}" ${v===value?'selected':''}>${esc(T(v))}</option>`).join('')}</select><button type="button" class="btn" data-add-list="${name}">＋</button></div></div>`}
 
 function mostraImmagineIntera(src,titolo){
   // overlay a schermo intero con immagine e X per chiudere
@@ -2467,7 +2596,7 @@ function openModal(title,html,onSave,saveLabel='Salva'){
   saveBtn.type='button';
   saveBtn.disabled=false;
   saveBtn.textContent=T(saveLabel);
-  modal.showModal();
+  modal.showModal();traduciNodoUI(modal);
   document.querySelectorAll('[data-add-list]').forEach(b=>b.onclick=()=>{
     const key={technique:'techniques',support:'supports',dimensions:'dimensions',frame:'frames',status:'statuses',category:'categories'}[b.dataset.addList];
     const v=prompt('Nuova voce');
@@ -2685,7 +2814,7 @@ function openLibrary(id){
   }
   $('#viewerBody').innerHTML=bar+'<div class="la-stage" id="laStage"><div id="laWrap" class="la-wrap"></div></div>';
   try{viewer.querySelector('.viewer-shell')?.classList.add('reader-open');}catch(e){}
-  viewer.showModal();
+  viewer.showModal();traduciNodoUI(viewer);
 
   if(isPdf){ laStartPdf(d); }
   else if(isDocx){ laStartDocx(d); }
@@ -4209,7 +4338,7 @@ function bindLinkFilter(){
         +'</div></section>';
     });
     g.innerHTML=out||empty('&#9906;','Nessun link trovato.');
-    document.querySelectorAll('#linkGrid [data-action]').forEach(x=>x.onclick=()=>actions[x.dataset.action]?.(x.dataset.id,x));
+    traduciNodoUI(g);document.querySelectorAll('#linkGrid [data-action]').forEach(x=>x.onclick=()=>actions[x.dataset.action]?.(x.dataset.id,x));
   };
   i.oninput=run;
 }
@@ -4223,7 +4352,7 @@ function bindProFilter(){
     if(ruolo)arr=arr.filter(p=>(p.role||'Altro')===ruolo);
     if(termini.length)arr=arr.filter(p=>{const t=testoRicercabile(p);return termini.every(w=>t.includes(w));});
     g.innerHTML=arr.map(proCard).join('')||empty('&#9906;','Nessun contatto trovato.');
-    document.querySelectorAll('#proGrid [data-action]').forEach(x=>x.onclick=()=>actions[x.dataset.action]?.(x.dataset.id,x));
+    traduciNodoUI(g);document.querySelectorAll('#proGrid [data-action]').forEach(x=>x.onclick=()=>actions[x.dataset.action]?.(x.dataset.id,x));
   };
   i.oninput=run;if(r)r.onchange=run;
 }
@@ -4234,17 +4363,17 @@ function bindSimpleFilter(inputId,gridId,arr,cardFn){
     const termini=q.split(/\s+/).filter(Boolean);
     const res=!termini.length?arr:arr.filter(x=>{const t=testoRicercabile(x);return termini.every(w=>t.includes(w));});
     g.innerHTML=res.map(cardFn).join('')||empty('&#9906;','Nessun risultato per \u201c'+esc(i.value)+'\u201d.');
-    document.querySelectorAll('#'+gridId+' [data-action]').forEach(x=>x.onclick=()=>actions[x.dataset.action]?.(x.dataset.id,x));
+    traduciNodoUI(g);document.querySelectorAll('#'+gridId+' [data-action]').forEach(x=>x.onclick=()=>actions[x.dataset.action]?.(x.dataset.id,x));
   };
   i.oninput=run;
 }
-function bindAgendaFilters(){const q=$('#agendaSearch'),t=$('#agendaType'),g=$('#agendaList');if(!q||!t||!g)return;const run=()=>{const s=q.value.toLowerCase();g.innerHTML=[...db.agenda].filter(x=>(!t.value||x.type===t.value)&&JSON.stringify(x).toLowerCase().includes(s)).sort((a,b)=>new Date(a.date)-new Date(b.date)).map(agendaCard).join('')||empty('⌕','Nessun evento.');document.querySelectorAll('#agendaList [data-action]').forEach(x=>x.onclick=()=>actions[x.dataset.action]?.(x.dataset.id,x))};q.oninput=t.onchange=run}
+function bindAgendaFilters(){const q=$('#agendaSearch'),t=$('#agendaType'),g=$('#agendaList');if(!q||!t||!g)return;const run=()=>{const s=q.value.toLowerCase();g.innerHTML=[...db.agenda].filter(x=>(!t.value||x.type===t.value)&&JSON.stringify(x).toLowerCase().includes(s)).sort((a,b)=>new Date(a.date)-new Date(b.date)).map(agendaCard).join('')||empty('⌕','Nessun evento.');traduciNodoUI(g);document.querySelectorAll('#agendaList [data-action]').forEach(x=>x.onclick=()=>actions[x.dataset.action]?.(x.dataset.id,x))};q.oninput=t.onchange=run}
 
 function renderProgressive(gridId,items,cardFn,perBlocco=24){
   const g=$('#'+gridId);if(!g)return;
   if(!items.length){g.innerHTML=empty('\u2315','Nessun elemento.');return;}
   let mostrati=0;
-  const bindActions=()=>{document.querySelectorAll('#'+gridId+' [data-action]').forEach(x=>x.onclick=()=>actions[x.dataset.action]?.(x.dataset.id,x));};
+  const bindActions=()=>{traduciNodoUI(g);document.querySelectorAll('#'+gridId+' [data-action]').forEach(x=>x.onclick=()=>actions[x.dataset.action]?.(x.dataset.id,x));};
   const blocco=()=>{
     const fine=Math.min(mostrati+perBlocco,items.length);
     const html=items.slice(mostrati,fine).map(cardFn).join('');
