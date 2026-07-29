@@ -48,7 +48,7 @@ jobs:
           print(p.read_text())
           PYSDK
 
-      - name: Imposta versione Google Play 5
+      - name: Imposta versione Google Play 6
         run: |
           python3 - << 'PYVERSION'
           import re
@@ -57,8 +57,8 @@ jobs:
           p = Path('android/app/build.gradle')
           s = p.read_text()
 
-          s, n_code = re.subn(r'\bversionCode\s+\d+', 'versionCode 5', s, count=1)
-          s, n_name = re.subn(r'\bversionName\s+["\'][^"\']+["\']', 'versionName "1.0.4"', s, count=1)
+          s, n_code = re.subn(r'\bversionCode\s+\d+', 'versionCode 6', s, count=1)
+          s, n_name = re.subn(r'\bversionName\s+["\'][^"\']+["\']', 'versionName "1.0.5"', s, count=1)
 
           if n_code != 1:
               raise SystemExit('ERRORE: versionCode non trovato in android/app/build.gradle')
@@ -66,7 +66,7 @@ jobs:
               raise SystemExit('ERRORE: versionName non trovato in android/app/build.gradle')
 
           p.write_text(s)
-          print('Impostati versionCode 5 e versionName 1.0.4')
+          print('Impostati versionCode 6 e versionName 1.0.5')
           PYVERSION
 
       - name: Ricrea il keystore dalle chiavi segrete
