@@ -1,0 +1,83 @@
+name: Compila AAB per Google Play
+
+on:
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Scarica il progetto
+        uses: actions/checkout@v4
+
+      - name: Prepara Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+
+      - name: Prepara Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Installa Capacitor
+        run: npm install
+
+      - name: Crea il progetto Android
+        run: npx cap add android
+
+      - name: Installa il selettore backup nativo
+        run: |
+          mkdir -p android/app/src/main/java/info/dandreart/mairgo
+          cp native/android/MairBackupPlugin.java android/app/src/main/java/info/dandreart/mairgo/MairBackupPlugin.java
+          cp native/android/MainActivity.java android/app/src/main/java/info/dandreart/mairgo/MainActivity.java
+
+      - name: Sincronizza i file dell'app
+        run: npx cap sync android
+
+      - name: Ricrea il keystore dalle chiavi segrete
+        run: |
+          echo "${{ secrets.KEYSTORE_BASE64 }}" | base64 -d > android/app/mair-release.keystore
+          ls -la android/app/mair-release.keystore
+
+      - name: Configura firma release per il bundle
+        run: |
+          python3 - << 'PYSIGN'
+          import re
+          p='android/app/build.gradle'
+          s=open(p).read()
+          sign='''
+              signingConfigs {
+                  release {
+                      storeFile file('mair-release.keystore')
+                      storePassword System.getenv('MAIR_STORE_PW')
+                      keyAlias System.getenv('MAIR_KEY_ALIAS')
+                      keyPassword System.getenv('MAIR_KEY_PW')
+                  }
+              }'''
+          s=re.sub(r'android\s*\{', 'android {'+sign, s, count=1)
+          if re.search(r'buildTypes\s*\{', s):
+              s=re.sub(r'buildTypes\s*\{', 'buildTypes {\n        release { signingConfig signingConfigs.release\n            minifyEnabled false }', s, count=1)
+          else:
+              s=re.sub(r'(signingConfigs\s*\{[^}]*\}\s*\})', r'\1\n    buildTypes { release { signingConfig signingConfigs.release\n        minifyEnabled false } }', s, count=1)
+          open(p,'w').write(s)
+          print('--- build.gradle release ---')
+          i=s.find('android'); print(s[i:i+600])
+          PYSIGN
+
+      - name: Compila l'AAB (bundle release firmato)
+        env:
+          MAIR_STORE_PW: ${{ secrets.MAIR_KEYSTORE_PASSWORD }}
+          MAIR_KEY_ALIAS: ${{ secrets.MAIR_KEY_ALIAS }}
+          MAIR_KEY_PW: ${{ secrets.MAIR_KEY_PASSWORD }}
+        run: |
+          cd android
+          chmod +x ./gradlew
+          ./gradlew bundleRelease
+
+      - name: Pubblica l'AAB scaricabile
+        uses: actions/upload-artifact@v4
+        with:
+          name: MAIR-GO-AAB
+          path: android/app/build/outputs/bundle/release/app-release.aab
