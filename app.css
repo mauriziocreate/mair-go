@@ -678,14 +678,92 @@ body{padding-bottom:calc(82px + env(safe-area-inset-bottom))}
 #exCuratorSelect{min-height:46px}
 @media(max-width:620px){.exhibition-artworks-box{padding:10px}.field-inline{grid-template-columns:1fr}.field-inline .btn{width:100%}}
 
-/* MAIR GO! 1.0 — correzione pulsanti selezione opere nelle Mostre */
-.art-picker > .row.spread{display:flex;flex-wrap:wrap;align-items:center;gap:8px}
+
+/* MAIR GO! 1.0 - correzione mobile selezione opere nelle Mostre */
+.art-picker > .row.spread{flex-wrap:wrap;align-items:flex-start;gap:8px}
 .art-picker > .row.spread > .row{display:flex;flex-wrap:wrap;gap:8px;max-width:100%}
 .art-picker > .row.spread .btn{white-space:normal;max-width:100%}
-@media(max-width:620px){
-  .art-picker > .row.spread{align-items:stretch}
-  .art-picker > .row.spread > .art-picker-count{width:100%}
-  .art-picker > .row.spread > .row{width:100%;display:grid;grid-template-columns:1fr;gap:8px}
-  .art-picker > .row.spread .btn{width:100%;min-width:0;text-align:center}
-  .exhibition-artworks-box,.exhibition-pros-box{min-width:0;overflow:hidden}
+@media(max-width:520px){
+  .art-picker > .row.spread{display:block}
+  .art-picker > .row.spread > .row{display:grid;grid-template-columns:1fr;width:100%;margin-top:8px}
+  .art-picker > .row.spread .btn{width:100%;min-width:0}
+  .art-picker-count{display:block;width:100%;overflow-wrap:anywhere}
+}
+
+/* ===== VISUALIZZATORE IMMAGINE INTERA ===== */
+#imgFull{
+  position:fixed; inset:0; z-index:9999; background:rgba(0,0,0,.93);
+  display:flex; align-items:center; justify-content:center; padding:20px;
+  animation:imgFullIn .18s ease;
+}
+@keyframes imgFullIn{from{opacity:0}to{opacity:1}}
+#imgFull img{
+  max-width:100%; max-height:100%; object-fit:contain;
+  border-radius:6px; box-shadow:0 10px 50px rgba(0,0,0,.6);
+}
+#imgFullClose{
+  position:absolute; top:16px; right:16px; z-index:2;
+  width:48px; height:48px; border-radius:50%; border:0;
+  background:rgba(255,255,255,.15); color:#fff; font-size:24px; cursor:pointer;
+  display:flex; align-items:center; justify-content:center;
+  backdrop-filter:blur(4px);
+}
+#imgFullClose:active{background:rgba(255,255,255,.3)}
+.imgFull-cap{
+  position:absolute; bottom:24px; left:0; right:0; text-align:center;
+  color:#fff; font-size:15px; padding:0 20px; text-shadow:0 1px 4px rgba(0,0,0,.8);
+}
+
+/* ===== SCELTA MODALITÀ CATALOGO ===== */
+.catopt{display:flex;flex-direction:column;gap:12px}
+.catopt-b{display:flex;flex-direction:column;align-items:flex-start;text-align:left;padding:14px 16px;height:auto;line-height:1.4;white-space:normal}
+.catopt-b small{display:block;margin-top:4px;font-weight:400;opacity:.75;font-size:.85rem}
+
+/* ===== BANNER DATI D'ESEMPIO ===== */
+.demo-banner{display:flex;align-items:center;gap:14px;justify-content:space-between;background:color-mix(in srgb,var(--accent) 12%,var(--panel));border:1px solid color-mix(in srgb,var(--accent) 35%,var(--line));border-radius:16px;padding:14px 18px;margin:0 0 18px}
+.demo-banner strong{display:block;margin-bottom:2px}
+.demo-banner p{margin:0;color:var(--muted);font-size:.85rem;line-height:1.4}
+.demo-banner .btn{flex:0 0 auto}
+
+/* MAIR GO! — pannelli uniformi nelle schermate operative */
+main:has(#exGrid) .sectionhead,
+main:has(#clientGrid) .sectionhead,
+main:has(#saleGrid) .sectionhead,
+main:has(#agendaList) .sectionhead {
+  padding:22px;
+  margin-bottom:16px;
+  border:1px solid color-mix(in srgb,var(--accent) 32%,var(--line));
+  border-radius:24px;
+  background:linear-gradient(135deg,#241b17,color-mix(in srgb,var(--accent) 82%,#7f4936));
+  color:#fff;
+  box-shadow:var(--shadow);
+}
+main:has(#exGrid) .sectionhead h2,
+main:has(#clientGrid) .sectionhead h2,
+main:has(#saleGrid) .sectionhead h2,
+main:has(#agendaList) .sectionhead h2 {color:#fff}
+main:has(#exGrid) .sectionhead .btn,
+main:has(#clientGrid) .sectionhead .btn,
+main:has(#saleGrid) .sectionhead .btn,
+main:has(#agendaList) .sectionhead .btn {
+  background:rgba(255,255,255,.14);
+  border-color:rgba(255,255,255,.38);
+  color:#fff;
+  box-shadow:none;
+}
+main:has(#exGrid) .toolbar,
+main:has(#clientGrid) .toolbar,
+main:has(#saleGrid) .toolbar,
+main:has(#agendaList) .toolbar {
+  padding:14px;
+  border:1px solid var(--line);
+  border-radius:18px;
+  background:var(--panel);
+  box-shadow:0 10px 26px color-mix(in srgb,var(--ink) 8%,transparent);
+}
+@media(max-width:720px){
+  main:has(#exGrid) .sectionhead,
+  main:has(#clientGrid) .sectionhead,
+  main:has(#saleGrid) .sectionhead,
+  main:has(#agendaList) .sectionhead {padding:18px;border-radius:22px}
 }
