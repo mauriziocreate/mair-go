@@ -555,7 +555,7 @@ function diagOpen(){
   box.setAttribute('style','position:fixed;top:0;left:0;right:0;bottom:0;z-index:999999;background:#111;color:#0f0;font:12px/1.5 monospace;padding:10px;overflow:auto');
   const testo=window.__LOG__.length?window.__LOG__.join('\n\n'):'(nessun errore registrato)';
   const info='DIAGNOSTICA MAIR GO!\n'
-    +'Versione app.js: 20.2\n'
+    +'Versione app.js: 20.3\n'
     +'docViewerOpen esiste: '+(typeof docViewerOpen)+'\n'
     +'textEditorOpen esiste: '+(typeof textEditorOpen)+'\n'
     +'certDocHtml esiste: '+(typeof certDocHtml)+'\n'
@@ -853,15 +853,15 @@ const HOME_TILES={
 const HOME_DEFAULT={
   titolo:'',sottotitolo:'',immagine:'',
   stats:['opere','disponibili','vendute','documenti'],
-  tiles:['artworks','exhibitions','workspace','pdfstudio','library','galleries','pros','clients','sales','agenda','social','timeline','settings','guide','info','contact'],
+  tiles:['artworks','exhibitions','workspace','pdfstudio','library','galleries','pros','clients','sales','agenda','social'],
   azione:'newArtwork'
 };
 function homeCfg(){
   const h=db.settings.home||{};
   const preferred=HOME_DEFAULT.tiles.slice();
-  if(!h.layoutVersion||h.layoutVersion<3){
+  if(!h.layoutVersion||h.layoutVersion<4){
     h.tiles=preferred;
-    h.layoutVersion=3;
+    h.layoutVersion=4;
     db.settings.home=h;
     try{save()}catch(e){}
   }
@@ -1400,8 +1400,7 @@ function homeView(){
     return `<button class="tile home-color-${(idx%8)+1}${idx===0?' big':''}" ${nav}>${n!==null?`<span class="count">${n}</span>`:''}<span class="symbol">${TI.icon}</span><h3>${esc(T(TI.title))}</h3><p>${esc(T(TI.desc))}</p></button>`}).join('');
   return `${hero}${haDatiEsempio()?`<section class="demo-banner"><div><strong>\ud83e\uddea ${T('Stai usando dati d\u2019esempio')}</strong><p>${T('Sono opere e contatti dimostrativi. Rimuovili quando vuoi: le tue voci reali non vengono toccate.')}</p></div><button class="btn" data-action="rimuoviEsempio">${T('Rimuovi')}</button></section>`:''}${stats?`<div class="stats">${stats}</div>`:''}${h.promemoria!==false?promemoriaOggi():''}
     <div class="row spread" style="margin:18px 0 8px"><h3 style="margin:0">Sezioni</h3><button class="btn" data-action="customizeHome">\u2699\ufe0f ${T('Personalizza')}</button></div>
-    <div class="tiles">${tiles||('<p class="meta">'+T('Nessuna opera selezionata. Tocca \u201cPersonalizza\u201d.')+'</p>')}</div>
-    <section class="dona-banner" data-action="dona"><span class="dona-cuore">\u2764\ufe0f</span><div><strong>${T('Sostieni MAIR GO!')}</strong><p>${T('App gratuita e senza pubblicità. Una donazione aiuta a tenerla viva.')}</p></div><span class="dona-freccia">\u203a</span></section>`;
+    <div class="tiles">${tiles||('<p class="meta">'+T('Nessuna opera selezionata. Tocca \u201cPersonalizza\u201d.')+'</p>')}</div>`;
 }
 
 function homeCustomizeModal(){
@@ -1421,7 +1420,7 @@ function homeCustomizeModal(){
       <option value="newAgenda" ${h.azione==='newAgenda'?'selected':''}>Nuovo impegno</option></select></div>
     <div class="field full"><label class="chkline"><input type="checkbox" name="promemoria" ${h.promemoria!==false?'checked':''}> Mostra il riquadro \u201cDa fare\u201d</label></div>
     <div class="field full"><label>Statistiche da mostrare</label><div class="chkgrid">${chk('stats',HOME_STATS,h.stats||[])}</div></div>
-    <div class="field full"><label>Sezioni da mostrare</label><div class="chkgrid">${chk('tiles',HOME_TILES,h.tiles||[])}</div></div>
+    <div class="field full"><label>Sezioni da mostrare</label><div class="chkgrid">${chk('tiles',Object.fromEntries(Object.entries(HOME_TILES).filter(([k])=>!HOME_ESCLUSE.includes(k))),h.tiles||[])}</div></div>
     <div class="field full"><label>Ordine delle sezioni (una per riga, quelle non elencate vanno in fondo)</label><textarea name="ordine" rows="6">${esc(ordine.map(k=>HOME_TILES[k].title).join('\n'))}</textarea></div>
   </div>`,async fd=>{
     const img=fd.get('immagine');
@@ -1440,6 +1439,7 @@ function homeCustomizeModal(){
 
 
 /* ===================== NAVIGAZIONE UNIFICATA 10.0 ===================== */
+const HOME_ESCLUSE=['timeline','settings','guide','info','contact'];
 const HUB_GROUPS={
   archive:['archive','artworks','library','pdfstudio','certificates','workspace'],
   new:['new'],
@@ -1502,7 +1502,8 @@ function moreView(){
     ${hubTile('guide','📖','Guida offline','Istruzioni per usare ogni funzione.',null)}
     ${hubTile('info','ℹ️','Informazioni','Versione, privacy e note dell’app.',null)}
     ${hubTile('contact','✉️','Assistenza','Segnalazioni e richieste.',null)}
-  </div></div>`;
+  </div></div>
+  <section class="dona-banner" data-action="dona" style="margin-top:18px"><span class="dona-cuore">❤️</span><div><strong>${T('Sostieni MAIR GO!')}</strong><p>${T('App gratuita e senza pubblicità. Una donazione aiuta a tenerla viva.')}</p></div><span class="dona-freccia">›</span></section>`;
 }
 
 const views={home:()=>homeView(),archive:()=>archiveView(),new:()=>newView(),activity:()=>activityView(),more:()=>moreView(),social:()=>socialView(),links:()=>linksView(),pros:()=>proView(),galleries:()=>galleriesView(),artworks:()=>`${section('Archivio opere','<div class="row"><button class="btn primary" data-action="newArtwork">＋ Nuova opera</button><button class="btn" data-action="bulkImportArtworks">🖼️ Importa più opere</button><button class="btn" data-action="optimizeArtworkImages">⚡ Ottimizza immagini</button></div>')}<section class="hero"><h2>Il tuo archivio artistico</h2><p>Organizza e gestisci le tue opere artistiche, con immagini, schede, prezzi e stato.</p></section><details class="filterpanel"><summary>Filtri avanzati</summary><div class="filtergrid"><input id="artSearch" class="search" placeholder="Cerca in ogni campo…"><select id="artStatus"><option value="">Stato: tutti</option>${db.settings.lists.statuses.map(x=>`<option>${esc(x)}</option>`)}</select><select id="artYear"><option value="">Anno: tutti</option>${[...new Set(db.artworks.map(a=>a.year).filter(Boolean))].sort().reverse().map(x=>`<option>${esc(x)}</option>`)}</select><select id="artTechnique"><option value="">Tecnica: tutte</option>${db.settings.lists.techniques.map(x=>`<option>${esc(x)}</option>`)}</select><select id="artSupport"><option value="">Supporto: tutti</option>${db.settings.lists.supports.map(x=>`<option>${esc(x)}</option>`)}</select><select id="artDimension"><option value="">Dimensione: tutte</option>${db.settings.lists.dimensions.map(x=>`<option>${esc(x)}</option>`)}</select><select id="artFrame"><option value="">Cornice: tutte</option>${db.settings.lists.frames.map(x=>`<option>${esc(x)}</option>`)}</select><input id="artCollection" placeholder="Serie / collezione"><input id="artLocation" placeholder="Posizione"><select id="artFavorite"><option value="">Preferiti: tutti</option><option value="yes">Solo preferiti</option></select><input id="artMinPrice" type="number" placeholder="Prezzo minimo"><input id="artMaxPrice" type="number" placeholder="Prezzo massimo"><button class="btn" data-action="resetArtworkFilters">Azzera filtri</button></div><div id="filterCount" class="meta"></div></details><div id="artGrid" class="grid">${db.artworks.slice(0,24).map(artworkCard).join('')||empty('🎨','Non hai ancora inserito opere.','<button class="btn primary" data-action="newArtwork">Aggiungi la prima opera</button>')}</div>`,
