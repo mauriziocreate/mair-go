@@ -397,6 +397,18 @@ const I18N={
   "Carica dati d’esempio":"Load sample data",
   "L’app contiene dati d’esempio (opere, curatore, cliente, vendita, mostra). Quando vuoi puoi rimuoverli: le tue voci reali restano intatte.":"The app contains sample data (artworks, curator, client, sale, exhibition). You can remove it anytime: your real entries stay intact.",
   "Puoi caricare alcuni dati d’esempio per esplorare l’app, e rimuoverli in qualsiasi momento.":"You can load some sample data to explore the app, and remove it anytime.",
+
+  "La tua Home":"Your Home",
+  "Qui vedi a colpo d’occhio le statistiche del tuo archivio e le azioni rapide. Il riquadro \"Da fare\" ti ricorda gli impegni in scadenza.":"See your archive stats and quick actions at a glance. The \"To do\" box reminds you of upcoming commitments.",
+  "Archivio e Opere":"Archive & Artworks",
+  "Il cuore dell’app. Ogni opera ha immagine, scheda completa, prezzo e stato. Puoi filtrare, cercare e toccare un’immagine per vederla intera.":"The heart of the app. Each artwork has an image, full record, price and status. Filter, search and tap an image to see it full-size.",
+  "Da qui aggiungi in un tocco: opere, certificati, cataloghi PDF, documenti, clienti, curatori.":"Add in one tap: artworks, certificates, PDF catalogs, documents, clients, curators.",
+  "Agenda, mostre, clienti, vendite e la timeline di tutto ciò che accade nel tuo atelier.":"Agenda, exhibitions, clients, sales and the timeline of everything happening in your atelier.",
+  "Zona Social, link utili, gallerie, impostazioni, esportazione dati, guida e backup. Esplora con calma.":"Social, useful links, galleries, settings, data export, guide and backup. Explore at your own pace.",
+  "Il backup è sacro":"Backup is sacred",
+  "I dati stanno solo sul tuo telefono. Fai regolarmente un backup da Impostazioni e salvalo altrove (Drive, email): è l’unico modo per non perderli.":"Your data lives only on your phone. Back up regularly from Settings and save it elsewhere (Drive, email): it’s the only way not to lose it.",
+  "Salta il tour":"Skip the tour",
+  "Inizia a usare l’app":"Start using the app",
 };
 function appLang(){return (db&&db.settings&&db.settings.lang)||'it';}
 function T(testo){
@@ -413,7 +425,7 @@ function diagOpen(){
   box.setAttribute('style','position:fixed;top:0;left:0;right:0;bottom:0;z-index:999999;background:#111;color:#0f0;font:12px/1.5 monospace;padding:10px;overflow:auto');
   const testo=window.__LOG__.length?window.__LOG__.join('\n\n'):'(nessun errore registrato)';
   const info='DIAGNOSTICA MAIR GO!\n'
-    +'Versione app.js: 20.1\n'
+    +'Versione app.js: 20.2\n'
     +'docViewerOpen esiste: '+(typeof docViewerOpen)+'\n'
     +'textEditorOpen esiste: '+(typeof textEditorOpen)+'\n'
     +'certDocHtml esiste: '+(typeof certDocHtml)+'\n'
@@ -1536,6 +1548,12 @@ function caricaDatiEsempio(){
     artworkIds:[idsOpere[0],idsOpere[1]],status:'In programma',demo:marca,
     updated:new Date().toISOString(),created:new Date().toISOString()});
 
+  // 1 PROGETTO PDF (catalogo d'esempio)
+  db.pdfProjects.unshift({id:uid(),title:'Catalogo 2024',subtitle:db.settings.artist||'',
+    type:'Portfolio',theme:'Atelier',intro:'Una selezione delle opere recenti.',
+    fields:['year','technique','dimensions','price','status'],
+    artworkIds:[idsOpere[0],idsOpere[1],idsOpere[3]],demo:marca,created:new Date().toISOString()});
+
   // 2 APPUNTAMENTI in agenda
   db.agenda.push({id:uid(),title:'Incontro con la curatrice Elena Rossi',date:isoData(3),
     time:'15:00',location:'Milano',demo:marca,updated:new Date().toISOString(),created:new Date().toISOString()});
@@ -1545,12 +1563,12 @@ function caricaDatiEsempio(){
   save();
 }
 function haDatiEsempio(){
-  const sez=['artworks','pros','galleries','clients','sales','exhibitions','agenda'];
+  const sez=['artworks','pros','galleries','clients','sales','exhibitions','agenda','pdfProjects','workspaces','certificates'];
   return sez.some(k=>(db[k]||[]).some(x=>x&&x.demo==='__demo__'));
 }
 function cancellaDatiEsempio(){
   if(!confirm('Rimuovere tutti i dati d\u2019esempio?\n\nLe voci che hai aggiunto tu resteranno intatte.'))return;
-  const sez=['artworks','pros','galleries','clients','sales','exhibitions','agenda'];
+  const sez=['artworks','pros','galleries','clients','sales','exhibitions','agenda','pdfProjects','workspaces','certificates'];
   sez.forEach(k=>{if(Array.isArray(db[k]))db[k]=db[k].filter(x=>!(x&&x.demo==='__demo__'));});
   save();render();toast('Dati d\u2019esempio rimossi');
 }
@@ -1576,16 +1594,16 @@ function giroGuidato(){
     const p=passi[i];
     ov.innerHTML='<div style="max-width:420px;width:100%;background:var(--panel,#fff);border-radius:20px;padding:30px 26px;box-shadow:0 20px 70px rgba(0,0,0,.6);text-align:center">'
       +'<div style="font-size:3rem;margin-bottom:10px">'+p.ic+'</div>'
-      +'<h2 style="margin:0 0 10px;font-family:Georgia,serif">'+p.t+'</h2>'
-      +'<p style="margin:0 0 22px;color:var(--muted,#777);line-height:1.6">'+p.d+'</p>'
+      +'<h2 style="margin:0 0 10px;font-family:Georgia,serif">'+T(p.t)+'</h2>'
+      +'<p style="margin:0 0 22px;color:var(--muted,#777);line-height:1.6">'+T(p.d)+'</p>'
       +'<div style="display:flex;gap:6px;justify-content:center;margin-bottom:18px">'
       + passi.map((_,k)=>'<span style="width:8px;height:8px;border-radius:50%;background:'+(k===i?'var(--accent,#8a6a1f)':'var(--line,#ccc)')+'"></span>').join('')
       +'</div>'
       +'<div style="display:flex;gap:10px">'
-      +(i>0?'<button id="tPrev" class="btn" style="flex:1">Indietro</button>':'')
-      +'<button id="tNext" class="btn primary" style="flex:2">'+(i<passi.length-1?'Avanti':'Inizia a usare l\u2019app')+'</button>'
+      +(i>0?'<button id="tPrev" class="btn" style="flex:1">'+T('Indietro')+'</button>':'')
+      +'<button id="tNext" class="btn primary" style="flex:2">'+(i<passi.length-1?T('Avanti'):T('Inizia a usare l\u2019app'))+'</button>'
       +'</div>'
-      +'<button id="tSkip" class="btn ghost" style="width:100%;margin-top:8px;font-size:.85rem">Salta il tour</button>'
+      +'<button id="tSkip" class="btn ghost" style="width:100%;margin-top:8px;font-size:.85rem">'+T('Salta il tour')+'</button>'
       +'</div>';
     const next=ov.querySelector('#tNext');if(next)next.onclick=()=>{if(i<passi.length-1){i++;mostra();}else fine();};
     const prev=ov.querySelector('#tPrev');if(prev)prev.onclick=()=>{if(i>0){i--;mostra();}};
