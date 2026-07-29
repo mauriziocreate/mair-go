@@ -48,6 +48,27 @@ jobs:
           print(p.read_text())
           PYSDK
 
+      - name: Imposta versione Google Play 2
+        run: |
+          python3 - << 'PYVERSION'
+          import re
+          from pathlib import Path
+
+          p = Path('android/app/build.gradle')
+          s = p.read_text()
+
+          s, n_code = re.subn(r'\bversionCode\s+\d+', 'versionCode 2', s, count=1)
+          s, n_name = re.subn(r'\bversionName\s+["\'][^"\']+["\']', 'versionName "1.0.1"', s, count=1)
+
+          if n_code != 1:
+              raise SystemExit('ERRORE: versionCode non trovato in android/app/build.gradle')
+          if n_name != 1:
+              raise SystemExit('ERRORE: versionName non trovato in android/app/build.gradle')
+
+          p.write_text(s)
+          print('Impostati versionCode 2 e versionName 1.0.1')
+          PYVERSION
+
       - name: Ricrea il keystore dalle chiavi segrete
         run: |
           echo "${{ secrets.KEYSTORE_BASE64 }}" | base64 -d > android/app/mair-release.keystore
