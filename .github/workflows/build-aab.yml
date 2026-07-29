@@ -36,6 +36,18 @@ jobs:
       - name: Sincronizza i file dell'app
         run: npx cap sync android
 
+      - name: Imposta Android API 35 richiesta da Google Play
+        run: |
+          python3 - << 'PYSDK'
+          from pathlib import Path
+          p = Path('android/variables.gradle')
+          s = p.read_text()
+          s = s.replace('compileSdkVersion = 34', 'compileSdkVersion = 35')
+          s = s.replace('targetSdkVersion = 34', 'targetSdkVersion = 35')
+          p.write_text(s)
+          print(p.read_text())
+          PYSDK
+
       - name: Ricrea il keystore dalle chiavi segrete
         run: |
           echo "${{ secrets.KEYSTORE_BASE64 }}" | base64 -d > android/app/mair-release.keystore
