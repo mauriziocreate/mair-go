@@ -3590,7 +3590,7 @@ async function pdfCertificatoImpaginato(c){
 }
 
 /* ===== PANNELLO CONFIGURAZIONE PDF ===== */
-function pdfSettingsModal(){
+function pdfSettingsModal(onSaved){
   const C=pdfCfg();
   const sel=(nome,lista,val)=>'<select name="'+nome+'">'+lista.map(([v,l])=>'<option value="'+v+'"'+(String(val)===String(v)?' selected':'')+'>'+l+'</option>').join('')+'</select>';
   const chk=(nome,label,val)=>'<label class="chkline"><input type="checkbox" name="'+nome+'"'+(val?' checked':'')+'> '+label+'</label>';
@@ -3628,10 +3628,60 @@ function pdfSettingsModal(){
       riempi:!!fd.get('riempi')
     };
     save();modal.close();toast('Impaginazione salvata');
+    if(typeof onSaved==='function')setTimeout(()=>onSaved(db.settings.pdf),80);
   });
 }
 
 /* ===== SALVATAGGIO FILE COMPATIBILE ANDROID ===== */
+function scegliCartellaPdf(){
+  return new Promise(resolve=>{
+    const html='<div class="pdf-dest-choice">'
+      +'<p class="meta">Dove vuoi salvare il PDF?</p>'
+      +'<button type="button" class="btn primary" data-pdf-dest="download">📥 Download</button>'
+      +'<button type="button" class="btn" data-pdf-dest="documents">📄 Documenti</button>'
+      +'<p class="meta">Dopo il salvataggio si aprirà automaticamente Condividi.</p>'
+      +'</div>';
+    openModal('Salva PDF',html,null,'Annulla');
+    const saveBtn=document.getElementById('modalSave');if(saveBtn)saveBtn.style.display='none';
+    let done=false;
+    document.querySelectorAll('#modalBody [data-pdf-dest]').forEach(b=>b.onclick=()=>{
+      done=true;const v=b.dataset.pdfDest;modal.close();resolve(v);
+    });
+    modal.addEventListener('close',function once(){modal.removeEventListener('close',once);if(saveBtn)saveBtn.style.display='';if(!done)resolve(null);},{once:true});
+  });
+}
+async function salvaPdfECondividi(nome,blob){
+  const scelta=await scegliCartellaPdf();
+  if(!scelta)return false;
+  const Cap=window.Capacitor,FS=Cap&&Cap.Plugins&&Cap.Plugins.Filesystem,Sh=Cap&&Cap.Plugins&&Cap.Plugins.Share;
+  try{
+    if(FS){
+      const b64=await new Promise((ok,ko)=>{const r=new FileReader();r.onload=()=>ok(String(r.result).split(',')[1]);r.onerror=ko;r.readAsDataURL(blob);});
+      const tentativi=scelta==='download'
+        ?[{dir:'EXTERNAL',path:'Download/MAIR GO/'+nome,dove:'Download/MAIR GO'},{dir:'DOCUMENTS',path:'MAIR GO/'+nome,dove:'Documenti/MAIR GO'},{dir:'DATA',path:nome,dove:'cartella app'}]
+        :[{dir:'DOCUMENTS',path:'MAIR GO/'+nome,dove:'Documenti/MAIR GO'},{dir:'EXTERNAL',path:'Documents/MAIR GO/'+nome,dove:'Documenti/MAIR GO'},{dir:'DATA',path:nome,dove:'cartella app'}];
+      let res=null,dove='';
+      for(const t of tentativi){
+        try{res=await FS.writeFile({path:t.path,data:b64,directory:t.dir,recursive:true});dove=t.dove;break;}
+        catch(e){diagLog('PDF-DIR','fallita '+t.dir+'/'+t.path+': '+(e&&e.message?e.message:e));}
+      }
+      if(res){
+        toast('PDF salvato in '+dove);
+        if(Sh&&res.uri){
+          try{await Sh.share({title:nome,text:nome,url:res.uri,dialogTitle:'Condividi '+nome});}catch(e){diagLog('PDF-SHARE',e&&e.message?e.message:String(e));}
+        }
+        return true;
+      }
+    }
+  }catch(e){diagLog('PDF-SAVE-SHARE',e&&e.message?e.message:String(e));}
+  try{
+    const file=new File([blob],nome,{type:'application/pdf'});
+    const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=nome;a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1500);
+    if(navigator.share&&navigator.canShare&&navigator.canShare({files:[file]}))await navigator.share({title:nome,files:[file]});
+    return true;
+  }catch(e){alert('Impossibile salvare il PDF.');return false;}
+}
+
 async function salvaFileBlob(nome,blob,mime){
   const CART='MAIR GO';
   try{
@@ -4104,6 +4154,9 @@ function docViewerOpen(title,inner,extraCss,plainText){
       +'#docviewer .dv-close-float{position:fixed;right:max(16px,env(safe-area-inset-right));bottom:calc(16px + env(safe-area-inset-bottom));z-index:100002;display:grid;place-items:center;min-width:118px;min-height:48px;padding:11px 16px;border:1px solid color-mix(in srgb,var(--accent) 72%,#000);border-radius:18px;background:linear-gradient(145deg,#2b211d,color-mix(in srgb,var(--accent) 28%,#211713));color:#fff;font:750 .95rem system-ui;box-shadow:0 9px 26px #0006}'
       +'#docviewer .dv-scroll{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:16px 12px calc(88px + env(safe-area-inset-bottom));background:transparent}'
       +'#docviewer .dv-paper{background:#fff;color:#111;max-width:900px;margin:0 auto;padding:22px;font-family:Georgia,serif;line-height:1.6;box-shadow:0 12px 34px #0002;border-radius:6px}'
+      +'#docviewer .dv-pdf-preview{max-width:900px;margin:0 auto;display:grid;gap:14px}'
+      +'#docviewer .dv-pdf-preview canvas{display:block;width:100%;height:auto;background:#fff;border-radius:4px;box-shadow:0 10px 28px #0003}'
+      +'#docviewer .dv-preview-note{margin:0 auto 12px;max-width:900px;padding:9px 12px;border-radius:12px;background:color-mix(in srgb,var(--accent) 12%,var(--panel));color:var(--ink);font:700 .82rem system-ui;text-align:center}'
       +'#docviewer .dv-paper img{max-width:100%;height:auto}'
       +'#docviewer .dv-paper table{width:100%;border-collapse:collapse;margin:14px 0}'
       +'#docviewer .dv-paper td{padding:9px 12px;border-bottom:1px solid #ddd}'
@@ -4148,72 +4201,70 @@ function docViewerOpen(title,inner,extraCss,plainText){
     const closeIt=()=>{host.remove();css.remove()};
     bClose.onclick=closeIt;
     back.onclick=closeIt;
-    const generaPDF=async(condividi)=>{
-      const btn=condividi?bShare:bPrint;
-      const originale=btn.textContent;
-      btn.textContent='\u23f3 Attendere...';bPrint.disabled=true;bShare.disabled=true;
+    let pdfPronto=null;
+    const creaPdf=async()=>{
+      if(typeof html2canvas!=='function'||!window.jspdf)throw new Error('Librerie PDF non caricate');
+      const {jsPDF}=window.jspdf;
+      let pdf;
+      const ctx=window.__PDFCTX__||{};
       try{
-        if(typeof html2canvas!=='function'||!window.jspdf){throw new Error('Librerie PDF non caricate');}
-        const {jsPDF}=window.jspdf;
-        let pdf;
-        const ctx=window.__PDFCTX__||{};
-        try{
-          if(ctx.tipo==='catalogo'&&ctx.dato){
-            const nOp=(ctx.dato.artworkIds||[]).length;
-            if(nOp>120){
-              const scelta=await scegliModalitaCatalogo(nOp);
-              if(!scelta){btn.textContent=originale;bPrint.disabled=false;bShare.disabled=false;return;}
-              if(scelta.modo==='diviso'){
-                await generaCatalogoDiviso(ctx.dato,scelta,nOp);
-                btn.textContent=originale;bPrint.disabled=false;bShare.disabled=false;
-                return;
-              }
-              diagLog('PDF','catalogo '+nOp+' opere, qualità '+scelta.q.nome);
-              pdf=await pdfCatalogoImpaginato(ctx.dato,scelta.q);
-            }else{
-              diagLog('PDF','impaginazione catalogo '+nOp+' opere');
-              pdf=await pdfCatalogoImpaginato(ctx.dato);
-            }
-          }else if(ctx.tipo==='certificato'&&ctx.dato){
-            diagLog('PDF','impaginazione certificato');
-            pdf=await pdfCertificatoImpaginato(ctx.dato);
-          }
-        }catch(errImp){
-          diagLog('PDF-IMPAG-ERRORE',errImp&&errImp.message?errImp.message:String(errImp));
-          pdf=null;
-        }
-        if(!pdf){
-          // generico: cattura semplice con margini
-          diagLog('PDF','impaginazione generica');
-          pdf=new jsPDF({orientation:'p',unit:'mm',format:'a4'});
-          const M=pdfMisure(pdf);
-          const canvas=await html2canvas(paper,{scale:2,backgroundColor:'#ffffff',useCORS:true,logging:false});
-          const img=canvas.toDataURL('image/jpeg',0.92);
-          const iw=M.utileW, ih=canvas.height*iw/canvas.width;
-          let resto=ih, pos=M.mt;
-          pdf.addImage(img,'JPEG',M.ml,pos,iw,ih);
-          resto-=M.utileH;
-          while(resto>0){pos-=M.utileH;pdf.addPage();pdf.addImage(img,'JPEG',M.ml,pos,iw,ih);resto-=M.utileH;}
-        }
-        const nome=safeName(title)+'.pdf';
-        try{
-          const blob=pdf.output('blob');
-          await salvaFileBlob(nome,blob,'application/pdf');
-          toast('PDF creato');
-        }catch(ePdf){
-          diagLog('PDF-SAVE',ePdf&&ePdf.message?ePdf.message:String(ePdf));
-          alert('Impossibile salvare il PDF: '+(ePdf&&ePdf.message?ePdf.message:ePdf));
-        }
-      }catch(e){
-        diagLog('PDF-ERRORE',e&&e.message?e.message:String(e));
-        alert('Impossibile creare il PDF: '+(e&&e.message?e.message:e));
-      }finally{
-        btn.textContent=originale;bPrint.disabled=false;bShare.disabled=false;
+        if(ctx.tipo==='catalogo'&&ctx.dato){
+          const nOp=(ctx.dato.artworkIds||[]).length;
+          if(nOp>120){
+            const scelta=await scegliModalitaCatalogo(nOp);
+            if(!scelta)return null;
+            if(scelta.modo==='diviso'){await generaCatalogoDiviso(ctx.dato,scelta,nOp);return null;}
+            pdf=await pdfCatalogoImpaginato(ctx.dato,scelta.q);
+          }else pdf=await pdfCatalogoImpaginato(ctx.dato);
+        }else if(ctx.tipo==='certificato'&&ctx.dato)pdf=await pdfCertificatoImpaginato(ctx.dato);
+      }catch(errImp){diagLog('PDF-IMPAG-ERRORE',errImp&&errImp.message?errImp.message:String(errImp));pdf=null;}
+      if(!pdf){
+        pdf=new jsPDF({orientation:'p',unit:'mm',format:'a4'});
+        const M=pdfMisure(pdf);
+        const canvas=await html2canvas(paper,{scale:2,backgroundColor:'#ffffff',useCORS:true,logging:false});
+        const img=canvas.toDataURL('image/jpeg',0.92),iw=M.utileW,ih=canvas.height*iw/canvas.width;
+        let resto=ih,pos=M.mt;pdf.addImage(img,'JPEG',M.ml,pos,iw,ih);resto-=M.utileH;
+        while(resto>0){pos-=M.utileH;pdf.addPage();pdf.addImage(img,'JPEG',M.ml,pos,iw,ih);resto-=M.utileH;}
       }
+      return pdf;
     };
-    bPrint.onclick=()=>generaPDF(false);
-    bShare.onclick=()=>generaPDF(true);
-    bCfg.onclick=()=>pdfSettingsModal();
+    const mostraAnteprimaPdf=async(pdf)=>{
+      if(!pdf||!window.pdfjsLib)return;
+      const originale=paper.innerHTML;
+      paper.style.display='none';
+      let area=scroll.querySelector('.dv-pdf-preview');if(area)area.remove();
+      const note=document.createElement('div');note.className='dv-preview-note';note.textContent='Anteprima dell’impaginazione · scorri verso il basso per vedere le pagine';
+      area=document.createElement('div');area.className='dv-pdf-preview';scroll.prepend(note,area);
+      try{
+        try{window.pdfjsLib.GlobalWorkerOptions.workerSrc='vendor/pdf.worker.min.js';}catch(e){}
+        const doc=await window.pdfjsLib.getDocument({data:pdf.output('arraybuffer')}).promise;
+        const max=Math.min(doc.numPages,30);
+        for(let i=1;i<=max;i++){
+          const pg=await doc.getPage(i),vp=pg.getViewport({scale:1.25}),cv=document.createElement('canvas');
+          cv.width=Math.ceil(vp.width);cv.height=Math.ceil(vp.height);area.appendChild(cv);
+          await pg.render({canvasContext:cv.getContext('2d'),viewport:vp}).promise;
+        }
+        if(doc.numPages>max){const x=document.createElement('div');x.className='dv-preview-note';x.textContent='Anteprima delle prime '+max+' pagine su '+doc.numPages+'. Il PDF salvato sarà completo.';area.appendChild(x);}
+        scroll.scrollTo({top:0,behavior:'smooth'});
+      }catch(e){paper.style.display='';paper.innerHTML=originale;note.remove();area.remove();throw e;}
+    };
+    const salvaPdf=async()=>{
+      const originale=bPrint.textContent;bPrint.textContent='⏳ Preparazione…';bPrint.disabled=true;bShare.disabled=true;bCfg.disabled=true;
+      try{
+        if(!pdfPronto)pdfPronto=await creaPdf();
+        if(!pdfPronto)return;
+        await salvaPdfECondividi(safeName(title)+'.pdf',pdfPronto.output('blob'));
+      }catch(e){diagLog('PDF-ERRORE',e&&e.message?e.message:String(e));alert('Impossibile creare il PDF: '+(e&&e.message?e.message:e));}
+      finally{bPrint.textContent=originale;bPrint.disabled=false;bShare.disabled=false;bCfg.disabled=false;}
+    };
+    bPrint.onclick=salvaPdf;
+    bShare.onclick=salvaPdf;
+    bCfg.onclick=()=>pdfSettingsModal(async()=>{
+      const originale=bCfg.textContent;bCfg.textContent='⏳ Anteprima…';bCfg.disabled=true;bPrint.disabled=true;bShare.disabled=true;
+      try{pdfPronto=await creaPdf();if(pdfPronto){await mostraAnteprimaPdf(pdfPronto);toast('Anteprima aggiornata');}}
+      catch(e){alert('Impossibile mostrare l’anteprima: '+(e&&e.message?e.message:e));}
+      finally{bCfg.textContent=originale;bCfg.disabled=false;bPrint.disabled=false;bShare.disabled=false;}
+    });
     bText.onclick=()=>{const testo=plainText||paper.innerText;closeIt();requestAnimationFrame(()=>textEditorOpen(title,testo));};
     bCopy.onclick=async()=>{
       try{await navigator.clipboard.writeText(plainText||paper.innerText);toast('Testo copiato')}
