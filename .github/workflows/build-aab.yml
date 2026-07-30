@@ -43,8 +43,8 @@ jobs:
           p='android/app/build.gradle'
           s=open(p).read()
           # CAMBIA QUESTO NUMERO a ogni caricamento su Google Play (deve solo salire: 11, 12, 13...)
-          vc='13'
-          vn='1.0.13'
+          vc='14'
+          vn='1.0.14'
           s=re.sub(r'versionCode\s+\d+', 'versionCode '+vc, s, count=1)
           s=re.sub(r'versionName\s+"[^"]*"', 'versionName "'+vn+'"', s, count=1)
           open(p,'w').write(s)
