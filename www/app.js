@@ -1,4 +1,4 @@
-const APP_VERSION='21.5';
+const APP_VERSION='21.7';
 /* ===== DIAGNOSTICA (registro errori visibile dal telefono) ===== */
 window.__LOG__=[];
 /* ===== SISTEMA TRADUZIONE IT/EN ===== */
@@ -702,7 +702,16 @@ function clone(x){return JSON.parse(JSON.stringify(x))}function load(){try{const
   updateHeader();
   return persistentSave;
 }const uid=()=>crypto.randomUUID?.()||Date.now().toString(36)+Math.random().toString(36).slice(2);const esc=s=>String(s??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));const euro=n=>n?new Intl.NumberFormat('it-IT',{style:'currency',currency:'EUR'}).format(+n):'';function toast(t){const x=$('#toast');x.textContent=T(t);x.classList.add('show');setTimeout(()=>x.classList.remove('show'),1800)}function download(blob,name){const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=name;a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1000)}
-const titles={home:'MAIR GO!',archive:'Archivio',new:'Crea nuovo',activity:'Vendite',more:'Altro',artworks:'Opere',library:'Biblioteca Pro',pdfstudio:'PDF Studio',settings:'Impostazioni',info:'Informazioni',timeline:'Timeline',workspace:'Workspace',exhibitions:'Mostre',clients:'Clienti',sales:'Vendite',agenda:'Agenda',certificates:'Certificati',social:'Zona Social',links:'Link utili',pros:'Curatori e critici',galleries:'Gallerie',certpreview:'Certificato',guide:'Guida offline',contact:'Contatti e segnalazioni'};function updateHeader(){document.documentElement.dataset.theme=db.settings.theme;document.documentElement.dataset.accent=db.settings.accent||'oro';document.documentElement.dataset.font=db.settings.fontSize||'medium';document.documentElement.classList.toggle('reduce-motion',db.settings.animations===false);$('#pageTitle').textContent=T(titles[route]||'MAIR GO!');$('#pageSub').textContent=route==='home'?T('Il tuo atelier digitale'):db.settings.artist;document.querySelectorAll('.bottomnav button').forEach(b=>{const r=b.dataset.route;const active=r===route||(HUB_GROUPS[r]||[]).includes(route);b.classList.toggle('active',active)});traduciNav();traduciStatici()}
+const titles={home:'MAIR GO!',archive:'Archivio',new:'Crea nuovo',activity:'Vendite',more:'Altro',artworks:'Opere',library:'Biblioteca Pro',pdfstudio:'PDF Studio',settings:'Impostazioni',info:'Informazioni',timeline:'Timeline',workspace:'Workspace',exhibitions:'Mostre',clients:'Clienti',sales:'Vendite',agenda:'Agenda',certificates:'Certificati',social:'Zona Social',links:'Link utili',pros:'Curatori e critici',galleries:'Gallerie',certpreview:'Certificato',guide:'Guida offline',contact:'Contatti e segnalazioni'};function aggiornaBarraStato(){
+  try{
+    const SB=window.Capacitor&&window.Capacitor.Plugins&&window.Capacitor.Plugins.StatusBar;
+    if(!SB)return;
+    const scuro=(db.settings.theme==='dark')||document.documentElement.dataset.theme==='dark';
+    SB.setStyle({style: scuro?'DARK':'LIGHT'});
+    if(SB.setBackgroundColor){ SB.setBackgroundColor({color: scuro?'#171717':'#f5f2ec'}); }
+  }catch(e){}
+}
+function updateHeader(){document.documentElement.dataset.theme=db.settings.theme;aggiornaBarraStato();document.documentElement.dataset.accent=db.settings.accent||'oro';document.documentElement.dataset.font=db.settings.fontSize||'medium';document.documentElement.classList.toggle('reduce-motion',db.settings.animations===false);$('#pageTitle').textContent=T(titles[route]||'MAIR GO!');$('#pageSub').textContent=route==='home'?T('Il tuo atelier digitale'):db.settings.artist;document.querySelectorAll('.bottomnav button').forEach(b=>{const r=b.dataset.route;const active=r===route||(HUB_GROUPS[r]||[]).includes(route);b.classList.toggle('active',active)});traduciNav();traduciStatici()}
 function traduciValoreUI(testo){
   if(appLang()!=='en'||typeof testo!=='string'||!testo)return testo;
   const iniziale=testo;
@@ -1629,6 +1638,11 @@ function esciApp(){
 document.addEventListener('DOMContentLoaded',()=>{
   try{
     const Cap=window.Capacitor;
+    const SB=Cap&&Cap.Plugins&&Cap.Plugins.StatusBar;
+    if(SB){
+      try{ SB.setOverlaysWebView({overlay:false}); }catch(e){}
+      try{ aggiornaBarraStato(); }catch(e){}
+    }
     const App=Cap&&Cap.Plugins&&Cap.Plugins.App;
     if(App&&App.addListener){
       App.addListener('backButton',()=>{
