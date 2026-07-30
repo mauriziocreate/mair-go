@@ -1,4 +1,4 @@
-const APP_VERSION='21.4';
+const APP_VERSION='21.5';
 /* ===== DIAGNOSTICA (registro errori visibile dal telefono) ===== */
 window.__LOG__=[];
 /* ===== SISTEMA TRADUZIONE IT/EN ===== */
