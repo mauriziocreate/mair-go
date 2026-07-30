@@ -1,4 +1,4 @@
-const APP_VERSION='21.7';
+const APP_VERSION='21.8';
 /* ===== DIAGNOSTICA (registro errori visibile dal telefono) ===== */
 window.__LOG__=[];
 /* ===== SISTEMA TRADUZIONE IT/EN ===== */
@@ -2782,6 +2782,18 @@ const LA={pdf:null,pages:[],zoom:1,mode:'continuous',page:1,token:0,observer:nul
 
 function openLibrary(id){
   const d=db.library.find(x=>x.id===id);if(!d)return;
+  if(!document.getElementById('la-toolbar-compact-css')){
+    const st=document.createElement('style');st.id='la-toolbar-compact-css';
+    st.textContent='.la-toolbar-note{padding:9px 14px;font-size:.82rem;line-height:1.2}'
+      +'.reader-bar.la-bar{display:flex!important;align-items:center;gap:6px!important;overflow-x:auto!important;overscroll-behavior-x:contain;-webkit-overflow-scrolling:touch;scrollbar-width:thin;padding:8px 18px 9px 10px!important;box-sizing:border-box;width:100%}'
+      +'.reader-bar.la-bar .btn{flex:0 0 auto!important;min-width:auto!important;padding:8px 12px!important;white-space:nowrap;font-size:.86rem!important;border-radius:13px!important}'
+      +'.reader-bar.la-bar [data-la-mode]{padding-left:13px!important;padding-right:13px!important}'
+      +'.reader-bar.la-bar #laZoomOut,.reader-bar.la-bar #laZoomIn{width:44px!important;padding-left:0!important;padding-right:0!important}'
+      +'.reader-bar.la-bar .reader-zoom{flex:0 0 auto;min-width:48px;text-align:center;font-size:.88rem;padding:0 2px}'
+      +'.reader-bar.la-bar #laFit{margin-right:2px}'
+      +'@media(max-width:390px){.reader-bar.la-bar{gap:5px!important;padding-left:8px!important;padding-right:20px!important}.reader-bar.la-bar .btn{padding:7px 10px!important;font-size:.8rem!important}.reader-bar.la-bar #laZoomOut,.reader-bar.la-bar #laZoomIn{width:40px!important}.reader-bar.la-bar .reader-zoom{min-width:44px;font-size:.82rem}}';
+    document.head.appendChild(st);
+  }
   currentViewer=d;LA.doc=d;
   $('#viewerTitle').textContent=d.title||d.name||'Documento';
   const type=(d.mime||'').toLowerCase();
@@ -3633,55 +3645,7 @@ function pdfSettingsModal(onSaved){
 }
 
 /* ===== SALVATAGGIO FILE COMPATIBILE ANDROID ===== */
-function scegliCartellaPdf(){
-  return new Promise(resolve=>{
-    const html='<div class="pdf-dest-choice">'
-      +'<p class="meta">Dove vuoi salvare il PDF?</p>'
-      +'<button type="button" class="btn primary" data-pdf-dest="download">📥 Download</button>'
-      +'<button type="button" class="btn" data-pdf-dest="documents">📄 Documenti</button>'
-      +'<p class="meta">Dopo il salvataggio si aprirà automaticamente Condividi.</p>'
-      +'</div>';
-    openModal('Salva PDF',html,null,'Annulla');
-    const saveBtn=document.getElementById('modalSave');if(saveBtn)saveBtn.style.display='none';
-    let done=false;
-    document.querySelectorAll('#modalBody [data-pdf-dest]').forEach(b=>b.onclick=()=>{
-      done=true;const v=b.dataset.pdfDest;modal.close();resolve(v);
-    });
-    modal.addEventListener('close',function once(){modal.removeEventListener('close',once);if(saveBtn)saveBtn.style.display='';if(!done)resolve(null);},{once:true});
-  });
-}
-async function salvaPdfECondividi(nome,blob){
-  const scelta=await scegliCartellaPdf();
-  if(!scelta)return false;
-  const Cap=window.Capacitor,FS=Cap&&Cap.Plugins&&Cap.Plugins.Filesystem,Sh=Cap&&Cap.Plugins&&Cap.Plugins.Share;
-  try{
-    if(FS){
-      const b64=await new Promise((ok,ko)=>{const r=new FileReader();r.onload=()=>ok(String(r.result).split(',')[1]);r.onerror=ko;r.readAsDataURL(blob);});
-      const tentativi=scelta==='download'
-        ?[{dir:'EXTERNAL',path:'Download/MAIR GO/'+nome,dove:'Download/MAIR GO'},{dir:'DOCUMENTS',path:'MAIR GO/'+nome,dove:'Documenti/MAIR GO'},{dir:'DATA',path:nome,dove:'cartella app'}]
-        :[{dir:'DOCUMENTS',path:'MAIR GO/'+nome,dove:'Documenti/MAIR GO'},{dir:'EXTERNAL',path:'Documents/MAIR GO/'+nome,dove:'Documenti/MAIR GO'},{dir:'DATA',path:nome,dove:'cartella app'}];
-      let res=null,dove='';
-      for(const t of tentativi){
-        try{res=await FS.writeFile({path:t.path,data:b64,directory:t.dir,recursive:true});dove=t.dove;break;}
-        catch(e){diagLog('PDF-DIR','fallita '+t.dir+'/'+t.path+': '+(e&&e.message?e.message:e));}
-      }
-      if(res){
-        toast('PDF salvato in '+dove);
-        if(Sh&&res.uri){
-          try{await Sh.share({title:nome,text:nome,url:res.uri,dialogTitle:'Condividi '+nome});}catch(e){diagLog('PDF-SHARE',e&&e.message?e.message:String(e));}
-        }
-        return true;
-      }
-    }
-  }catch(e){diagLog('PDF-SAVE-SHARE',e&&e.message?e.message:String(e));}
-  try{
-    const file=new File([blob],nome,{type:'application/pdf'});
-    const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=nome;a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1500);
-    if(navigator.share&&navigator.canShare&&navigator.canShare({files:[file]}))await navigator.share({title:nome,files:[file]});
-    return true;
-  }catch(e){alert('Impossibile salvare il PDF.');return false;}
-}
-
+/* Condivisione PDF: il file temporaneo viene creato in cache e passato al pannello Condividi di Android. */
 async function salvaFileBlob(nome,blob,mime){
   const CART='MAIR GO';
   try{
@@ -4147,9 +4111,8 @@ function docViewerOpen(title,inner,extraCss,plainText){
       +'#docviewer .dv-title small{display:block;margin-top:2px;color:color-mix(in srgb,var(--accent2) 82%,#fff);font:750 .78rem system-ui}'
       +'#docviewer .dv-tools-wrap{padding:12px max(12px,env(safe-area-inset-right)) 12px max(12px,env(safe-area-inset-left));background:color-mix(in srgb,var(--panel) 78%,transparent);border-bottom:1px solid var(--line)}'
       +'#docviewer .dv-tools-note{text-align:center;margin:0 0 10px;color:var(--muted);font:650 .82rem system-ui}'
-      +'#docviewer .dv-bar{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:10px;max-width:980px;margin:auto;align-items:stretch}'
-      +'#docviewer .dv-bar button{grid-column:span 2;min-height:76px;font:750 .88rem system-ui;padding:11px 8px;border:1px solid color-mix(in srgb,var(--accent) 22%,var(--line));border-radius:16px;background:linear-gradient(145deg,var(--panel),color-mix(in srgb,var(--accent) 8%,var(--panel)));color:var(--ink);white-space:normal;line-height:1.22;box-shadow:0 7px 18px color-mix(in srgb,var(--ink) 10%,transparent)}'
-      +'#docviewer .dv-bar button:nth-child(4),#docviewer .dv-bar button:nth-child(5){grid-column:span 3}'
+      +'#docviewer .dv-bar{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;max-width:760px;margin:auto;align-items:stretch}'
+      +'#docviewer .dv-bar button{min-height:76px;font:750 .88rem system-ui;padding:11px 8px;border:1px solid color-mix(in srgb,var(--accent) 22%,var(--line));border-radius:16px;background:linear-gradient(145deg,var(--panel),color-mix(in srgb,var(--accent) 8%,var(--panel)));color:var(--ink);white-space:normal;line-height:1.22;box-shadow:0 7px 18px color-mix(in srgb,var(--ink) 10%,transparent)}'
       +'#docviewer .dv-bar button.pri{background:linear-gradient(145deg,var(--accent),color-mix(in srgb,var(--accent) 72%,#5c3a16));color:#fff;border-color:var(--accent);box-shadow:0 8px 20px color-mix(in srgb,var(--accent) 38%,transparent)}'
       +'#docviewer .dv-close-float{position:fixed;right:max(16px,env(safe-area-inset-right));bottom:calc(16px + env(safe-area-inset-bottom));z-index:100002;display:grid;place-items:center;min-width:118px;min-height:48px;padding:11px 16px;border:1px solid color-mix(in srgb,var(--accent) 72%,#000);border-radius:18px;background:linear-gradient(145deg,#2b211d,color-mix(in srgb,var(--accent) 28%,#211713));color:#fff;font:750 .95rem system-ui;box-shadow:0 9px 26px #0006}'
       +'#docviewer .dv-scroll{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:16px 12px calc(88px + env(safe-area-inset-bottom));background:transparent}'
@@ -4177,15 +4140,14 @@ function docViewerOpen(title,inner,extraCss,plainText){
     const titleBox=document.createElement('div');titleBox.className='dv-title';titleBox.innerHTML='<strong>'+esc(title||'Apri documento')+'</strong><small>PDF Studio</small>';
     head.append(back,titleBox);host.appendChild(head);
     const toolsWrap=document.createElement('div');toolsWrap.className='dv-tools-wrap';
-    const toolsNote=document.createElement('p');toolsNote.className='dv-tools-note';toolsNote.textContent='Visualizza, modifica e gestisci il tuo documento';
+    const toolsNote=document.createElement('p');toolsNote.className='dv-tools-note';toolsNote.textContent='Impagina, controlla l’anteprima e poi condividi il PDF';
     const bar=document.createElement('div');bar.className='dv-bar';
     const mk=(txt,pri)=>{const b=document.createElement('button');b.textContent=txt;if(pri)b.className='pri';bar.appendChild(b);return b;};
     const bClose=document.createElement('button');
     bClose.className='dv-close-float';
     bClose.textContent='✕ Chiudi';
     bClose.setAttribute('aria-label','Chiudi visualizzatore PDF');
-    const bPrint=mk('\ud83d\udcc4 Salva PDF',true);
-    const bShare=mk('\ud83d\udce4 Condividi PDF');
+    const bShare=mk('\ud83d\udce4 Condividi PDF',true);
     const bCfg=mk('\u2699\ufe0f Impagina');
     const bText=mk('\u270d\ufe0f Testo');
     const bCopy=mk('\ud83d\udccb Copia');
@@ -4248,22 +4210,39 @@ function docViewerOpen(title,inner,extraCss,plainText){
         scroll.scrollTo({top:0,behavior:'smooth'});
       }catch(e){paper.style.display='';paper.innerHTML=originale;note.remove();area.remove();throw e;}
     };
-    const salvaPdf=async()=>{
-      const originale=bPrint.textContent;bPrint.textContent='⏳ Preparazione…';bPrint.disabled=true;bShare.disabled=true;bCfg.disabled=true;
+    const condividiPdf=async()=>{
+      const originale=bShare.textContent;bShare.textContent='⏳ Preparazione…';bShare.disabled=true;bCfg.disabled=true;bText.disabled=true;bCopy.disabled=true;
       try{
         if(!pdfPronto)pdfPronto=await creaPdf();
         if(!pdfPronto)return;
-        await salvaPdfECondividi(safeName(title)+'.pdf',pdfPronto.output('blob'));
-      }catch(e){diagLog('PDF-ERRORE',e&&e.message?e.message:String(e));alert('Impossibile creare il PDF: '+(e&&e.message?e.message:e));}
-      finally{bPrint.textContent=originale;bPrint.disabled=false;bShare.disabled=false;bCfg.disabled=false;}
+        const nome=safeName(title)+'.pdf';
+        const blob=pdfPronto.output('blob');
+        const Cap=window.Capacitor,Plugins=Cap&&Cap.Plugins?Cap.Plugins:{},FS=Plugins.Filesystem,Sh=Plugins.Share;
+        if(FS&&Sh){
+          const b64=await new Promise((ok,ko)=>{const r=new FileReader();r.onload=()=>ok(String(r.result).split(',')[1]);r.onerror=ko;r.readAsDataURL(blob);});
+          const tmpName='condividi-'+Date.now()+'-'+nome;
+          const res=await FS.writeFile({path:tmpName,data:b64,directory:'CACHE'});
+          try{
+            await Sh.share({title:nome,text:'PDF creato con MAIR GO!',url:res.uri,dialogTitle:'Condividi o salva '+nome});
+          }catch(e){
+            const msg=e&&e.message?e.message:String(e);
+            if(!/cancel/i.test(msg))throw e;
+          }
+          setTimeout(()=>{FS.deleteFile({path:tmpName,directory:'CACHE'}).catch(()=>{});},60000);
+          return;
+        }
+        const file=new File([blob],nome,{type:'application/pdf'});
+        if(navigator.share&&navigator.canShare&&navigator.canShare({files:[file]})){await navigator.share({title:nome,files:[file]});return;}
+        const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=nome;a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1500);
+      }catch(e){diagLog('PDF-SHARE',e&&e.message?e.message:String(e));alert('Impossibile condividere il PDF: '+(e&&e.message?e.message:e));}
+      finally{bShare.textContent=originale;bShare.disabled=false;bCfg.disabled=false;bText.disabled=false;bCopy.disabled=false;}
     };
-    bPrint.onclick=salvaPdf;
-    bShare.onclick=salvaPdf;
+    bShare.onclick=condividiPdf;
     bCfg.onclick=()=>pdfSettingsModal(async()=>{
-      const originale=bCfg.textContent;bCfg.textContent='⏳ Anteprima…';bCfg.disabled=true;bPrint.disabled=true;bShare.disabled=true;
+      const originale=bCfg.textContent;bCfg.textContent='⏳ Anteprima…';bCfg.disabled=true;bShare.disabled=true;bText.disabled=true;bCopy.disabled=true;
       try{pdfPronto=await creaPdf();if(pdfPronto){await mostraAnteprimaPdf(pdfPronto);toast('Anteprima aggiornata');}}
       catch(e){alert('Impossibile mostrare l’anteprima: '+(e&&e.message?e.message:e));}
-      finally{bCfg.textContent=originale;bCfg.disabled=false;bPrint.disabled=false;bShare.disabled=false;}
+      finally{bCfg.textContent=originale;bCfg.disabled=false;bShare.disabled=false;bText.disabled=false;bCopy.disabled=false;}
     });
     bText.onclick=()=>{const testo=plainText||paper.innerText;closeIt();requestAnimationFrame(()=>textEditorOpen(title,testo));};
     bCopy.onclick=async()=>{
