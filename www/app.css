@@ -768,3 +768,16 @@ main:has(#agendaList) .toolbar {
   main:has(#saleGrid) .sectionhead,
   main:has(#agendaList) .sectionhead {padding:18px;border-radius:22px}
 }
+
+
+/* ===== MAIR GO UI REFINEMENT ===== */
+.artwork-actions{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));width:min(100%,760px);gap:10px}
+.artwork-actions .btn{width:100%;min-height:48px;display:flex;align-items:center;justify-content:center;text-align:center;padding:10px 12px;line-height:1.2}
+.bottomnav{margin:0 max(8px,env(safe-area-inset-left)) max(7px,env(safe-area-inset-bottom));left:0;right:0;bottom:0;border:1px solid color-mix(in srgb,var(--line) 82%,transparent);border-radius:22px;padding:6px;background:color-mix(in srgb,var(--panel) 93%,transparent);box-shadow:0 10px 34px color-mix(in srgb,var(--ink) 18%,transparent);overflow:hidden}
+.bottomnav button{position:relative;min-height:58px;border-radius:17px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;letter-spacing:.01em}
+.bottomnav button span{width:31px;height:27px;display:grid;place-items:center;border-radius:11px;font-size:1.28rem;transition:transform .18s ease,background .18s ease}
+.bottomnav button.active{color:var(--accent);background:linear-gradient(180deg,color-mix(in srgb,var(--accent) 15%,transparent),color-mix(in srgb,var(--accent) 7%,transparent))}
+.bottomnav button.active span{background:color-mix(in srgb,var(--accent) 16%,transparent);transform:translateY(-1px)}
+.la-toolbar-note{flex:0 0 auto;padding:6px 12px 5px;background:color-mix(in srgb,var(--accent) 11%,var(--panel));color:var(--muted);border-bottom:1px solid var(--line);font-size:.78rem;font-weight:750;text-align:center;letter-spacing:.01em}
+.la-bar{background-image:linear-gradient(90deg,transparent 0,transparent calc(100% - 28px),color-mix(in srgb,var(--panel) 92%,transparent) 100%)}
+@media(max-width:720px){.artwork-actions{grid-template-columns:1fr;width:100%}.artwork-actions .btn{min-height:46px}body{padding-bottom:calc(92px + env(safe-area-inset-bottom))}.bottomnav{margin-left:6px;margin-right:6px;margin-bottom:max(5px,env(safe-area-inset-bottom));padding:5px;border-radius:19px}.bottomnav button{min-height:55px;font-size:.67rem}.la-toolbar-note{text-align:left;padding-left:10px}}
