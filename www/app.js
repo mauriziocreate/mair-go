@@ -4105,7 +4105,7 @@ function docViewerOpen(title,inner,extraCss,plainText){
     const oldc=document.getElementById('docviewer-css');if(oldc)oldc.remove();
     const css=document.createElement('style');css.id='docviewer-css';
     css.textContent='#docviewer{position:fixed;top:0;left:0;right:0;bottom:0;z-index:99999;background:#eee;display:flex;flex-direction:column}'
-      +'#docviewer .dv-bar{display:grid;grid-template-columns:auto repeat(5,minmax(110px,1fr));gap:8px;padding:10px;background:#fff;border-bottom:1px solid #ccc;align-items:center}'
+      +'#docviewer .dv-bar{display:grid;grid-template-columns:auto repeat(5,minmax(110px,1fr));gap:8px;padding:calc(10px + env(safe-area-inset-top)) max(10px,env(safe-area-inset-right)) 10px max(10px,env(safe-area-inset-left));background:#fff;border-bottom:1px solid #ccc;align-items:center}'
       +'#docviewer .dv-bar button{font:600 .9rem system-ui;padding:10px 12px;border:1px solid #bbb;border-radius:8px;background:#fff;color:#111;white-space:nowrap}'
       +'#docviewer .dv-bar button.pri{background:#8a6a1f;color:#fff;border-color:#8a6a1f}'
       +'#docviewer .dv-scroll{flex:1;overflow-y:auto;padding:12px}'
