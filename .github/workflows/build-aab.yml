@@ -36,30 +36,6 @@ jobs:
       - name: Sincronizza i file dell'app
         run: npx cap sync android
 
-      - name: Disattiva edge-to-edge (barra di stato separata, X toccabile)
-        run: |
-          python3 - << 'PYTHEME'
-          from pathlib import Path
-          import re
-          p = Path('android/app/src/main/res/values/styles.xml')
-          s = p.read_text()
-          # aggiungo le proprieta nel tema AppTheme.NoActionBar (il tema dell'app)
-          extra = ('        <item name="android:windowOptOutEdgeToEdgeEnforcement">true</item>\n'
-                   '        <item name="android:statusBarColor">@android:color/black</item>\n'
-                   '        <item name="android:windowLightStatusBar">false</item>\n'
-                   '        <item name="android:fitsSystemWindows">true</item>\n')
-          # inserisco dentro lo style AppTheme.NoActionBar, subito dopo la sua apertura
-          m = re.search(r'(<style name="AppTheme\.NoActionBar"[^>]*>)', s)
-          if m:
-              s = s[:m.end()] + '\n' + extra + s[m.end():]
-          else:
-              # fallback: dentro il primo <style ...>
-              m2 = re.search(r'(<style [^>]*>)', s)
-              if m2:
-                  s = s[:m2.end()] + '\n' + extra + s[m2.end():]
-          p.write_text(s)
-          print(s)
-          PYTHEME
 
       - name: Imposta versionCode automatico e versionName
         run: |
