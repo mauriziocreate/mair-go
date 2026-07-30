@@ -4090,28 +4090,41 @@ function docViewerOpen(title,inner,extraCss,plainText){
     const old=document.getElementById('docviewer');if(old)old.remove();
     const oldc=document.getElementById('docviewer-css');if(oldc)oldc.remove();
     const css=document.createElement('style');css.id='docviewer-css';
-    css.textContent='#docviewer{position:fixed;top:0;left:0;right:0;bottom:0;z-index:99999;background:#eee;display:flex;flex-direction:column}'
-      +'#docviewer .dv-bar{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:8px;padding:calc(10px + env(safe-area-inset-top)) max(10px,env(safe-area-inset-right)) 10px max(10px,env(safe-area-inset-left));background:#fff;border-bottom:1px solid #ccc;align-items:center}'
-      +'#docviewer .dv-bar button{font:600 .9rem system-ui;padding:10px 12px;border:1px solid #bbb;border-radius:8px;background:#fff;color:#111;white-space:nowrap}'
-      +'#docviewer .dv-bar button.pri{background:#8a6a1f;color:#fff;border-color:#8a6a1f}'
-      +'#docviewer .dv-close-float{position:fixed;right:max(16px,env(safe-area-inset-right));bottom:calc(16px + env(safe-area-inset-bottom));z-index:100002;display:grid;place-items:center;min-width:118px;min-height:48px;padding:11px 16px;border:0;border-radius:16px;background:#2b211d;color:#fff;font:700 .95rem system-ui;box-shadow:0 8px 24px #0006}'
-      +'#docviewer .dv-scroll{flex:1;overflow-y:auto;padding:12px 12px calc(82px + env(safe-area-inset-bottom))}'
-      +'#docviewer .dv-paper{background:#fff;color:#111;max-width:900px;margin:0 auto;padding:22px;font-family:Georgia,serif;line-height:1.6}'
+    css.textContent='#docviewer{position:fixed;top:0;left:0;right:0;bottom:0;z-index:99999;background:linear-gradient(160deg,var(--bg),color-mix(in srgb,var(--accent) 12%,var(--bg)));color:var(--ink);display:flex;flex-direction:column}'
+      +'#docviewer .dv-head{display:grid;grid-template-columns:44px minmax(0,1fr);gap:10px;align-items:center;padding:calc(9px + env(safe-area-inset-top)) max(14px,env(safe-area-inset-right)) 10px max(14px,env(safe-area-inset-left));background:linear-gradient(135deg,#241b17,color-mix(in srgb,var(--accent) 75%,#241b17));color:#fff;box-shadow:0 8px 24px #0003}'
+      +'#docviewer .dv-back{width:42px;height:42px;border:0;border-radius:14px;background:#ffffff18;color:#fff;font:700 1.45rem system-ui}'
+      +'#docviewer .dv-title strong{display:block;font:800 1.08rem system-ui;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}'
+      +'#docviewer .dv-title small{display:block;margin-top:2px;color:color-mix(in srgb,var(--accent2) 82%,#fff);font:750 .78rem system-ui}'
+      +'#docviewer .dv-tools-wrap{padding:12px max(12px,env(safe-area-inset-right)) 12px max(12px,env(safe-area-inset-left));background:color-mix(in srgb,var(--panel) 78%,transparent);border-bottom:1px solid var(--line)}'
+      +'#docviewer .dv-tools-note{text-align:center;margin:0 0 10px;color:var(--muted);font:650 .82rem system-ui}'
+      +'#docviewer .dv-bar{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:10px;max-width:980px;margin:auto;align-items:stretch}'
+      +'#docviewer .dv-bar button{grid-column:span 2;min-height:76px;font:750 .88rem system-ui;padding:11px 8px;border:1px solid color-mix(in srgb,var(--accent) 22%,var(--line));border-radius:16px;background:linear-gradient(145deg,var(--panel),color-mix(in srgb,var(--accent) 8%,var(--panel)));color:var(--ink);white-space:normal;line-height:1.22;box-shadow:0 7px 18px color-mix(in srgb,var(--ink) 10%,transparent)}'
+      +'#docviewer .dv-bar button:nth-child(4),#docviewer .dv-bar button:nth-child(5){grid-column:span 3}'
+      +'#docviewer .dv-bar button.pri{background:linear-gradient(145deg,var(--accent),color-mix(in srgb,var(--accent) 72%,#5c3a16));color:#fff;border-color:var(--accent);box-shadow:0 8px 20px color-mix(in srgb,var(--accent) 38%,transparent)}'
+      +'#docviewer .dv-close-float{position:fixed;right:max(16px,env(safe-area-inset-right));bottom:calc(16px + env(safe-area-inset-bottom));z-index:100002;display:grid;place-items:center;min-width:118px;min-height:48px;padding:11px 16px;border:1px solid color-mix(in srgb,var(--accent) 72%,#000);border-radius:18px;background:linear-gradient(145deg,#2b211d,color-mix(in srgb,var(--accent) 28%,#211713));color:#fff;font:750 .95rem system-ui;box-shadow:0 9px 26px #0006}'
+      +'#docviewer .dv-scroll{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:16px 12px calc(88px + env(safe-area-inset-bottom));background:transparent}'
+      +'#docviewer .dv-paper{background:#fff;color:#111;max-width:900px;margin:0 auto;padding:22px;font-family:Georgia,serif;line-height:1.6;box-shadow:0 12px 34px #0002;border-radius:6px}'
       +'#docviewer .dv-paper img{max-width:100%;height:auto}'
       +'#docviewer .dv-paper table{width:100%;border-collapse:collapse;margin:14px 0}'
       +'#docviewer .dv-paper td{padding:9px 12px;border-bottom:1px solid #ddd}'
       +'#docviewer .dv-paper .art{display:flex;gap:18px;margin:22px 0;flex-wrap:wrap}'
       +'#docviewer .dv-paper .art img{max-width:240px;border:1px solid #ccc}'
       +'#docviewer .dv-paper .art>div{flex:1 1 220px}'
-      +'@media(max-width:760px){#docviewer .dv-bar{grid-template-columns:repeat(2,minmax(0,1fr))}#docviewer .dv-bar button{padding:10px 6px;font-size:.82rem}}'+'@media(max-width:390px){#docviewer .dv-bar{grid-template-columns:repeat(2,minmax(0,1fr))}#docviewer .dv-close-float{right:max(12px,env(safe-area-inset-right));bottom:calc(12px + env(safe-area-inset-bottom));min-width:108px}}'+'@media print{#app,header,nav,.topbar,#toast{display:none!important}'
+      +'@media(max-width:760px){#docviewer .dv-tools-wrap{padding:10px}#docviewer .dv-bar{gap:8px}#docviewer .dv-bar button{min-height:68px;padding:9px 6px;font-size:.8rem;border-radius:14px}}'+'@media(max-width:390px){#docviewer .dv-head{grid-template-columns:40px minmax(0,1fr);padding-left:10px;padding-right:10px}#docviewer .dv-back{width:38px;height:38px}#docviewer .dv-tools-note{font-size:.75rem}#docviewer .dv-bar{gap:7px}#docviewer .dv-bar button{min-height:64px;font-size:.75rem}#docviewer .dv-close-float{right:max(12px,env(safe-area-inset-right));bottom:calc(12px + env(safe-area-inset-bottom));min-width:108px}}'+'@media print{#app,header,nav,.topbar,#toast{display:none!important}'
       +'#docviewer{position:static!important;background:#fff!important}'
-      +'#docviewer .dv-bar{display:none!important}'
+      +'#docviewer .dv-head,#docviewer .dv-tools-wrap,#docviewer .dv-bar,#docviewer .dv-close-float{display:none!important}'
       +'#docviewer .dv-scroll{overflow:visible!important;padding:0!important}'
       +'#docviewer .dv-paper{max-width:none!important;padding:0!important}}'
       +(extraCss||'');
     document.head.appendChild(css);
 
     const host=document.createElement('div');host.id='docviewer';
+    const head=document.createElement('div');head.className='dv-head';
+    const back=document.createElement('button');back.className='dv-back';back.textContent='←';back.setAttribute('aria-label','Chiudi e torna indietro');
+    const titleBox=document.createElement('div');titleBox.className='dv-title';titleBox.innerHTML='<strong>'+esc(title||'Apri documento')+'</strong><small>PDF Studio</small>';
+    head.append(back,titleBox);host.appendChild(head);
+    const toolsWrap=document.createElement('div');toolsWrap.className='dv-tools-wrap';
+    const toolsNote=document.createElement('p');toolsNote.className='dv-tools-note';toolsNote.textContent='Visualizza, modifica e gestisci il tuo documento';
     const bar=document.createElement('div');bar.className='dv-bar';
     const mk=(txt,pri)=>{const b=document.createElement('button');b.textContent=txt;if(pri)b.className='pri';bar.appendChild(b);return b;};
     const bClose=document.createElement('button');
@@ -4123,7 +4136,7 @@ function docViewerOpen(title,inner,extraCss,plainText){
     const bCfg=mk('\u2699\ufe0f Impagina');
     const bText=mk('\u270d\ufe0f Testo');
     const bCopy=mk('\ud83d\udccb Copia');
-    host.appendChild(bar);
+    toolsWrap.append(toolsNote,bar);host.appendChild(toolsWrap);
     host.appendChild(bClose);
 
     const scroll=document.createElement('div');scroll.className='dv-scroll';
@@ -4134,6 +4147,7 @@ function docViewerOpen(title,inner,extraCss,plainText){
 
     const closeIt=()=>{host.remove();css.remove()};
     bClose.onclick=closeIt;
+    back.onclick=closeIt;
     const generaPDF=async(condividi)=>{
       const btn=condividi?bShare:bPrint;
       const originale=btn.textContent;
