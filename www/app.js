@@ -539,6 +539,9 @@ const I18N={
   "Scarica":"Download",
   "Seleziona":"Select",
   "Rimuovi":"Remove",
+
+  "Contatti, clienti, vendite e materiali per promuovere il tuo lavoro.":"Contacts, clients, sales and materials to promote your work.",
+  "Impostazioni, backup, guida e assistenza dell’app.":"Settings, backup, guide and support for the app.",
 };
 function appLang(){return (db&&db.settings&&db.settings.lang)||'it';}
 function T(testo){
@@ -555,7 +558,7 @@ function diagOpen(){
   box.setAttribute('style','position:fixed;top:0;left:0;right:0;bottom:0;z-index:999999;background:#111;color:#0f0;font:12px/1.5 monospace;padding:10px;overflow:auto');
   const testo=window.__LOG__.length?window.__LOG__.join('\n\n'):'(nessun errore registrato)';
   const info='DIAGNOSTICA MAIR GO!\n'
-    +'Versione app.js: 20.3\n'
+    +'Versione app.js: 21.0\n'
     +'docViewerOpen esiste: '+(typeof docViewerOpen)+'\n'
     +'textEditorOpen esiste: '+(typeof textEditorOpen)+'\n'
     +'certDocHtml esiste: '+(typeof certDocHtml)+'\n'
@@ -698,7 +701,7 @@ function clone(x){return JSON.parse(JSON.stringify(x))}function load(){try{const
   updateHeader();
   return persistentSave;
 }const uid=()=>crypto.randomUUID?.()||Date.now().toString(36)+Math.random().toString(36).slice(2);const esc=s=>String(s??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));const euro=n=>n?new Intl.NumberFormat('it-IT',{style:'currency',currency:'EUR'}).format(+n):'';function toast(t){const x=$('#toast');x.textContent=T(t);x.classList.add('show');setTimeout(()=>x.classList.remove('show'),1800)}function download(blob,name){const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=name;a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1000)}
-const titles={home:'MAIR GO!',archive:'Archivio',new:'Crea nuovo',activity:'Attività',more:'Altro',artworks:'Opere',library:'Biblioteca Pro',pdfstudio:'PDF Studio',settings:'Impostazioni',info:'Informazioni',timeline:'Timeline',workspace:'Workspace',exhibitions:'Mostre',clients:'Clienti',sales:'Vendite',agenda:'Agenda',certificates:'Certificati',social:'Zona Social',links:'Link utili',pros:'Curatori e critici',galleries:'Gallerie',certpreview:'Certificato',guide:'Guida offline',contact:'Contatti e segnalazioni'};function updateHeader(){document.documentElement.dataset.theme=db.settings.theme;document.documentElement.dataset.accent=db.settings.accent||'oro';document.documentElement.dataset.font=db.settings.fontSize||'medium';document.documentElement.classList.toggle('reduce-motion',db.settings.animations===false);$('#pageTitle').textContent=T(titles[route]||'MAIR GO!');$('#pageSub').textContent=route==='home'?T('Il tuo atelier digitale'):db.settings.artist;document.querySelectorAll('.bottomnav button').forEach(b=>{const r=b.dataset.route;const active=r===route||(HUB_GROUPS[r]||[]).includes(route);b.classList.toggle('active',active)});traduciNav();traduciStatici()}
+const titles={home:'MAIR GO!',archive:'Archivio',new:'Crea nuovo',activity:'Vendite',more:'Altro',artworks:'Opere',library:'Biblioteca Pro',pdfstudio:'PDF Studio',settings:'Impostazioni',info:'Informazioni',timeline:'Timeline',workspace:'Workspace',exhibitions:'Mostre',clients:'Clienti',sales:'Vendite',agenda:'Agenda',certificates:'Certificati',social:'Zona Social',links:'Link utili',pros:'Curatori e critici',galleries:'Gallerie',certpreview:'Certificato',guide:'Guida offline',contact:'Contatti e segnalazioni'};function updateHeader(){document.documentElement.dataset.theme=db.settings.theme;document.documentElement.dataset.accent=db.settings.accent||'oro';document.documentElement.dataset.font=db.settings.fontSize||'medium';document.documentElement.classList.toggle('reduce-motion',db.settings.animations===false);$('#pageTitle').textContent=T(titles[route]||'MAIR GO!');$('#pageSub').textContent=route==='home'?T('Il tuo atelier digitale'):db.settings.artist;document.querySelectorAll('.bottomnav button').forEach(b=>{const r=b.dataset.route;const active=r===route||(HUB_GROUPS[r]||[]).includes(route);b.classList.toggle('active',active)});traduciNav();traduciStatici()}
 function traduciValoreUI(testo){
   if(appLang()!=='en'||typeof testo!=='string'||!testo)return testo;
   const iniziale=testo;
@@ -853,15 +856,15 @@ const HOME_TILES={
 const HOME_DEFAULT={
   titolo:'',sottotitolo:'',immagine:'',
   stats:['opere','disponibili','vendute','documenti'],
-  tiles:['artworks','exhibitions','workspace','pdfstudio','library','galleries','pros','clients','sales','agenda','social'],
+  tiles:['artworks','exhibitions','galleries','workspace','agenda','links'],
   azione:'newArtwork'
 };
 function homeCfg(){
   const h=db.settings.home||{};
   const preferred=HOME_DEFAULT.tiles.slice();
-  if(!h.layoutVersion||h.layoutVersion<4){
+  if(!h.layoutVersion||h.layoutVersion<5){
     h.tiles=preferred;
-    h.layoutVersion=4;
+    h.layoutVersion=5;
     db.settings.home=h;
     try{save()}catch(e){}
   }
@@ -1439,12 +1442,12 @@ function homeCustomizeModal(){
 
 
 /* ===================== NAVIGAZIONE UNIFICATA 10.0 ===================== */
-const HOME_ESCLUSE=['timeline','settings','guide','info','contact'];
+const HOME_ESCLUSE=['pdfstudio','library','certificates','pros','clients','sales','social','timeline','settings','guide','info','contact'];
 const HUB_GROUPS={
-  archive:['archive','artworks','library','pdfstudio','certificates','workspace'],
+  archive:['archive','artworks','pdfstudio','library','certificates','workspace','timeline'],
   new:['new'],
-  activity:['activity','agenda','exhibitions','clients','sales','timeline'],
-  more:['more','social','links','pros','galleries','settings','guide','info','contact']
+  activity:['activity','pros','clients','sales','certificates','social'],
+  more:['more','settings','archiveTools','guide','info','contact']
 };
 function hubTile(route,icon,title,desc,count){
   const badge=count===undefined||count===null?'':`<span class="hub-count">${count}</span>`;
@@ -1454,10 +1457,11 @@ function archiveView(){
   return `${section('Archivio')}<p class="section-intro">Tutto ciò che appartiene al tuo patrimonio artistico e documentale, organizzato in un solo punto.</p>
   <div class="hub-grid">
     ${hubTile('artworks','🎨','Opere','Schede, fotografie, filtri, prezzi e stato.',db.artworks.length)}
+    ${hubTile('pdfstudio','📄','PDF Studio','Cataloghi, dossier, listini e portfolio.',db.pdfProjects.length)}
     ${hubTile('library','📚','Biblioteca','PDF, DOCX, immagini, testi e appunti.',db.library.length)}
     ${hubTile('certificates','✦','Certificati','Autenticità, vendita, provenienza e ristampe.',db.certificates.length)}
-    ${hubTile('pdfstudio','📄','PDF Studio','Cataloghi, dossier, listini e portfolio.',db.pdfProjects.length)}
     ${hubTile('workspace','🧰','Workspace','Progetti che uniscono opere, documenti e contatti.',db.workspaces.length)}
+    ${hubTile('timeline','🕒','Timeline','Cronologia generale delle attività.',null)}
   </div>`;
 }
 function newView(){
@@ -1477,35 +1481,26 @@ function newView(){
 }
 function activityView(){
   const aperte=(db.sales||[]).filter(x=>Number(x.paid||0)<Number(x.amount||x.total||0)).length;
-  return `${section('Attività')}<p class="section-intro">Persone, eventi e operazioni quotidiane dell’atelier.</p>
+  return `${section('Vendite')}<p class="section-intro">Contatti, clienti, vendite e materiali per promuovere il tuo lavoro.</p>
   <div class="hub-grid">
-    ${hubTile('agenda','📅','Agenda','Impegni, scadenze e promemoria.',db.agenda.length)}
-    ${hubTile('exhibitions','🏛️','Mostre','Esposizioni, sedi, date e cataloghi.',db.exhibitions.length)}
+    ${hubTile('pros','👤','Curatori e critici','Contatti professionali e giornalisti.',(db.pros||[]).length)}
     ${hubTile('clients','👥','Clienti','Collezionisti, galleristi e storico acquisti.',db.clients.length)}
     ${hubTile('sales','💶','Vendite','Trattative, incassi, residui e ricevute.',db.sales.length)}
-    ${hubTile('timeline','🕒','Timeline','Cronologia generale delle attività.',null)}
+    ${hubTile('certificates','✦','Certificati','Autenticità, vendita, provenienza.',(db.certificates||[]).length)}
+    ${hubTile('social','📱','Zona Social','Prepara immagini e sequenze per i social.',null)}
   </div>${aperte?`<div class="attention-card"><span>⚠️</span><div><strong>${aperte} vendit${aperte===1?'a':'e'} con pagamento da verificare</strong><small>Apri Vendite per controllare saldo e incassi.</small></div><button class="btn" data-go="sales">Controlla</button></div>`:''}`;
 }
 function moreView(){
-  return `${section('Altro')}<p class="section-intro">Comunicazione, rete professionale, sicurezza e configurazione dell’app.</p>
-  <div class="hub-section"><h3>Comunicazione</h3><div class="hub-grid compact">
-    ${hubTile('social','📱','Zona Social','Prepara immagini e sequenze per i social.',null)}
-    ${hubTile('links','🔗','Link utili','Siti, bandi, riviste e risorse.',(db.links||[]).length)}
-  </div></div>
-  <div class="hub-section"><h3>Rete professionale</h3><div class="hub-grid compact">
-    ${hubTile('pros','👤','Curatori e critici','Contatti professionali e giornalisti.',(db.pros||[]).length)}
-    ${hubTile('galleries','🏛️','Gallerie','Spazi espositivi, referenti e recapiti.',(db.galleries||[]).length)}
-  </div></div>
+  return `${section('Altro')}<p class="section-intro">Impostazioni, backup, guida e assistenza dell\u2019app.</p>
   <div class="hub-section"><h3>App e sicurezza</h3><div class="hub-grid compact">
     ${hubTile('settings','⚙️','Impostazioni e Backup','Aspetto, profilo, PIN, liste, backup e ripristino.',null)}
     ${hubTile('archiveTools','📊','Esportazione dati/Excel','Excel con immagini, ZIP completo, catalogo HTML, importazione e controllo archivio.',null)}
     ${hubTile('guide','📖','Guida offline','Istruzioni per usare ogni funzione.',null)}
-    ${hubTile('info','ℹ️','Informazioni','Versione, privacy e note dell’app.',null)}
+    ${hubTile('info','ℹ️','Informazioni','Versione, privacy e note dell\u2019app.',null)}
     ${hubTile('contact','✉️','Assistenza','Segnalazioni e richieste.',null)}
   </div></div>
   <section class="dona-banner" data-action="dona" style="margin-top:18px"><span class="dona-cuore">❤️</span><div><strong>${T('Sostieni MAIR GO!')}</strong><p>${T('App gratuita e senza pubblicità. Una donazione aiuta a tenerla viva.')}</p></div><span class="dona-freccia">›</span></section>`;
 }
-
 const views={home:()=>homeView(),archive:()=>archiveView(),new:()=>newView(),activity:()=>activityView(),more:()=>moreView(),social:()=>socialView(),links:()=>linksView(),pros:()=>proView(),galleries:()=>galleriesView(),artworks:()=>`${section('Archivio opere','<div class="row"><button class="btn primary" data-action="newArtwork">＋ Nuova opera</button><button class="btn" data-action="bulkImportArtworks">🖼️ Importa più opere</button><button class="btn" data-action="optimizeArtworkImages">⚡ Ottimizza immagini</button></div>')}<section class="hero"><h2>Il tuo archivio artistico</h2><p>Organizza e gestisci le tue opere artistiche, con immagini, schede, prezzi e stato.</p></section><details class="filterpanel"><summary>Filtri avanzati</summary><div class="filtergrid"><input id="artSearch" class="search" placeholder="Cerca in ogni campo…"><select id="artStatus"><option value="">Stato: tutti</option>${db.settings.lists.statuses.map(x=>`<option>${esc(x)}</option>`)}</select><select id="artYear"><option value="">Anno: tutti</option>${[...new Set(db.artworks.map(a=>a.year).filter(Boolean))].sort().reverse().map(x=>`<option>${esc(x)}</option>`)}</select><select id="artTechnique"><option value="">Tecnica: tutte</option>${db.settings.lists.techniques.map(x=>`<option>${esc(x)}</option>`)}</select><select id="artSupport"><option value="">Supporto: tutti</option>${db.settings.lists.supports.map(x=>`<option>${esc(x)}</option>`)}</select><select id="artDimension"><option value="">Dimensione: tutte</option>${db.settings.lists.dimensions.map(x=>`<option>${esc(x)}</option>`)}</select><select id="artFrame"><option value="">Cornice: tutte</option>${db.settings.lists.frames.map(x=>`<option>${esc(x)}</option>`)}</select><input id="artCollection" placeholder="Serie / collezione"><input id="artLocation" placeholder="Posizione"><select id="artFavorite"><option value="">Preferiti: tutti</option><option value="yes">Solo preferiti</option></select><input id="artMinPrice" type="number" placeholder="Prezzo minimo"><input id="artMaxPrice" type="number" placeholder="Prezzo massimo"><button class="btn" data-action="resetArtworkFilters">Azzera filtri</button></div><div id="filterCount" class="meta"></div></details><div id="artGrid" class="grid">${db.artworks.slice(0,24).map(artworkCard).join('')||empty('🎨','Non hai ancora inserito opere.','<button class="btn primary" data-action="newArtwork">Aggiungi la prima opera</button>')}</div>`,
 library:()=>`${section('Biblioteca Pro','<button class="btn primary" data-action="newLibrary">＋ Carica file</button>')}<section class="hero"><h2>La tua biblioteca professionale</h2><p>Organizza PDF, DOCX, immagini, cataloghi, testi e appunti in un unico archivio.</p></section><div class="toolbar"><input id="libSearch" class="search" 'Cerca titolo, autore, tag, descrizione e note…')}"><select id="libType"><option value="">Tutti i file</option><option value="pdf">PDF</option><option value="doc">Documenti</option><option value="image">Immagini</option><option value="fav">Preferiti</option><option value="linked">Collegati alle opere</option></select><select id="libCat"><option value="">Tutte le categorie</option>${db.settings.lists.categories.map(x=>`<option>${esc(x)}</option>`)}</select></div><div id="libGrid" class="grid">${db.library.map(libCard).join('')||empty('📚','Carica PDF, DOCX, testi, immagini, cataloghi e schede tecniche.','<button class="btn primary" data-action="newLibrary">Carica il primo file</button>')}</div>`,
 pdfstudio:()=>`${section('PDF Studio','<button class="btn primary" data-action="newPdfProject">＋ Nuovo PDF</button>')}<section class="hero"><h2>Documenti altamente personalizzabili</h2><p>Crea stampe dell'archivio, cataloghi di esposizioni e PDF filtrati. Scegli tema, copertina, campi, testi e opere; poi salva in PDF o condividi.</p></section><div class="template-row"><span class="badge">Archivio</span><span class="badge">Catalogo mostra</span><span class="badge">Portfolio</span><span class="badge">Listino</span><span class="badge">Dossier</span><span class="badge">Certificato</span></div><div class="grid">${db.pdfProjects.map(p=>`<article class="card"><div class="cardbody"><h3>${esc(p.title)}</h3><div class="meta">${esc(p.type)} · ${(p.artworkIds||[]).length} opere · ${esc(p.theme)}</div><p>${esc(p.subtitle||'')}</p><div class="row"><button class="btn primary" data-action="openPdfProject" data-id="${p.id}">Apri</button><button class="btn" data-action="editPdfProject" data-id="${p.id}">Modifica</button><button class="btn danger" data-action="deletePdfProject" data-id="${p.id}">Elimina</button></div></div></article>`).join('')||empty('📄','Crea il tuo primo catalogo, inventario o dossier.','<button class="btn primary" data-action="newPdfProject">Nuovo PDF</button>')}</div>`,
