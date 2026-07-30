@@ -1,4 +1,4 @@
-const APP_VERSION='21.8';
+const APP_VERSION='21.9';
 /* ===== DIAGNOSTICA (registro errori visibile dal telefono) ===== */
 window.__LOG__=[];
 /* ===== SISTEMA TRADUZIONE IT/EN ===== */
@@ -2784,14 +2784,14 @@ function openLibrary(id){
   const d=db.library.find(x=>x.id===id);if(!d)return;
   if(!document.getElementById('la-toolbar-compact-css')){
     const st=document.createElement('style');st.id='la-toolbar-compact-css';
-    st.textContent='.la-toolbar-note{padding:9px 14px;font-size:.82rem;line-height:1.2}'
-      +'.reader-bar.la-bar{display:flex!important;align-items:center;gap:6px!important;overflow-x:auto!important;overscroll-behavior-x:contain;-webkit-overflow-scrolling:touch;scrollbar-width:thin;padding:8px 18px 9px 10px!important;box-sizing:border-box;width:100%}'
-      +'.reader-bar.la-bar .btn{flex:0 0 auto!important;min-width:auto!important;padding:8px 12px!important;white-space:nowrap;font-size:.86rem!important;border-radius:13px!important}'
-      +'.reader-bar.la-bar [data-la-mode]{padding-left:13px!important;padding-right:13px!important}'
-      +'.reader-bar.la-bar #laZoomOut,.reader-bar.la-bar #laZoomIn{width:44px!important;padding-left:0!important;padding-right:0!important}'
-      +'.reader-bar.la-bar .reader-zoom{flex:0 0 auto;min-width:48px;text-align:center;font-size:.88rem;padding:0 2px}'
-      +'.reader-bar.la-bar #laFit{margin-right:2px}'
-      +'@media(max-width:390px){.reader-bar.la-bar{gap:5px!important;padding-left:8px!important;padding-right:20px!important}.reader-bar.la-bar .btn{padding:7px 10px!important;font-size:.8rem!important}.reader-bar.la-bar #laZoomOut,.reader-bar.la-bar #laZoomIn{width:40px!important}.reader-bar.la-bar .reader-zoom{min-width:44px;font-size:.82rem}}';
+    st.textContent='.la-toolbar-note{padding:8px 12px;font-size:.8rem;line-height:1.2;text-align:center}'
+      +'.reader-bar.la-bar{display:grid!important;grid-template-columns:1.05fr 1.18fr .58fr .82fr .58fr 1.05fr;align-items:center;gap:6px!important;overflow:visible!important;padding:8px 10px 10px!important;box-sizing:border-box;width:100%}'
+      +'.reader-bar.la-bar .btn{min-width:0!important;width:100%!important;padding:8px 5px!important;white-space:nowrap;font-size:.82rem!important;border-radius:13px!important;box-sizing:border-box}'
+      +'.reader-bar.la-bar #laZoomOut,.reader-bar.la-bar #laZoomIn{padding-left:0!important;padding-right:0!important}'
+      +'.reader-bar.la-bar .reader-zoom{min-width:0!important;text-align:center;font-size:.82rem;padding:0 1px;white-space:nowrap}'
+      +'.reader-bar.la-bar #laPageLbl{grid-column:1 / 3;justify-self:start;width:auto!important;padding-left:8px}'
+      +'.reader-bar.la-bar #laText{grid-column:3 / 7;width:100%!important}'
+      +'@media(max-width:390px){.reader-bar.la-bar{gap:4px!important;padding-left:7px!important;padding-right:7px!important}.reader-bar.la-bar .btn{padding:7px 3px!important;font-size:.74rem!important}.reader-bar.la-bar .reader-zoom{font-size:.76rem!important}.la-toolbar-note{font-size:.76rem}}';
     document.head.appendChild(st);
   }
   currentViewer=d;LA.doc=d;
@@ -2804,7 +2804,7 @@ function openLibrary(id){
   // barra: per PDF quella completa di LetturArt
   let bar;
   if(isPdf){
-    bar='<div class="la-toolbar-note" aria-hidden="true">Scorri la barra per vedere tutti gli strumenti →</div><div class="reader-bar la-bar">'
+    bar='<div class="la-toolbar-note" aria-hidden="true">Strumenti PDF</div><div class="reader-bar la-bar">'
       +'<button class="btn" data-la-mode="page">Pagina</button>'
       +'<button class="btn active" data-la-mode="continuous">Continuo</button>'
       +'<button class="btn" id="laZoomOut">\u2212</button>'
