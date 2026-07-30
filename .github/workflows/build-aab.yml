@@ -36,15 +36,41 @@ jobs:
       - name: Sincronizza i file dell'app
         run: npx cap sync android
 
-      - name: Imposta versionCode e versionName
+      - name: Disattiva edge-to-edge (barra di stato separata, X toccabile)
+        run: |
+          python3 - << 'PYTHEME'
+          from pathlib import Path
+          import re
+          p = Path('android/app/src/main/res/values/styles.xml')
+          s = p.read_text()
+          # aggiungo le proprieta nel tema AppTheme.NoActionBar (il tema dell'app)
+          extra = ('        <item name="android:windowOptOutEdgeToEdgeEnforcement">true</item>\n'
+                   '        <item name="android:statusBarColor">@android:color/black</item>\n'
+                   '        <item name="android:windowLightStatusBar">false</item>\n'
+                   '        <item name="android:fitsSystemWindows">true</item>\n')
+          # inserisco dentro lo style AppTheme.NoActionBar, subito dopo la sua apertura
+          m = re.search(r'(<style name="AppTheme\.NoActionBar"[^>]*>)', s)
+          if m:
+              s = s[:m.end()] + '\n' + extra + s[m.end():]
+          else:
+              # fallback: dentro il primo <style ...>
+              m2 = re.search(r'(<style [^>]*>)', s)
+              if m2:
+                  s = s[:m2.end()] + '\n' + extra + s[m2.end():]
+          p.write_text(s)
+          print(s)
+          PYTHEME
+
+      - name: Imposta versionCode automatico e versionName
         run: |
           python3 - << 'PYVER'
           import re
           p='android/app/build.gradle'
           s=open(p).read()
-          # CAMBIA QUESTO NUMERO a ogni caricamento su Google Play (deve solo salire: 11, 12, 13...)
-          vc='15'
-          vn='1.0.15'
+          # versionCode AUTOMATICO: cresce da solo a ogni build (numero build GitHub + 100)
+          # cosi e sempre piu alto del precedente, senza doverlo cambiare a mano
+          vc=str(${{ github.run_number }} + 100)
+          vn='1.0.' + str(${{ github.run_number }})
           s=re.sub(r'versionCode\s+\d+', 'versionCode '+vc, s, count=1)
           s=re.sub(r'versionName\s+"[^"]*"', 'versionName "'+vn+'"', s, count=1)
           open(p,'w').write(s)
