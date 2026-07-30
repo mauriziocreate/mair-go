@@ -1,3 +1,4 @@
+const APP_VERSION='21.2';
 /* ===== DIAGNOSTICA (registro errori visibile dal telefono) ===== */
 window.__LOG__=[];
 /* ===== SISTEMA TRADUZIONE IT/EN ===== */
@@ -558,7 +559,7 @@ function diagOpen(){
   box.setAttribute('style','position:fixed;top:0;left:0;right:0;bottom:0;z-index:999999;background:#111;color:#0f0;font:12px/1.5 monospace;padding:10px;overflow:auto');
   const testo=window.__LOG__.length?window.__LOG__.join('\n\n'):'(nessun errore registrato)';
   const info='DIAGNOSTICA MAIR GO!\n'
-    +'Versione app.js: 21.1\n'
+    +'Versione app.js: '+APP_VERSION+'\n'
     +'docViewerOpen esiste: '+(typeof docViewerOpen)+'\n'
     +'textEditorOpen esiste: '+(typeof textEditorOpen)+'\n'
     +'certDocHtml esiste: '+(typeof certDocHtml)+'\n'
@@ -2484,7 +2485,7 @@ function guideView(){return appLang()==='en'?guideViewEN():guideViewIT();}
 
 function infoViewEN(){return `${section('About')}<section class="legal-card"><div class="about-logo">M</div><h2>MAIR GO!</h2>
 <p class="lead"><strong>Art Management System created by the international artist Maurizio D'Andrea.</strong></p>
-<p><span class="badge">Version 1.0</span></p>
+<p><span class="badge">Version 1.0 (build ${APP_VERSION})</span></p>
 <p>Free application to manage artworks, documents, catalogs, certificates, exhibitions, galleries, curators and critics, useful links, clients, sales and agenda. Distributed without guaranteed support service.</p>
 
 <h3>&#128274; Your privacy, concretely</h3>
@@ -2543,7 +2544,7 @@ ${area('Messaggio','contactMessage','')}
 
 function infoViewIT(){return `${section('Informazioni')}<section class="legal-card"><div class="about-logo">M</div><h2>MAIR GO!</h2>
 <p class="lead"><strong>Art Management System creato dall'artista internazionale Maurizio D'Andrea.</strong></p>
-<p><span class="badge">Versione 1.0</span></p>
+<p><span class="badge">Versione 1.0 (build ${APP_VERSION})</span></p>
 <p>Applicazione gratuita per gestire opere, documenti, cataloghi, certificati, mostre, gallerie, curatori e critici, link utili, clienti, vendite e agenda. Distribuita senza servizio di assistenza garantito.</p>
 
 <h3>&#128274; La tua privacy, in concreto</h3>
